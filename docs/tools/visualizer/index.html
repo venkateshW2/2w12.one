@@ -109,12 +109,31 @@
             gap: 20px;
         }
 
-        /* Controls Panel */
+        /* Controls Panel - Collapsible */
         .controls-panel {
             background: var(--card-bg);
             border: 1px solid var(--border-color);
             border-radius: 6px;
-            padding: 25px;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .controls-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 25px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            border-bottom: 1px solid transparent;
+        }
+
+        .controls-header:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .controls-panel.collapsed .controls-header {
+            border-bottom-color: var(--border-color);
         }
 
         .controls-title {
@@ -123,7 +142,55 @@
             color: var(--text-muted);
             text-transform: uppercase;
             letter-spacing: 1px;
-            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .controls-toggle {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            color: var(--text-secondary);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 3px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .controls-toggle:hover {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        .controls-toggle::before {
+            content: '▼';
+            margin-right: 6px;
+            transition: transform 0.3s ease;
+            display: inline-block;
+        }
+
+        .controls-panel.collapsed .controls-toggle::before {
+            transform: rotate(-90deg);
+        }
+
+        .controls-content {
+            max-height: 500px;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            opacity: 1;
+        }
+
+        .controls-panel.collapsed .controls-content {
+            max-height: 0;
+            opacity: 0;
+        }
+
+        .controls-inner {
+            padding: 0 25px 25px;
         }
 
         .controls-grid {
@@ -155,6 +222,7 @@
             font-family: 'JetBrains Mono', monospace;
             font-size: 11px;
             color: var(--text-primary);
+            transition: border-color 0.3s ease;
         }
 
         .control-input:focus {
@@ -171,6 +239,11 @@
             outline: none;
             border-radius: 1px;
             margin: 5px 0;
+            transition: background 0.3s ease;
+        }
+
+        .slider:hover {
+            background: var(--accent-color);
         }
 
         .slider::-webkit-slider-thumb {
@@ -181,6 +254,12 @@
             background: var(--accent-color);
             cursor: pointer;
             border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .slider::-webkit-slider-thumb:hover {
+            background: var(--text-primary);
+            transform: scale(1.2);
         }
 
         .slider::-moz-range-thumb {
@@ -190,6 +269,12 @@
             cursor: pointer;
             border-radius: 50%;
             border: none;
+            transition: all 0.3s ease;
+        }
+
+        .slider::-moz-range-thumb:hover {
+            background: var(--text-primary);
+            transform: scale(1.2);
         }
 
         .slider-value {
@@ -206,6 +291,12 @@
             border-radius: 4px;
             cursor: pointer;
             padding: 0;
+            transition: all 0.3s ease;
+        }
+
+        .color-input:hover {
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
         .start-btn {
@@ -226,12 +317,25 @@
         .start-btn:hover {
             background: var(--text-primary);
             transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
 
         .start-btn:disabled {
             background: var(--text-muted);
             cursor: not-allowed;
             transform: none;
+            box-shadow: none;
+        }
+
+        /* Status Indicator in Header */
+        .controls-status {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 9px;
+            color: var(--text-muted);
+            background: rgba(255, 255, 255, 0.5);
+            padding: 4px 8px;
+            border-radius: 3px;
+            border: 1px solid var(--border-color);
         }
 
         /* Visualization Tabs */
@@ -259,9 +363,16 @@
             transition: all 0.3s ease;
         }
 
+        .viz-tab:hover {
+            background: rgba(255, 255, 255, 0.7);
+            color: var(--text-primary);
+        }
+
         .viz-tab.active {
             background: var(--accent-color);
             color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
         /* Visualization Container */
@@ -422,6 +533,14 @@
             .info-grid {
                 grid-template-columns: 1fr 1fr;
             }
+
+            .controls-header {
+                padding: 15px 20px;
+            }
+
+            .controls-inner {
+                padding: 0 20px 20px;
+            }
         }
 
         /* Error Message */
@@ -451,60 +570,70 @@
 
     <!-- Main Container -->
     <div class="container">
-        <!-- Controls Panel -->
-        <div class="controls-panel">
-            <div class="controls-title">Audio Analysis Controls</div>
+        <!-- Controls Panel - Collapsible -->
+        <div class="controls-panel" id="controlsPanel">
+            <div class="controls-header" id="controlsHeader">
+                <div class="controls-title">
+                    <span>Audio Analysis Controls</span>
+                    <div class="controls-status" id="controlsStatus">READY</div>
+                </div>
+                <button class="controls-toggle" id="controlsToggle">COLLAPSE</button>
+            </div>
             
-            <div class="controls-grid">
-                <div class="control-group">
-                    <label class="control-label">Start Analysis</label>
-                    <button id="startBtn" class="start-btn">Start Analysis</button>
-                </div>
-                
-                <div class="control-group">
-                    <label class="control-label">Audio Input Device</label>
-                    <select id="deviceSelect" class="control-input">
-                        <option>Select device after starting...</option>
-                    </select>
-                </div>
-                
-                <div class="control-group">
-                    <label class="control-label">Threshold</label>
-                    <input type="range" id="thresholdSlider" class="slider" min="-60" max="0" value="-40">
-                    <div class="slider-value" id="thresholdValue">-40 dB</div>
-                </div>
-                
-                <div class="control-group">
-                    <label class="control-label">RMS Window</label>
-                    <input type="range" id="rmsWindowSlider" class="slider" min="10" max="500" value="100">
-                    <div class="slider-value" id="rmsWindowValue">100 ms</div>
-                </div>
-                
-                <div class="control-group">
-                    <label class="control-label">Slope Weight</label>
-                    <input type="range" id="slopeSlider" class="slider" min="0" max="10" step="0.1" value="0">
-                    <div class="slider-value" id="slopeValue">0.0</div>
-                </div>
-                
-                <div class="control-group">
-                    <label class="control-label">Gain</label>
-                    <input type="range" id="gainSlider" class="slider" min="0" max="3" step="0.1" value="1">
-                    <div class="slider-value" id="gainValue">1.0x</div>
-                </div>
-                
-                <div class="control-group">
-                    <label class="control-label">Peak Color</label>
-                    <input type="color" id="peakColor" class="color-input" value="#00ff00">
-                </div>
-                
-                <div class="control-group">
-                    <label class="control-label">Background Color</label>
-                    <input type="color" id="bgColor" class="color-input" value="#000000">
-                </div>
-                
-                <div class="control-group">
-                    <label class="control-label">RMS Color</label>
-                    <input type="color" id="rmsColor" class="color-input" value="#ffff00">
+            <div class="controls-content" id="controlsContent">
+                <div class="controls-inner">
+                    <div class="controls-grid">
+                        <div class="control-group">
+                            <label class="control-label">Start Analysis</label>
+                            <button id="startBtn" class="start-btn">Start Analysis</button>
+                        </div>
+                        
+                        <div class="control-group">
+                            <label class="control-label">Audio Input Device</label>
+                            <select id="deviceSelect" class="control-input">
+                                <option>Select device after starting...</option>
+                            </select>
+                        </div>
+                        
+                        <div class="control-group">
+                            <label class="control-label">Threshold</label>
+                            <input type="range" id="thresholdSlider" class="slider" min="-60" max="0" value="-40">
+                            <div class="slider-value" id="thresholdValue">-40 dB</div>
+                        </div>
+                        
+                        <div class="control-group">
+                            <label class="control-label">RMS Window</label>
+                            <input type="range" id="rmsWindowSlider" class="slider" min="10" max="500" value="100">
+                            <div class="slider-value" id="rmsWindowValue">100 ms</div>
+                        </div>
+                        
+                        <div class="control-group">
+                            <label class="control-label">Slope Weight</label>
+                            <input type="range" id="slopeSlider" class="slider" min="0" max="10" step="0.1" value="0">
+                            <div class="slider-value" id="slopeValue">0.0</div>
+                        </div>
+                        
+                        <div class="control-group">
+                            <label class="control-label">Gain</label>
+                            <input type="range" id="gainSlider" class="slider" min="0" max="3" step="0.1" value="1">
+                            <div class="slider-value" id="gainValue">1.0x</div>
+                        </div>
+                        
+                        <div class="control-group">
+                            <label class="control-label">Peak Color</label>
+                            <input type="color" id="peakColor" class="color-input" value="#00ff00">
+                        </div>
+                        
+                        <div class="control-group">
+                            <label class="control-label">Background Color</label>
+                            <input type="color" id="bgColor" class="color-input" value="#000000">
+                        </div>
+                        
+                        <div class="control-group">
+                            <label class="control-label">RMS Color</label>
+                            <input type="color" id="rmsColor" class="color-input" value="#ffff00">
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -637,6 +766,54 @@
                 
                 this.setupCanvases();
                 this.setupEventListeners();
+                this.setupCollapsibleControls();
+            }
+
+            setupCollapsibleControls() {
+                const controlsPanel = document.getElementById('controlsPanel');
+                const controlsHeader = document.getElementById('controlsHeader');
+                const controlsToggle = document.getElementById('controlsToggle');
+                const controlsStatus = document.getElementById('controlsStatus');
+
+                controlsHeader.addEventListener('click', () => {
+                    this.toggleControls();
+                });
+
+                // Update status based on analysis state
+                this.updateControlsStatus('READY');
+            }
+
+            toggleControls() {
+                const controlsPanel = document.getElementById('controlsPanel');
+                const controlsToggle = document.getElementById('controlsToggle');
+                
+                const isCollapsed = controlsPanel.classList.contains('collapsed');
+                
+                if (isCollapsed) {
+                    controlsPanel.classList.remove('collapsed');
+                    controlsToggle.textContent = 'COLLAPSE';
+                } else {
+                    controlsPanel.classList.add('collapsed');
+                    controlsToggle.textContent = 'EXPAND';
+                }
+            }
+
+            updateControlsStatus(status) {
+                const controlsStatus = document.getElementById('controlsStatus');
+                controlsStatus.textContent = status;
+                
+                // Update colors based on status
+                switch(status) {
+                    case 'READY':
+                        controlsStatus.style.color = 'var(--text-muted)';
+                        break;
+                    case 'ACTIVE':
+                        controlsStatus.style.color = '#4ade80';
+                        break;
+                    case 'ERROR':
+                        controlsStatus.style.color = '#ff6b6b';
+                        break;
+                }
             }
 
             setupCanvases() {
@@ -735,6 +912,8 @@
 
             async start() {
                 try {
+                    this.updateControlsStatus('STARTING...');
+                    
                     this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
                     
                     const stream = await navigator.mediaDevices.getUserMedia({ 
@@ -769,6 +948,7 @@
 
                     this.isRunning = true;
                     this.updateStatus('ACTIVE', true);
+                    this.updateControlsStatus('ACTIVE');
                     this.updateInfo();
                     this.hideOverlays();
                     this.animate();
@@ -777,6 +957,7 @@
 
                 } catch (error) {
                     console.error('Error starting audio:', error);
+                    this.updateControlsStatus('ERROR');
                     this.showError('Microphone access denied or not available');
                 }
             }
@@ -819,6 +1000,7 @@
                 
                 this.isRunning = false;
                 this.updateStatus('OFFLINE', false);
+                this.updateControlsStatus('READY');
                 this.showOverlays();
                 this.clearCanvases();
                 
