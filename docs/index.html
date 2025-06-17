@@ -105,7 +105,7 @@
 
         .sidebar-section h3 {
             font-family: 'JetBrains Mono', monospace;
-            font-size: 8px;
+            font-size: 12px;
             font-weight: 600;
             color: var(--text-muted);
             text-transform: uppercase;
@@ -123,8 +123,8 @@
             padding: 8px 5px;
             text-align: left;
             font-family: 'JetBrains Mono', monospace;
-            font-size: 30px;
-            font-weight: 100;
+            font-size: 10px;
+            font-weight: 200;
             cursor: pointer;
             transition: all 0.3s ease;
             border-radius: 4px;
@@ -324,6 +324,30 @@
             text-transform: uppercase;
         }
 
+        /* Status Grid */
+        .status-grid {
+            margin: 30px 0 20px;
+            text-align: left;
+            max-width: 600px;
+        }
+
+        .status-item {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .status-label {
+            color: var(--text-muted);
+            min-width: 140px;
+            display: inline-block;
+        }
+
+        .status-value {
+            color: var(--text-secondary);
+        }
+
         /* Data Stream */
         .data-stream {
             position: absolute;
@@ -430,7 +454,14 @@
             
             <div class="sidebar-content">
                 <div class="sidebar-section">
-                    <h3>Audio Tools</h3>
+                    <h3>Services</h3>
+                    <a href="services/" class="tool-btn">AUDIO</a>
+                    <a href="services/" class="tool-btn">FILM MIX</a>
+                    <a href="services/" class="tool-btn">SPATIAL</a>
+                </div>
+
+                <div class="sidebar-section">
+                    <h3>R&D Tools</h3>
                     <a href="tools/visualizer/" class="tool-btn">VISUAL</a>
                     <a href="tools/youtube/" class="tool-btn">YOUTUBE</a>
                     <a href="tools/keyfinder/" class="tool-btn">KEYFIND</a>
@@ -450,11 +481,27 @@
             </div>
             
             <section class="hero">
-                <h1 class="hero-title glitch" data-text="AUDIO/DATA/SYSTEMS">AUDIO/DATA/SYSTEMS</h1>
-                <div class="hero-subtitle">interdisciplinary artist • mumbai</div>
+                <h1 class="hero-title glitch" data-text="SOUND THINGS">SOUND THINGS</h1>
+                <div class="hero-subtitle">AUDIO SERVICES • TOOL DEVELOPMENT • SOUND RESEARCH</div>
                 <p class="hero-description">
-                    Working at intersections of technology, culture, and sonic experience. Creating interactive installations, cultural documentation projects, and spatial audio experiences that bridge commercial practice with academic inquiry.
+                    Commercial production meets experimental R&D lab
                 </p>
+                
+                <div class="status-grid">
+                    <div class="status-item">
+                        <span class="status-label">&gt; Current:</span>
+                        <span class="status-value">Film mixing, installation design, spatial audio</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">&gt; In Development:</span>
+                        <span class="status-value">Drive Sampler [Beta]</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">&gt; Tools:</span>
+                        <span class="status-value">Analysis suite for sound professionals</span>
+                    </div>
+                </div>
+                
                 <div class="hero-location">mumbai, india • est. 2004</div>
             </section>
         </main>
