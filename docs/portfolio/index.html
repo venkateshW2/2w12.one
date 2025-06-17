@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Venkatesh Iyer - Sound Art</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400;500&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="loading">Loading Portfolio...</div>
+    
+    <div id="main-container" class="hidden">
+        <!-- Canvas Background -->
+        <canvas id="data-canvas"></canvas>
+
+        <!-- Mobile Menu Toggle -->
+        <button class="mobile-menu-toggle" id="mobile-menu-toggle">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+        </button>
+
+        <!-- Mobile Overlay -->
+        <div class="mobile-overlay" id="mobile-overlay"></div>
+
+        <div class="layout">
+            <!-- Sidebar -->
+            <aside class="sidebar" id="sidebar">
+                <div class="sidebar-header">
+                    <div class="logo">
+                        <h1>Venkatesh</h1>
+                        <div class="subtitle">Sound</div>
+                    </div>
+                </div>
+                
+                <div class="sidebar-content">
+                    <div class="sidebar-section">
+                        <h3>Categories</h3>
+                        <div class="sidebar-section-content">
+                            <button class="category-btn active" data-filter="all">Projects</button>
+                            <button class="category-btn" data-filter="sound-designer film-mix">Sound Design</button>
+                            <button class="category-btn" data-filter="music-producer film-music">Music </button>
+                            <button class="category-btn" data-filter="film-mix film-music">Films</button>
+                             <button class="category-btn" data-filter="labs">Labs</button>
+                        </div>
+                    </div>
+
+                    <div class="sidebar-section collapsed" id="research-section">
+                        <div class="sidebar-section-header">
+                            <h3>Research Areas</h3>
+                            <span class="sidebar-toggle">▼</span>
+                        </div>
+                        <div class="sidebar-section-content">
+                            <ul class="info-list">
+                                <li>Interactive Audio Systems</li>
+                                <li>Brainwave Sonification</li>
+                                <li>Spatial Audio Design</li>
+                                <li>Cultural Sound Documentation</li>
+                                <li>Ethnographic Film Sound</li>
+                                <li>Real-time Audio Processing</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="sidebar-section collapsed" id="technical-section">
+                        <div class="sidebar-section-header">
+                            <h3>Technical</h3>
+                            <span class="sidebar-toggle">▼</span>
+                        </div>
+                        <div class="sidebar-section-content">
+                            <ul class="info-list">
+                                <li>Max/MSP Programming</li>
+                                <li>Machine Learning</li>
+                                <li>Multi-channel Installations</li>
+                                <li>EEG Audio Interfaces</li>
+                                <li>Field Recording Techniques</li>
+                                <li>Post-production Workflows</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="sidebar-section collapsed" id="collaboration-section">
+                        <div class="sidebar-section-header">
+                            <h3>Collaborations</h3>
+                            <span class="sidebar-toggle">▼</span>
+                        </div>
+                        <div class="sidebar-section-content">
+                            <ul class="info-list">
+                                <li>Sneha Khanwalkar</li>
+                                <li>SOAS, University of London</li>
+                                <li>Studio Camp</li>
+                                <li>Serendipity Art Festival</li>
+                                <li>MTV India</li>
+                                <li>PowerDrift</li>
+                                <li>RedBull Media House</li>
+                                <li>Independent Productions</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    
+                </div>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="main-content">
+                <header class="main-header">
+                    <nav class="main-nav">
+                        <a href="#projects">Work</a>
+                        <a href="#about">About</a>
+                    </nav>
+                </header>
+
+                <section class="hero" id="about">
+    <div class="data-stream" id="data-stream">
+        <!-- Data stream will be populated by JS -->
+    </div>
+    <div class="hero-content">
+        <h1 class="hero-title" data-text="SOUND / DATA / SYSTEMS">AUDIO/DATA/SYSTEMS</h1>
+          <div class="category-description" id="category-description">
+              <h2 class="category-title glitch-text" data-text=""></h2>
+            <p class="category-text fade-in"></p>
+        </div>
+    </div>
+</section>
+
+                <section class="projects" id="projects">
+                    <div class="projects-grid" id="projects-container">
+                        <!-- Projects will be loaded here -->
+                    </div>
+                </section>
+
+              <footer class="footer">
+    <div class="footer-content">
+        <div class="footer-links">
+            <a href="mailto:whencut.y@gmail.com" class="footer-link">Email</a>
+            <a href="https://www.linkedin.com/in/whencut" target="_blank" class="footer-link">LinkedIn</a>
+            <a href="#" id="credentials-link" class="footer-link">Background</a>
+        </div>
+        <p>© 2024 Venkatesh Iyer • Sound Artist • Mumbai, India</p>
+    </div>
+</footer>
+            </main>
+        </div>
+
+        <!-- Credentials Modal -->
+        <div id="credentials-modal" class="modal">
+            <div class="modal-content">
+                <button class="modal-close" id="modal-close">&times;</button>
+                <h3>Academic Background</h3>
+                <div class="credential-item">
+                    <div class="credential-title">Masters in Audio Technology</div>
+                    <div class="credential-details">West London University, 2008<br>Specialized in advanced audio processing, spatial audio design, and interactive sound systems.</div>
+                </div>
+                <div class="credential-item">
+                    <div class="credential-title">Bachelor of Physics</div>
+                    <div class="credential-details">Mumbai University, 2004<br>Foundation in acoustics, signal processing, and scientific methodology informing sound design practice.</div>
+                </div>
+                <div class="credential-item">
+                    <div class="credential-title">Professional Experience</div>
+                    <div class="credential-details">20+ years developing innovative approaches to sound design, interactive installations, and cultural documentation through audio. Experience spans commercial film work, academic research, and experimental art installations.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Modules -->
+    <script src="data.js"></script>
+    <script src="canvas.js"></script>
+    <script src="ui.js"></script>
+    <script src="main.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</body>
+</html>
