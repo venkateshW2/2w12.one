@@ -1,52 +1,698 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Vectorscope</title>
-  <link rel="stylesheet" href="styles.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Visualizer - 2W12.ONE</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    <!-- open graph tags -->
-    <meta property="og:title" content="Vectorscope" />
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://vectorscope.polarity.me" />
-    <meta property="og:image" content="/img/vectorscope-banner.png" />
-    <meta property="og:description" content="A vectorscope is a specialized oscilloscope used in audio and video applications. Unlike a traditional oscilloscope, which plots signal versus time, a vectorscope shows an X-Y plot of two signals to reveal their relationship. It functions similarly to an oscilloscope in X-Y mode." />
-    <meta property="og:site_name" content="Polarity Music" />
-    <meta property="og:locale" content="en_US" />
-    <meta property="og:locale:alternate" content="en_US" />
+        :root {
+            --bg-color: #fafafa;
+            --text-primary: #1a1a1a;
+            --text-secondary: #666;
+            --text-muted: #999;
+            --border-color: #e1e1e1;
+            --accent-color: #777777;
+            --hover-bg: #f5f5f5;
+            --card-bg: #eeeeee;
+        }
 
-    <!-- twitter tags -->
-    <meta name="twitter:card" content="summary" />
-    <meta name="twitter:title" content="Vectorscope" />
-    <meta name="twitter:description" content="A vectorscope is a specialized oscilloscope used in audio and video applications. Unlike a traditional oscilloscope, which plots signal versus time, a vectorscope shows an X-Y plot of two signals to reveal their relationship. It functions similarly to an oscilloscope in X-Y mode." />
-    <meta name="twitter:image" content="/img/vectorscope-banner.png" />
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-primary);
+            line-height: 1.6;
+            font-weight: 300;
+            letter-spacing: -0.01em;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
 
-    <!-- general tags -->
-    <meta name="description" content="Vectorscope">
-    <meta name="keywords" content="Vectorscope,Oscilloscope, Audio, Visualization">
-    <meta name="author" content="polarity">
+        /* Header */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(250, 250, 250, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(225, 225, 225, 0.3);
+            padding: 15px 20px;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
 
-    <!-- favicon -->
-    <link rel="apple-touch-icon" sizes="256x256" href="/img/vectorscope-256.png">
-    <link rel="icon" type="image/png" sizes="128x128" href="/img/vectorscope-128.png">
-    <link rel="icon" type="image/png" sizes="64x64" href="/img/vectorscope-64.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/img/vectorscope-32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/img/vectorscope-16.png">
-    
-    <!-- mobile -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+        .back-link {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: color 0.3s ease;
+        }
 
+        .back-link:hover {
+            color: var(--text-primary);
+        }
+
+        .tool-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: var(--text-primary);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .status-indicator {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+        }
+
+        .status-dot {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #ff6b6b;
+            margin-right: 8px;
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.active {
+            background: #4ade80;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 80px 20px 40px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Controls Section */
+        .controls {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        .controls-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 20px;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .control-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .start-btn {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .start-btn:hover {
+            background: var(--text-primary);
+            transform: translateY(-1px);
+        }
+
+        .start-btn:disabled {
+            background: var(--text-muted);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .control-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            min-width: 80px;
+        }
+
+        .slider {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 200px;
+            height: 2px;
+            background: var(--border-color);
+            outline: none;
+            border-radius: 1px;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 12px;
+            height: 12px;
+            background: var(--accent-color);
+            cursor: pointer;
+            border-radius: 50%;
+        }
+
+        .slider::-moz-range-thumb {
+            width: 12px;
+            height: 12px;
+            background: var(--accent-color);
+            cursor: pointer;
+            border-radius: 50%;
+            border: none;
+        }
+
+        .slider-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            color: var(--text-muted);
+            min-width: 40px;
+        }
+
+        /* Visualizer Container */
+        .visualizer-container {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 40px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 500px;
+        }
+
+        .visualizer-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        /* Canvas */
+        .canvas-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            position: relative;
+            min-height: 400px;
+        }
+
+        #visualizer-canvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 4px;
+        }
+
+        .canvas-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: var(--text-muted);
+            text-align: center;
+            pointer-events: none;
+        }
+
+        .canvas-overlay.hidden {
+            display: none;
+        }
+
+        /* Frequency Labels */
+        .frequency-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            padding: 0 10px;
+        }
+
+        .frequency-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 8px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        /* Info Panel */
+        .info-panel {
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.5);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .info-item {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+        }
+
+        .info-label {
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .info-value {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 100px 15px 40px;
+            }
+            
+            .control-group {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .slider {
+                width: 100%;
+                max-width: 300px;
+            }
+            
+            .visualizer-container {
+                padding: 20px;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        /* Error Message */
+        .error-message {
+            background: rgba(255, 107, 107, 0.1);
+            border: 1px solid rgba(255, 107, 107, 0.3);
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 20px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: #d73527;
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
-  <div id="vectorscope-app"></div>
-  <script type="module" src="js/main.js"></script>
-  <footer >
-    <a href="https://bit.ly/3PgbxZz">Support me</a>
-    | <a href="https://github.com/polarity/app.spectrogram">Github</a> 
-    | <a href="https://polarity.me/">back to my site</a> 
-    | <a href="https://spectrogram.polarity.me/">spectrogram analyzer</a> 
-    | <a href="https://spectrum.polarity.me/">spectrum analyzer</a> 
-    | <a href="https://vectorscope.polarity.me/">vectorscope</a>
-  </footer>
+    <!-- Header -->
+    <header class="header">
+        <a href="../../" class="back-link">← Back to Tools</a>
+        <div class="tool-title">Audio Visualizer</div>
+        <div class="status-indicator">
+            <span class="status-dot" id="statusDot"></span>
+            <span id="statusText">OFFLINE</span>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Controls -->
+        <div class="controls">
+            <div class="controls-title">Audio Input Controls</div>
+            
+            <div class="control-group">
+                <button id="startBtn" class="start-btn">Start Analysis</button>
+                <div class="control-label">Microphone</div>
+            </div>
+            
+            <div class="control-group">
+                <div class="control-label">Gain</div>
+                <input type="range" id="gainSlider" class="slider" min="0" max="3" step="0.1" value="1">
+                <span id="gainValue" class="slider-value">1.0</span>
+            </div>
+            
+            <div class="control-group">
+                <div class="control-label">Smoothing</div>
+                <input type="range" id="smoothingSlider" class="slider" min="0" max="0.9" step="0.1" value="0.3">
+                <span id="smoothingValue" class="slider-value">0.3</span>
+            </div>
+        </div>
+
+        <!-- Visualizer -->
+        <div class="visualizer-container">
+            <div class="visualizer-title">Real-time Frequency Spectrum</div>
+            
+            <div class="canvas-container">
+                <canvas id="visualizer-canvas"></canvas>
+                <div class="canvas-overlay" id="canvasOverlay">
+                    Click "Start Analysis" and allow microphone access
+                </div>
+            </div>
+            
+            <div class="frequency-labels">
+                <span class="frequency-label">20Hz</span>
+                <span class="frequency-label">100Hz</span>
+                <span class="frequency-label">1kHz</span>
+                <span class="frequency-label">5kHz</span>
+                <span class="frequency-label">10kHz</span>
+                <span class="frequency-label">20kHz</span>
+            </div>
+            
+            <div class="info-panel">
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Sample Rate</div>
+                        <div class="info-value" id="sampleRate">--</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Buffer Size</div>
+                        <div class="info-value" id="bufferSize">--</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Peak Frequency</div>
+                        <div class="info-value" id="peakFreq">--</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Peak Level</div>
+                        <div class="info-value" id="peakLevel">--</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class AudioVisualizer {
+            constructor() {
+                this.audioContext = null;
+                this.analyser = null;
+                this.microphone = null;
+                this.gainNode = null;
+                this.dataArray = null;
+                this.canvas = document.getElementById('visualizer-canvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.isRunning = false;
+                this.animationFrame = null;
+                
+                this.setupCanvas();
+                this.setupEventListeners();
+            }
+
+            setupCanvas() {
+                const container = this.canvas.parentElement;
+                const resizeCanvas = () => {
+                    const rect = container.getBoundingClientRect();
+                    const dpr = window.devicePixelRatio || 1;
+                    
+                    this.canvas.width = rect.width * dpr;
+                    this.canvas.height = rect.height * dpr;
+                    this.ctx.scale(dpr, dpr);
+                    
+                    this.canvas.style.width = rect.width + 'px';
+                    this.canvas.style.height = rect.height + 'px';
+                };
+                
+                resizeCanvas();
+                window.addEventListener('resize', resizeCanvas);
+            }
+
+            setupEventListeners() {
+                const startBtn = document.getElementById('startBtn');
+                const gainSlider = document.getElementById('gainSlider');
+                const smoothingSlider = document.getElementById('smoothingSlider');
+                const gainValue = document.getElementById('gainValue');
+                const smoothingValue = document.getElementById('smoothingValue');
+
+                startBtn.addEventListener('click', () => {
+                    if (!this.isRunning) {
+                        this.start();
+                    } else {
+                        this.stop();
+                    }
+                });
+
+                gainSlider.addEventListener('input', (e) => {
+                    const value = parseFloat(e.target.value);
+                    gainValue.textContent = value.toFixed(1);
+                    if (this.gainNode) {
+                        this.gainNode.gain.value = value;
+                    }
+                });
+
+                smoothingSlider.addEventListener('input', (e) => {
+                    const value = parseFloat(e.target.value);
+                    smoothingValue.textContent = value.toFixed(1);
+                    if (this.analyser) {
+                        this.analyser.smoothingTimeConstant = value;
+                    }
+                });
+            }
+
+            async start() {
+                try {
+                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    
+                    const stream = await navigator.mediaDevices.getUserMedia({ 
+                        audio: {
+                            echoCancellation: false,
+                            noiseSuppression: false,
+                            autoGainControl: false
+                        } 
+                    });
+
+                    this.microphone = this.audioContext.createMediaStreamSource(stream);
+                    this.gainNode = this.audioContext.createGain();
+                    this.analyser = this.audioContext.createAnalyser();
+
+                    // Configure analyser
+                    this.analyser.fftSize = 2048;
+                    this.analyser.smoothingTimeConstant = parseFloat(document.getElementById('smoothingSlider').value);
+                    
+                    // Connect audio nodes
+                    this.microphone.connect(this.gainNode);
+                    this.gainNode.connect(this.analyser);
+                    
+                    // Set initial gain
+                    this.gainNode.gain.value = parseFloat(document.getElementById('gainSlider').value);
+
+                    this.dataArray = new Uint8Array(this.analyser.frequencyBinCount);
+
+                    this.isRunning = true;
+                    this.updateStatus('ACTIVE', true);
+                    this.updateInfo();
+                    this.hideOverlay();
+                    this.animate();
+
+                    document.getElementById('startBtn').textContent = 'Stop Analysis';
+
+                } catch (error) {
+                    console.error('Error starting audio:', error);
+                    this.showError('Microphone access denied or not available');
+                }
+            }
+
+            stop() {
+                if (this.animationFrame) {
+                    cancelAnimationFrame(this.animationFrame);
+                }
+                
+                if (this.audioContext) {
+                    this.audioContext.close();
+                }
+                
+                this.isRunning = false;
+                this.updateStatus('OFFLINE', false);
+                this.showOverlay();
+                this.clearCanvas();
+                
+                document.getElementById('startBtn').textContent = 'Start Analysis';
+            }
+
+            animate() {
+                if (!this.isRunning) return;
+
+                this.analyser.getByteFrequencyData(this.dataArray);
+                this.draw();
+                this.updatePeakInfo();
+                
+                this.animationFrame = requestAnimationFrame(() => this.animate());
+            }
+
+            draw() {
+                const canvas = this.canvas;
+                const ctx = this.ctx;
+                const rect = canvas.getBoundingClientRect();
+                const width = rect.width;
+                const height = rect.height;
+
+                // Clear canvas
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, width, height);
+
+                // Calculate bar dimensions
+                const numBars = Math.min(128, this.dataArray.length / 4); // Reduce number of bars for cleaner look
+                const barWidth = width / numBars;
+                const maxBarHeight = height - 40;
+
+                // Draw frequency bars
+                for (let i = 0; i < numBars; i++) {
+                    const dataIndex = Math.floor(i * this.dataArray.length / numBars);
+                    const amplitude = this.dataArray[dataIndex];
+                    const barHeight = (amplitude / 255) * maxBarHeight;
+
+                    // Color based on amplitude
+                    const intensity = amplitude / 255;
+                    const gray = Math.floor(26 + intensity * 100); // From #1a1a1a to lighter
+                    ctx.fillStyle = `rgb(${gray}, ${gray}, ${gray})`;
+
+                    // Draw bar
+                    const x = i * barWidth;
+                    const y = height - barHeight - 20;
+                    
+                    ctx.fillRect(x, y, barWidth - 1, barHeight);
+                }
+
+                // Draw grid lines
+                ctx.strokeStyle = 'rgba(26, 26, 26, 0.1)';
+                ctx.lineWidth = 0.5;
+                
+                // Horizontal grid lines
+                for (let i = 0; i <= 4; i++) {
+                    const y = (height / 4) * i;
+                    ctx.beginPath();
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(width, y);
+                    ctx.stroke();
+                }
+            }
+
+            updateStatus(text, active) {
+                document.getElementById('statusText').textContent = text;
+                const dot = document.getElementById('statusDot');
+                if (active) {
+                    dot.classList.add('active');
+                } else {
+                    dot.classList.remove('active');
+                }
+            }
+
+            updateInfo() {
+                if (this.audioContext) {
+                    document.getElementById('sampleRate').textContent = this.audioContext.sampleRate + ' Hz';
+                    document.getElementById('bufferSize').textContent = this.analyser.fftSize;
+                }
+            }
+
+            updatePeakInfo() {
+                if (!this.dataArray) return;
+
+                let maxAmplitude = 0;
+                let peakIndex = 0;
+
+                for (let i = 0; i < this.dataArray.length; i++) {
+                    if (this.dataArray[i] > maxAmplitude) {
+                        maxAmplitude = this.dataArray[i];
+                        peakIndex = i;
+                    }
+                }
+
+                const nyquist = this.audioContext.sampleRate / 2;
+                const peakFrequency = (peakIndex / this.dataArray.length) * nyquist;
+                
+                document.getElementById('peakFreq').textContent = 
+                    peakFrequency < 1000 ? 
+                    Math.round(peakFrequency) + ' Hz' : 
+                    (peakFrequency / 1000).toFixed(1) + ' kHz';
+                
+                document.getElementById('peakLevel').textContent = 
+                    Math.round((maxAmplitude / 255) * 100) + '%';
+            }
+
+            hideOverlay() {
+                document.getElementById('canvasOverlay').classList.add('hidden');
+            }
+
+            showOverlay() {
+                document.getElementById('canvasOverlay').classList.remove('hidden');
+            }
+
+            clearCanvas() {
+                const rect = this.canvas.getBoundingClientRect();
+                this.ctx.fillStyle = '#ffffff';
+                this.ctx.fillRect(0, 0, rect.width, rect.height);
+            }
+
+            showError(message) {
+                const container = document.querySelector('.container');
+                const existingError = document.querySelector('.error-message');
+                
+                if (existingError) {
+                    existingError.remove();
+                }
+                
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'error-message';
+                errorDiv.textContent = message;
+                container.appendChild(errorDiv);
+                
+                setTimeout(() => {
+                    errorDiv.remove();
+                }, 5000);
+            }
+        }
+
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            new AudioVisualizer();
+        });
+    </script>
 </body>
 </html>
