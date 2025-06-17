@@ -850,38 +850,42 @@
                 return patterns.some(pattern => pattern.test(url));
             }
 
-         async fetchVideoDataFromAPI(url) {
-            const videoId = this.extractVideoId(url);
-            if (!videoId) {
-                throw new Error('Could not extract video ID from URL');
-            }
+async fetchVideoDataFromAPI(url) {
+    const videoId = this.extractVideoId(url);
+    if (!videoId) {
+        throw new Error('Could not extract video ID from URL');
+    }
 
-            const apiUrl = `https://ytstream-download-youtube-videos.p.rapidapi.com/Download/Stream`;
-            const options = {
-                method: 'GET',
-                headers: {
-                    'X-RapidAPI-Key': '0950947a59msh129f99a31d7db49p103ec3jsn41d98dab874b',
-                    'X-RapidAPI-Host': 'ytstream-download-youtube-videos.p.rapidapi.com'
-                }
-                };
+    const requestUrl = `https://ytstream-download-youtube-videos.p.rapidapi.com/dl?id=${videoId}`;
+    console.log('Making API request to:', requestUrl);
+    
+    const options = {
+        method: 'GET',
+        headers: {
+            'X-RapidAPI-Key': '0950947a59msh129f99a31d7db49p103ec3jsn41d98dab874b',
+            'X-RapidAPI-Host': 'ytstream-download-youtube-videos.p.rapidapi.com'
+        }
+    };
 
-                const requestUrl = `${apiUrl}?id=${videoId}`;
-                const response = await fetch(requestUrl, options);
-                
-                if (!response.ok) {
-                    if (response.status === 429) {
-                        throw new Error('Rate limit exceeded. Please try again later.');
-                    } else if (response.status === 403) {
-                        throw new Error('API access denied. Please check your subscription.');
-                    } else {
-                        throw new Error(`API request failed: ${response.status}`);
-                    }
-                }
+    const response = await fetch(requestUrl, options);
+    
+    if (!response.ok) {
+        if (response.status === 429) {
+            throw new Error('Rate limit exceeded. Please try again later.');
+        } else if (response.status === 403) {
+            throw new Error('API access denied. Please check your subscription.');
+        } else {
+            throw new Error(`API request failed: ${response.status}`);
+        }
+    }
 
-                const data = await response.json();
-                return this.parseAPIResponse(data, videoId);
-            }
-            extractVideoId(url) {
+    const data = await response.json();
+    console.log('API Response:', data);
+    return this.parseAPIResponse(data, videoId);
+}
+
+// Extracts the video ID from various YouTube URL formats
+extractVideoId(url) {
     // Clean the URL first
     url = url.trim();
     
@@ -903,38 +907,128 @@
     return null;
 }
 
-            parseAPIResponse(data, videoId) {
-                const videoInfo = {
-                    id: videoId,
-                    title: data.title || 'Unknown Title',
-                    thumbnail: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
-                    duration: this.formatDuration(data.lengthSeconds || 0),
-                    channel: data.author || 'Unknown Channel',
-                    views: data.viewCount ? this.formatViews(data.viewCount) : 'Unknown',
-                    uploadDate: data.publishDate || 'Unknown',
-                    formats: {
-                        video: [
-                            { quality: '1080p', format: 'MP4', size: '45.2 MB', url: '#' },
-                            { quality: '720p', format: 'MP4', size: '28.1 MB', url: '#' },
-                            { quality: '480p', format: 'MP4', size: '16.7 MB', url: '#' },
-                            { quality: '360p', format: 'MP4', size: '12.3 MB', url: '#' }
-                        ],
-                        audio: [
-                            { quality: '320 kbps', format: 'MP3', size: '8.1 MB', url: '#' },
-                            { quality: '256 kbps', format: 'MP3', size: '6.4 MB', url: '#' },
-                            { quality: '128 kbps', format: 'MP3', size: '3.2 MB', url: '#' },
-                            { quality: 'Lossless', format: 'WAV', size: '35.2 MB', url: '#' }
-                        ],
-                        other: [
-                            { quality: '1080p', format: 'WebM', size: '42.1 MB', url: '#' },
-                            { quality: '720p', format: 'WebM', size: '26.3 MB', url: '#' },
-                            { quality: 'Audio', format: 'OGG', size: '7.2 MB', url: '#' },
-                            { quality: 'Audio', format: 'M4A', size: '7.8 MB', url: '#' }
-                        ]
-                    }
-                };
-                return videoInfo;
+   parseAPIResponse(data, videoId) {
+    console.log('=== Parsing real formats ===');
+    
+    const videoInfo = {
+        id: videoId,
+        title: data.title || 'Unknown Title',
+        thumbnail: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
+        duration: this.formatDuration(data.lengthSeconds || 0),
+        channel: data.channelTitle || data.author || 'Unknown Channel',
+        views: data.viewCount ? this.formatViews(data.viewCount) : 'Unknown',
+        uploadDate: data.publishDate || 'Unknown',
+        formats: {
+            video: [],
+            audio: [],
+            other: []
+        }
+    };
+    
+    // Process real formats from API
+    if (data.formats && Array.isArray(data.formats)) {
+        console.log(`Processing ${data.formats.length} formats...`);
+        
+        data.formats.forEach((format, index) => {
+            console.log(`Format ${index}:`, format);
+            
+            if (!format.url) {
+                console.log(`Skipping format ${index} - no URL`);
+                return;
             }
+            
+            const parsedFormat = {
+                quality: this.getQualityFromAPI(format),
+                format: this.getFormatFromAPI(format),
+                size: this.getSizeFromAPI(format),
+                url: format.url, // Real download URL!
+                hasVideo: !!(format.width || format.height),
+                hasAudio: !!(format.audioQuality || format.mimeType?.includes('audio')),
+                mimeType: format.mimeType
+            };
+            
+            console.log('Parsed format:', parsedFormat);
+            
+            // Categorize
+            if (parsedFormat.hasVideo && parsedFormat.hasAudio) {
+                videoInfo.formats.video.push(parsedFormat);
+            } else if (parsedFormat.hasAudio && !parsedFormat.hasVideo) {
+                videoInfo.formats.audio.push(parsedFormat);
+            } else {
+                videoInfo.formats.other.push(parsedFormat);
+            }
+        });
+    }
+    
+    // Add some common audio options if none found
+    if (videoInfo.formats.audio.length === 0) {
+        console.log('No audio-only formats found, adding common options...');
+        videoInfo.formats.audio.push(
+            { quality: '128 kbps', format: 'MP3', size: '3.2 MB', url: '#audio-conversion-needed' }
+        );
+    }
+    
+    console.log('Final parsed formats:', videoInfo.formats);
+    return videoInfo;
+}
+
+getQualityFromAPI(format) {
+    if (format.height) {
+        return `${format.height}p`;
+    } else if (format.width) {
+        return `${format.width}p (width)`;
+    } else if (format.audioQuality) {
+        return format.audioQuality.replace('AUDIO_QUALITY_', '') + ' Audio';
+    } else if (format.quality) {
+        return format.quality;
+    }
+    return 'Unknown Quality';
+}
+
+getFormatFromAPI(format) {
+    if (!format.mimeType) return 'Unknown';
+    
+    if (format.mimeType.includes('video/mp4')) return 'MP4';
+    if (format.mimeType.includes('video/webm')) return 'WebM';
+    if (format.mimeType.includes('audio/mp4')) return 'M4A';
+    if (format.mimeType.includes('audio/webm')) return 'OGG';
+    
+    return 'Unknown';
+}
+
+getSizeFromAPI(format) {
+    if (format.contentLength) {
+        return this.formatFileSize(parseInt(format.contentLength));
+    }
+    return 'Unknown size';
+}
+
+getQualityFromFormat(format) {
+    if (format.height) {
+        return `${format.height}p`;
+    } else if (format.audioQuality) {
+        const qualityMap = {
+            'AUDIO_QUALITY_LOW': '128 kbps',
+            'AUDIO_QUALITY_MEDIUM': '256 kbps', 
+            'AUDIO_QUALITY_HIGH': '320 kbps'
+        };
+        return qualityMap[format.audioQuality] || 'Audio';
+    } else if (format.quality) {
+        return format.quality;
+    }
+    return 'Unknown';
+}
+
+getFormatFromMimeType(mimeType) {
+    if (!mimeType) return 'Unknown';
+    
+    if (mimeType.includes('video/mp4')) return 'MP4';
+    if (mimeType.includes('video/webm')) return 'WebM';
+    if (mimeType.includes('audio/mp4')) return 'M4A';
+    if (mimeType.includes('audio/webm')) return 'WebM Audio';
+    
+    return 'Unknown';
+}
 
             formatDuration(seconds) {
                 const mins = Math.floor(seconds / 60);
@@ -1020,6 +1114,7 @@
                     // window.open(url, '_blank');
                     
                 } catch (error) {
+                    console.error('=== DEBUG: Error in parseAPIResponse ===', error);
                     this.showError('Download failed. Please try again.');
                 }
             }
