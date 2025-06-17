@@ -56,6 +56,10 @@
         .nav-links {
             display: flex;
             gap: 20px;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 8px 12px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
         }
 
         .nav-link {
@@ -623,7 +627,23 @@
             }
 
             .nav-links {
-                display: none;
+                position: fixed;
+                top: 60px;
+                left: 15px;
+                right: 15px;
+                justify-content: center;
+                background: rgba(250, 250, 250, 0.95);
+                backdrop-filter: blur(10px);
+                z-index: 999;
+                padding: 10px;
+            }
+
+            .header {
+                padding: 10px 15px;
+            }
+
+            .tool-title {
+                font-size: 10px;
             }
         }
     </style>
@@ -646,7 +666,7 @@
     <div class="container">
         <!-- URL Input Section -->
         <div class="input-section">
-            <div class="input-title">Enter YouTube URL</div>
+            <div class="input-title">Enter YouTube URL (Videos & Shorts)</div>
             <div class="url-input-group">
                 <input 
                     type="text" 
@@ -659,7 +679,7 @@
                 </button>
             </div>
             <div class="url-examples">
-                <strong>Supported formats:</strong> youtube.com/watch?v=..., youtu.be/..., m.youtube.com/...
+                <strong>Supported formats:</strong> youtube.com/watch?v=..., youtu.be/..., youtube.com/shorts/..., m.youtube.com/...
             </div>
             <div class="error-message" id="errorMessage"></div>
         </div>
@@ -823,7 +843,9 @@
                 const patterns = [
                     /^https?:\/\/(www\.)?youtube\.com\/watch\?v=[\w-]+/,
                     /^https?:\/\/youtu\.be\/[\w-]+/,
-                    /^https?:\/\/m\.youtube\.com\/watch\?v=[\w-]+/
+                    /^https?:\/\/m\.youtube\.com\/watch\?v=[\w-]+/,
+                    /^https?:\/\/(www\.)?youtube\.com\/shorts\/[\w-]+/,  // YouTube Shorts
+                    /^https?:\/\/youtube\.com\/shorts\/[\w-]+/
                 ];
                 return patterns.some(pattern => pattern.test(url));
             }
@@ -852,6 +874,7 @@
                             { quality: '320 kbps', format: 'MP3', size: '8.1 MB', url: '#' },
                             { quality: '256 kbps', format: 'MP3', size: '6.4 MB', url: '#' },
                             { quality: '128 kbps', format: 'MP3', size: '3.2 MB', url: '#' },
+                            { quality: 'Lossless', format: 'WAV', size: '35.2 MB', url: '#' },
                             { quality: '64 kbps', format: 'MP3', size: '1.6 MB', url: '#' }
                         ],
                         other: [
