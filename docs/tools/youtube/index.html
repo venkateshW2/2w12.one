@@ -825,11 +825,11 @@
 
                 try {
                     // Simulate API call (replace with actual API)
-                    const videoData = await this.mockFetchVideoData(url);
-                    
+                    const videoData = await this.fetchVideoDataFromAPI(url);                    
                     this.currentVideo = videoData;
                     this.displayVideoInfo(videoData);
                     this.generateDownloadOptions(videoData);
+                    console.log('Making API request to:', requestUrl);
 
                 } catch (error) {
                     this.showError('Failed to fetch video information. Please try again.');
@@ -850,19 +850,68 @@
                 return patterns.some(pattern => pattern.test(url));
             }
 
-            async mockFetchVideoData(url) {
-                // Simulate API delay
-                await new Promise(resolve => setTimeout(resolve, 1500));
+         async fetchVideoDataFromAPI(url) {
+            const videoId = this.extractVideoId(url);
+            if (!videoId) {
+                throw new Error('Could not extract video ID from URL');
+            }
+
+            const apiUrl = `https://ytstream-download-youtube-videos.p.rapidapi.com/Download/Stream`;
+            const options = {
+                method: 'GET',
+                headers: {
+                    'X-RapidAPI-Key': '0950947a59msh129f99a31d7db49p103ec3jsn41d98dab874b',
+                    'X-RapidAPI-Host': 'ytstream-download-youtube-videos.p.rapidapi.com'
+                }
+                };
+
+                const requestUrl = `${apiUrl}?id=${videoId}`;
+                const response = await fetch(requestUrl, options);
                 
-                // Mock video data (replace with actual API response)
-                return {
-                    id: 'dQw4w9WgXcQ',
-                    title: 'Rick Astley - Never Gonna Give You Up (Official Video)',
-                    thumbnail: 'https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg',
-                    duration: '3:33',
-                    channel: 'Rick Astley',
-                    views: '1.4B views',
-                    uploadDate: '2009-10-25',
+                if (!response.ok) {
+                    if (response.status === 429) {
+                        throw new Error('Rate limit exceeded. Please try again later.');
+                    } else if (response.status === 403) {
+                        throw new Error('API access denied. Please check your subscription.');
+                    } else {
+                        throw new Error(`API request failed: ${response.status}`);
+                    }
+                }
+
+                const data = await response.json();
+                return this.parseAPIResponse(data, videoId);
+            }
+            extractVideoId(url) {
+    // Clean the URL first
+    url = url.trim();
+    
+    const patterns = [
+        /(?:youtube\.com\/watch\?v=)([a-zA-Z0-9_-]{11})/,
+        /(?:youtu\.be\/)([a-zA-Z0-9_-]{11})/,
+        /(?:youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/,
+        /(?:youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/
+    ];
+    
+    for (const pattern of patterns) {
+        const match = url.match(pattern);
+        if (match && match[1].length === 11) {
+            console.log('Extracted video ID:', match[1]);
+            return match[1];
+        }
+    }
+    console.error('Could not extract video ID from:', url);
+    return null;
+}
+
+            parseAPIResponse(data, videoId) {
+                const videoInfo = {
+                    id: videoId,
+                    title: data.title || 'Unknown Title',
+                    thumbnail: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
+                    duration: this.formatDuration(data.lengthSeconds || 0),
+                    channel: data.author || 'Unknown Channel',
+                    views: data.viewCount ? this.formatViews(data.viewCount) : 'Unknown',
+                    uploadDate: data.publishDate || 'Unknown',
                     formats: {
                         video: [
                             { quality: '1080p', format: 'MP4', size: '45.2 MB', url: '#' },
@@ -874,8 +923,7 @@
                             { quality: '320 kbps', format: 'MP3', size: '8.1 MB', url: '#' },
                             { quality: '256 kbps', format: 'MP3', size: '6.4 MB', url: '#' },
                             { quality: '128 kbps', format: 'MP3', size: '3.2 MB', url: '#' },
-                            { quality: 'Lossless', format: 'WAV', size: '35.2 MB', url: '#' },
-                            { quality: '64 kbps', format: 'MP3', size: '1.6 MB', url: '#' }
+                            { quality: 'Lossless', format: 'WAV', size: '35.2 MB', url: '#' }
                         ],
                         other: [
                             { quality: '1080p', format: 'WebM', size: '42.1 MB', url: '#' },
@@ -885,8 +933,27 @@
                         ]
                     }
                 };
+                return videoInfo;
             }
 
+            formatDuration(seconds) {
+                const mins = Math.floor(seconds / 60);
+                const secs = seconds % 60;
+                return `${mins}:${secs.toString().padStart(2, '0')}`;
+            }
+
+            formatViews(viewCount) {
+                const num = parseInt(viewCount);
+                if (num >= 1000000000) {
+                    return (num / 1000000000).toFixed(1) + 'B views';
+                } else if (num >= 1000000) {
+                    return (num / 1000000).toFixed(1) + 'M views';
+                } else if (num >= 1000) {
+                    return (num / 1000).toFixed(1) + 'K views';
+                } else {
+                    return num + ' views';
+                }
+            }
             displayVideoInfo(videoData) {
                 document.getElementById('videoThumbnail').src = videoData.thumbnail;
                 document.getElementById('videoTitle').textContent = videoData.title;
