@@ -188,7 +188,7 @@ window.addEventListener('error', (event) => {
 });
 
 // Debug helpers and click testing
-if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || true) {
+if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
     // Add global click listener for debugging
     document.addEventListener('click', (e) => {
         console.log('Global click detected on:', e.target.tagName, e.target.className, e.target.id);
