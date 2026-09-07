@@ -1,13 +1,15 @@
-// Wave background — a small propagating wave packet in the bottom-left corner.
+// Wave background — a small propagating wave packet under the header wordmark.
 //
 // Actual wave physics rather than a decorative squiggle:
 //   y(x,t) = SUM A_n e^(-a x) sin(k_n x - w_n t)
 // a harmonic series (k_n = n k1, A_n = A/n) sharing one phase velocity so the
 // packet propagates intact, plus a small k^3 dispersion term so the harmonics
 // creep out of step and the crest reforms instead of looping, and e^(-a x)
-// spatial attenuation, and a smoothstep envelope confining the packet to one
-// corner (windowed, not cropped — it has ends). The slope is taken analytically
-// so the stroke keeps a constant width where the wave is steep.
+// spatial attenuation, and a smoothstep envelope confining the packet (windowed
+// in pixels, not cropped — it has ends, and stays pinned under the wordmark at
+// any width). The slope is taken analytically so the stroke keeps a constant
+// width where the wave is steep. Drawn as a bare stroke: a glow halo just read
+// as a smudge at this size.
 //
 // No glitching here. Faults were tried on the wave — phase steps, wavenumber
 // jumps, clipping, decimation — and at this size they read as noise rather
@@ -63,16 +65,23 @@
     vec3 col = vec3(0.0470);          // the page background, #0c0c0c
     vec3 accent = vec3(0.788, 0.541, 0.247); // #c98a3f
 
-    // Confined to the bottom-left corner. A wave packet rather than a wave
-    // filling the screen: localised in space, which is also the physically
-    // honest way to make it small — window the amplitude, don't just crop it.
-    float baseline = -0.40;           // near the bottom edge
+    // Pinned directly under the header wordmark. Worked out in pixels from the
+    // left edge of the centred 1500px container, so it stays under the mark at
+    // any viewport width instead of drifting as a uv fraction would.
+    float pad = 56.0;                                       // container padding
+    float left = max(0.0, (uRes.x - 1500.0) * 0.5) + pad;   // wordmark's left edge
+    float topY = uRes.y - 82.0;                             // just below the 56px header
+
+    // baseline in the same centred space as p
+    float baseline = (topY - 0.5 * uRes.y) / uRes.y;
     float X = p.x * 14.0;             // tighter wavelengths at this size
     float t = uTime;
 
-    // Envelope: fades in from the left edge and out again, so the packet has
-    // ends instead of being cut off by the viewport.
-    float win = smoothstep(0.010, 0.055, uv.x) * (1.0 - smoothstep(0.20, 0.30, uv.x));
+    // Envelope in pixels: the packet fades in just after the wordmark's left
+    // edge and out again about its width later, so it has ends rather than
+    // being cut off by anything.
+    float px = gl_FragCoord.x;
+    float win = smoothstep(left, left + 34.0, px) * (1.0 - smoothstep(left + 240.0, left + 330.0, px));
 
     // ---- travelling wave ----------------------------------------------------
     // y(x,t) = SUM A_n e^(-a x) sin(k_n x - w_n t)
@@ -109,15 +118,14 @@
     float slope = dydX * 6.0;
     float dist = abs(p.y - (baseline + y)) / sqrt(1.0 + slope * slope);
 
-    float core = smoothstep(0.0022, 0.0, dist);
-    float glow = smoothstep(0.030, 0.0, dist) * 0.14;
-    float trace = (core * 0.55 + glow) * win;
+    // No glow — a bare stroke. The halo was reading as a smudge at this size.
+    float trace = smoothstep(0.0026, 0.0, dist) * win;
 
-    col += trace * accent;
+    col += trace * accent * 0.62;
 
-    // Zero axis, windowed to the same corner — a short rule the packet sits on,
+    // Zero axis, windowed to the same span — a short rule the packet sits on,
     // which is what makes it read as a readout rather than a stray squiggle.
-    col += smoothstep(0.0014, 0.0, abs(p.y - baseline)) * win * accent * 0.14;
+    col += smoothstep(0.0012, 0.0, abs(p.y - baseline)) * win * accent * 0.12;
 
     // Vignette, folded in rather than run as a pass.
     col *= smoothstep(1.30, 0.22, length(p * vec2(0.72, 1.0)));
