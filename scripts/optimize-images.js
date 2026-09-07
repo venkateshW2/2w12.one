@@ -27,7 +27,13 @@ const arg = (name, fallback) => {
 const DRY_RUN = process.argv.includes('--dry-run');
 const QUALITY = arg('quality', '82');
 const MAX_WIDTH = arg('width', '900'); // ~2.5x the widest card, so retina stays sharp
-const DIR = path.join(__dirname, '..', 'public', 'images', 'projects');
+// Both the poster set and any loose images (a headshot, gallery stills) dropped
+// straight into public/images/.
+const IMG_ROOT = path.join(__dirname, '..', 'public', 'images');
+const DIRS = [
+  { abs: path.join(IMG_ROOT, 'projects'), web: '/images/projects' },
+  { abs: IMG_ROOT, web: '/images' }
+];
 
 function haveCwebp() {
   try {
@@ -44,36 +50,44 @@ async function main() {
     process.exit(1);
   }
 
-  const sources = fs.readdirSync(DIR).filter((f) => /\.(png|jpe?g)$/i.test(f));
-  console.log(`${sources.length} source images in ${DIR}${DRY_RUN ? '  [DRY RUN]' : ''}\n`);
-
   let before = 0;
   let after = 0;
   const remap = {};
 
-  for (const file of sources) {
-    const src = path.join(DIR, file);
-    const outName = file.replace(/\.(png|jpe?g)$/i, '.webp');
-    const out = path.join(DIR, outName);
-    const srcBytes = fs.statSync(src).size;
-    before += srcBytes;
+  for (const dir of DIRS) {
+    if (!fs.existsSync(dir.abs)) continue;
+    const sources = fs
+      .readdirSync(dir.abs, { withFileTypes: true })
+      .filter((e) => e.isFile() && /\.(png|jpe?g)$/i.test(e.name))
+      .map((e) => e.name);
+    if (!sources.length) continue;
 
-    if (DRY_RUN) {
-      console.log(`  would convert  ${file}  (${Math.round(srcBytes / 1024)} KB)  ->  ${outName}`);
-      remap[`/images/projects/${file}`] = `/images/projects/${outName}`;
-      continue;
+    console.log(`${sources.length} source image(s) in ${dir.web}${DRY_RUN ? '  [DRY RUN]' : ''}`);
+
+    for (const file of sources) {
+      const src = path.join(dir.abs, file);
+      const outName = file.replace(/\.(png|jpe?g)$/i, '.webp');
+      const out = path.join(dir.abs, outName);
+      const srcBytes = fs.statSync(src).size;
+      before += srcBytes;
+      remap[`${dir.web}/${file}`] = `${dir.web}/${outName}`;
+
+      if (DRY_RUN) {
+        console.log(`  would convert  ${file}  (${Math.round(srcBytes / 1024)} KB)  ->  ${outName}`);
+        continue;
+      }
+
+      // -resize W 0 keeps the aspect ratio; -q is visually lossless enough at
+      // the sizes these render at.
+      execFileSync('cwebp', ['-q', QUALITY, '-resize', MAX_WIDTH, '0', '-quiet', src, '-o', out]);
+      const outBytes = fs.statSync(out).size;
+      after += outBytes;
+      const saved = Math.round((1 - outBytes / srcBytes) * 100);
+      console.log(
+        `  ${file.padEnd(26)} ${String(Math.round(srcBytes / 1024)).padStart(5)} KB  ->  ${String(Math.round(outBytes / 1024)).padStart(4)} KB  (-${saved}%)`
+      );
     }
-
-    // -resize W 0 keeps the aspect ratio; -q is visually lossless enough for
-    // posters at this display size.
-    execFileSync('cwebp', ['-q', QUALITY, '-resize', MAX_WIDTH, '0', '-quiet', src, '-o', out]);
-    const outBytes = fs.statSync(out).size;
-    after += outBytes;
-    remap[`/images/projects/${file}`] = `/images/projects/${outName}`;
-    const saved = Math.round((1 - outBytes / srcBytes) * 100);
-    console.log(
-      `  ${file.padEnd(26)} ${String(Math.round(srcBytes / 1024)).padStart(5)} KB  ->  ${String(Math.round(outBytes / 1024)).padStart(4)} KB  (-${saved}%)`
-    );
+    console.log('');
   }
 
   // Repoint every track (and the headshot) that referenced an original.
@@ -86,13 +100,21 @@ async function main() {
     repointed++;
   }
 
+  const gallery = await knex('gallery_items').select('id', 'url');
+  for (const g of gallery) {
+    const next = remap[g.url];
+    if (!next) continue;
+    if (!DRY_RUN) await knex('gallery_items').where({ id: g.id }).update({ url: next });
+    repointed++;
+  }
+
   const profile = await knex('profiles').whereNotNull('user_id').first();
   if (profile && profile.avatar_url && remap[profile.avatar_url]) {
     if (!DRY_RUN) await knex('profiles').where({ id: profile.id }).update({ avatar_url: remap[profile.avatar_url] });
     console.log('  (headshot repointed too)');
   }
 
-  console.log(`\n${repointed} track covers repointed to .webp`);
+  console.log(`${repointed} references repointed to .webp`);
   if (!DRY_RUN) {
     console.log(
       `Total: ${(before / 1048576).toFixed(2)} MB  ->  ${(after / 1048576).toFixed(2)} MB  ` +
