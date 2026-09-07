@@ -126,7 +126,16 @@ Clients should **never see the word "portfolio"** in the public UI — the heade
 - The **`@` prefix is why this is safe**: a bare `/venkatesh` would be a catch-all on one path segment, would have to be the last route registered, and would compete with every future top-level page. With `@` it can't shadow anything, so `RESERVED` in `lib/slug.js` is only about keeping handles sensible (no `/@admin`), not about routing.
 - **`/portfolio` 302s to `/@<owner>`** so there's one canonical URL per person and old links keep working.
 - `/p/:token` still exists for the unguessable link.
-- **Open Graph tags** in `views/partials/head.ejs`, populated per profile in `routes/portfolio.js` — name + tagline as the title, bio as the description, headshot as the image. This is the part that makes a pasted link render as a card in WhatsApp/Slack/iMessage instead of a bare URL, which was the actual complaint. Two gotchas: `og:image` must be an **absolute** URL, and it points at the **`.jpg`** rather than the `.webp` because scraper support for WebP previews is still patchy.
+- **Open Graph tags** in `views/partials/head.ejs`, populated per profile in `routes/portfolio.js`. This is what makes a pasted link render as a card in WhatsApp/Slack/iMessage instead of a bare URL.
+- **`npm run make:og`** (`scripts/make-og-card.js`) builds the preview image: a **6×4 mosaic of the project posters in page order**, darkened 58% with a left-to-right scrim, and the wordmark, name, tagline, handle and project count over it. 1200×630, ~95 KB, committed — production never runs ImageMagick. Re-run after curating, since the mosaic follows pin/feature/hidden order.
+
+  Why a mosaic rather than the headshot: a headshot says *who*, a wall of film posters says *what*, and on a link sent to a client the second lands harder.
+
+  Four things that each broke this, worth not repeating:
+  - `og:image` must be an **absolute** URL.
+  - Pointing it at the headshot itself failed silently — the original is 2448×3264 and **3.6 MB**, and WhatsApp skips images that large. Title and description rendered; the image didn't. Keep cards **under ~300 KB**; the script warns past that.
+  - `-gravity` persists across an ImageMagick command. It was left at `north` from the mosaic's `-extent`, which **centred every `-annotate`** instead of left-aligning it.
+  - `gradient:` only renders **top-to-bottom**. A left-to-right scrim has to be built tall and `-rotate 270`'d — otherwise it composites invisibly and the text sits unreadable on top of the posters.
 - **Dashboard → "Your share link"**: the URL, a copy button, a preview link, and a collapsible handle editor that refuses reserved and taken handles. A missing slug is backfilled on first dashboard view, so nobody sees an empty panel.
 
 Verified: `/@venkatesh` 200, `/portfolio` → 302 to it, `/@nobody` 404, a new account auto-gets `/@ravi`, handle changes take effect immediately, and reserved/taken handles are both refused.
