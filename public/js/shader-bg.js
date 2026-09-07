@@ -49,25 +49,18 @@
     vec3 col = vec3(0.0470);          // the page background, #0c0c0c
     vec3 accent = vec3(0.788, 0.541, 0.247); // #c98a3f
 
-    // Three traces at different amplitudes and rates. Summed sines plus a
-    // little noise drift, so it never repeats visibly.
-    for (int k = 0; k < 3; k++) {
-      float fk = float(k);
-      float amp = 0.055 + 0.018 * fk;
-      float freq = 1.9 + fk * 1.6;
-      float rate = 0.055 + fk * 0.018;
-      float yOff = -0.13 + fk * 0.13;
+    // One trace, sitting low. Three read as clutter behind text; a single line
+    // near the bottom edge is enough to say "signal" and stays out of the way.
+    float amp = 0.045;
+    float y = -0.33
+            + amp * sin(p.x * 2.1 + uTime * 0.055 * 6.2831)
+            + amp * 0.42 * sin(p.x * 4.8 - uTime * 0.055 * 4.1)
+            + 0.018 * (vnoise(vec2(p.x * 2.6, uTime * 0.07)) - 0.5);
 
-      float y = yOff
-              + amp * sin(p.x * freq + uTime * rate * 6.2831)
-              + amp * 0.42 * sin(p.x * freq * 2.3 - uTime * rate * 4.1)
-              + 0.018 * (vnoise(vec2(p.x * 2.6, uTime * 0.07 + fk)) - 0.5);
-
-      float d = abs(p.y - y);
-      float core = smoothstep(0.0030, 0.0, d);
-      float glow = smoothstep(0.060, 0.0, d) * 0.16;
-      col += (core * 0.42 + glow) * accent;
-    }
+    float d = abs(p.y - y);
+    float core = smoothstep(0.0030, 0.0, d);
+    float glow = smoothstep(0.060, 0.0, d) * 0.16;
+    col += (core * 0.42 + glow) * accent;
 
     // Vignette, folded in rather than run as a pass.
     col *= smoothstep(1.30, 0.22, length(p * vec2(0.72, 1.0)));

@@ -140,7 +140,7 @@ Two intensities: `.glitch` (landing wordmark) slips several times per cycle and 
 
 ### WebGL background
 
-`public/js/shader-bg.js` — an **oscilloscope**: three slow signal traces drifting behind the landing content, with film grain and a vignette folded into the same fragment shader, plus half-LSB dithering to kill banding. Chosen over the usual animated-gradient blob because it *means something here* — it's a signal, on a site about audio.
+`public/js/shader-bg.js` — an **oscilloscope**: a single slow signal trace drifting low on the landing page, with film grain and a vignette folded into the same fragment shader, plus half-LSB dithering to kill banding. It started as three traces, which read as clutter behind text — one near the bottom edge is enough to say "signal" and stays out of the way. Chosen over the usual animated-gradient blob because it *means something here* — it's a signal, on a site about audio.
 
 Rules it follows, from the research (see [award-grade webgl-shader-fx](https://github.com/praveentewatia26/award-grade/blob/main/skills/webgl-shader-fx/SKILL.md)):
 
