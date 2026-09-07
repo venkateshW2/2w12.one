@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><%= typeof pageTitle !== 'undefined' ? pageTitle : '2w12.one' %></title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -16,13 +19,38 @@
             ink: '#e8e6e1',
             muted: '#86837c',
             accent: '#c98a3f'
+          },
+          fontFamily: {
+            sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace']
           }
         }
       }
     };
   </script>
   <style>
+    body { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
     #lightbox.open { display: flex; }
+
+    /* Folder tabs — the tab sits on the rule, active one joins it. */
+    .cat-tab {
+      position: relative; flex: 0 0 auto;
+      padding: .45rem .8rem; border: 1px solid #232323; border-bottom-color: transparent;
+      border-radius: 5px 5px 0 0; background: transparent;
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 10px; text-transform: uppercase; letter-spacing: .09em;
+      color: #86837c; white-space: nowrap; cursor: pointer;
+      transition: color .2s ease, background .2s ease, border-color .2s ease;
+    }
+    .cat-tab:hover { color: #e8e6e1; background: #141414; }
+    .cat-tab.active { color: #c98a3f; background: #141414; border-color: #2e2e2e; border-bottom-color: #141414; z-index: 1; }
+    .cat-tab.active::after {
+      content: ''; position: absolute; top: -1px; left: 0; right: 0; height: 2px; background: #c98a3f;
+      border-radius: 5px 5px 0 0;
+    }
+    .tab-count { opacity: .45; font-size: 9px; margin-left: .15rem; }
+    .no-scrollbar { scrollbar-width: none; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
     .filter-chip.active { border-color: #c98a3f; color: #c98a3f; }
 
     /* Project cards — ported from the old static site's interaction: hover

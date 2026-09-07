@@ -31,9 +31,12 @@
     <form method="POST" action="/dashboard/profile" enctype="multipart/form-data" class="grid md:grid-cols-2 gap-4">
       <div class="md:col-span-2 flex items-center gap-4">
         <% if (profile.avatar_url) { %><img src="<%= profile.avatar_url %>" class="w-16 h-16 rounded-full object-cover border border-line" alt=""><% } %>
-        <div>
-          <label class="block text-xs text-muted mb-1">Headshot</label>
+        <div class="min-w-0 flex-1">
+          <label class="block text-xs text-muted mb-1">Headshot &mdash; upload (needs B2)</label>
           <input type="file" name="headshot" accept="image/*" class="text-xs">
+          <label class="block text-xs text-muted mt-2 mb-1">&hellip;or point at a path/URL</label>
+          <input type="text" name="avatar_url" value="<%= profile.avatar_url || '' %>" placeholder="/images/me.webp" class="w-full bg-bg border border-line rounded px-3 py-2 text-sm focus:outline-none focus:border-accent">
+          <div class="text-[10px] text-muted mt-1">Drop a file in <code class="text-accent">public/images/</code> and reference it here &mdash; works without B2.</div>
         </div>
       </div>
       <div>

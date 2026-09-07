@@ -86,6 +86,11 @@ module.exports = function (app) {
     const { name, tagline, bio_long, education, email, linkedin_url, website_url } = req.body;
     const update = { name, tagline, bio_long, education, email, linkedin_url, website_url };
 
+    // A pasted path works without B2; an actual upload overrides it below.
+    if (typeof req.body.avatar_url === 'string') {
+      update.avatar_url = req.body.avatar_url.trim() || null;
+    }
+
     if (req.file) {
       try {
         update.avatar_url = await streamUploadAndCleanup(req.file);

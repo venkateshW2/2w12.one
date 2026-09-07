@@ -64,6 +64,18 @@ Cards with no poster and no YouTube fallback show a section-appropriate glyph �
 - `Passage.jpg` is a duplicate of `Passage.png` (the `.png` is the one in use).
 - 2 covers were hotlinked to `studio.camp`/`serendipityarts.org`; `npm run media:b2` rehosts them if/when B2 is set up.
 
+### Public page: layout
+
+- **Sidebar** — headshot (falls back to initials, since none is uploaded yet), name/tagline, bio, education, contacts, and the stream player below it. Inter for text, JetBrains Mono for the small uppercase labels; both loaded from Google Fonts.
+- **Folder tabs** — sticky category tabs above the grid, in `TAG_ORDER`, with counts. Clicking one filters the grid **in place** so a category never requires scrolling, and scrolls the grid top into view only if it's already above the fold.
+- **One flat, deduped grid** — the page used to render a project once per section, which duplicated anything multi-tagged (Passage appeared 3×). Now each project is a single card carrying all its categories in `data-tags`, and the tabs do the filtering. 35 cards, not 40.
+- **Shuffle-and-settle animation** — filtering uses FLIP: measure every visible card, apply the filter, measure again, then animate each card from its old rect to its new one (420ms, `cubic-bezier(.22,1,.36,1)`). Newly revealed cards fade and scale in (320ms) instead of popping. Fully skipped under `prefers-reduced-motion`.
+- **Stream player** — a single `<audio>` element with a playlist, seek bar, prev/next and click-to-play rows. Only `direct_audio` tracks are eligible; a YouTube link can't be fed to `<audio>`, so those stay in the lightbox. Cards with audio pieces get a **"Send to player"** button that replaces the queue with just that project's tracks. There are **0 streamable tracks right now** — the CNTRL and Schirkoa audio lives in the private `w2MusicStuff` B2 bucket — so the player shows an explicit empty state. It populates itself the moment any track has a reachable audio URL. The `error` handler surfaces a 401/403 from a private bucket rather than failing silently.
+
+### Role badges
+
+`ROLES` in `lib/taxonomy.js` is now the five badge labels themselves — **Sound Design + Mix**, **Score + Stem Mix**, **Stem Mix + Supervision**, **Music Production + Management**, **Developed**. The imported data used nine different spellings across two sources; `ROLE_SHORT` collapses all of them onto those five, so the stored values didn't need rewriting and the page stays consistent. If you add a role, add its `ROLE_SHORT` entry too or the raw string lands on the badge.
+
 ### Public page: card UI
 
 `views/portfolio.ejs` is a **card grid**, not the earlier dense mosaic — the old static site's card interaction was deliberately ported back, since it's the thing worth keeping:
@@ -76,9 +88,10 @@ Cards with no poster and no YouTube fallback show a section-appropriate glyph �
 
 ### What's left in Phase 1
 
-1. **B2 blocked on Backblaze's side** — the public-bucket payment gate is failing with "error code 2": money is being deducted with nothing applied to the account. Support ticket open as of 2026-09-07. Nothing in this repo can fix that, and nothing needs to: uploads fail until B2 is configured, pasting links works fine, and the poster set is 0.84 MB served straight from `public/`. Don't spend time on B2 wiring until the account is sorted.
-2. **Not deployed.** No `render.yaml`/`Procfile`; nothing has run against Postgres yet. `trust proxy` and `engines.node` are in place; still to do: Render service + Postgres, env vars, migrations as **Pre-Deploy** Command, and repointing the domain off GitHub Pages (which is still serving the old static site — that's why the sheet still appears to "work").
-3. Tailwind still loads from `cdn.tailwindcss.com` — fine for now, not a production setup.
+1. **Headshot** — none exists anywhere on disk or in the DB, so the sidebar shows initials. The profile form now takes a **path or URL** as well as an upload, so dropping a file in `public/images/` and referencing it (`/images/me.webp`) works without B2.
+2. **B2 blocked on Backblaze's side** — the public-bucket payment gate is failing with "error code 2": money is being deducted with nothing applied to the account. Support ticket open as of 2026-09-07. Nothing in this repo can fix that, and nothing needs to: uploads fail until B2 is configured, pasting links works fine, and the poster set is 0.84 MB served straight from `public/`. Don't spend time on B2 wiring until the account is sorted.
+3. **Not deployed.** No `render.yaml`/`Procfile`; nothing has run against Postgres yet. `trust proxy` and `engines.node` are in place; still to do: Render service + Postgres, env vars, migrations as **Pre-Deploy** Command, and repointing the domain off GitHub Pages (which is still serving the old static site — that's why the sheet still appears to "work").
+4. Tailwind still loads from `cdn.tailwindcss.com` — fine for now, not a production setup.
 
 ## Backblaze B2 setup
 

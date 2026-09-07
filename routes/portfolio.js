@@ -35,36 +35,47 @@ module.exports = function (app) {
     const pieces = allTracks.filter((t) => t.parent_track_id);
     const topLevel = allTracks.filter((t) => !t.parent_track_id);
 
-    const items = topLevel.map((t) => {
-      const item = enrich(t);
-      item.pieces = pieces.filter((p) => p.parent_track_id === t.id).map(enrich);
-      item.isAlbum = item.pieces.length > 0;
-      return item;
-    });
-
-    const byTag = {};
-    items.forEach((item) => {
-      const raw = allTracks.find((t) => t.id === item.id).tags || '';
-      const tags = raw
+    const tagsOf = (t) =>
+      (t.tags || '')
         .split(',')
-        .map((s) => s.trim().toUpperCase())
+        .map((x) => x.trim().toUpperCase())
         .filter(Boolean);
-      (tags.length ? tags : ['MORE']).forEach((tag) => {
-        (byTag[tag] = byTag[tag] || []).push(item);
+
+    // One card per project, tagged with every category it belongs to. The page
+    // used to render a project once per section, which duplicated anything
+    // multi-tagged; now the category tabs filter a single flat grid instead.
+    const items = topLevel
+      .map((t) => {
+        const item = enrich(t);
+        item.tags = tagsOf(t).length ? tagsOf(t) : ['MORE'];
+        item.pieces = pieces.filter((p) => p.parent_track_id === t.id).map(enrich);
+        item.isAlbum = item.pieces.length > 0;
+        // Only real audio can go in the sidebar player — a YouTube link can't.
+        item.audioPieces = item.pieces.filter((p) => p.kind === 'direct_audio');
+        if (item.kind === 'direct_audio') item.audioPieces = [item, ...item.audioPieces];
+        return item;
+      })
+      .sort((a, b) => (b.year || 0) - (a.year || 0) || a.title.localeCompare(b.title));
+
+    // Tabs, in taxonomy order, with counts — only categories that have work.
+    const counts = {};
+    items.forEach((it) => it.tags.forEach((tag) => (counts[tag] = (counts[tag] || 0) + 1)));
+    const categories = TAG_ORDER.filter((tag) => counts[tag]).map((tag) => ({
+      tag,
+      label: TAG_LABELS[tag] || tag,
+      count: counts[tag]
+    }));
+    Object.keys(counts)
+      .filter((tag) => !TAG_ORDER.includes(tag))
+      .forEach((tag) => categories.push({ tag, label: tag.charAt(0) + tag.slice(1).toLowerCase(), count: counts[tag] }));
+
+    // Flat playlist for the sidebar player.
+    const playlist = [];
+    items.forEach((it) => {
+      it.audioPieces.forEach((a) => {
+        playlist.push({ id: a.id, title: a.title, src: a.src, cover: it.cover, project: it.title, role: a.roleShort || '' });
       });
     });
-
-    Object.values(byTag).forEach((list) =>
-      list.sort((a, b) => (b.year || 0) - (a.year || 0) || a.title.localeCompare(b.title))
-    );
-
-    const sections = [];
-    TAG_ORDER.forEach((tag) => {
-      if (byTag[tag]) sections.push({ tag, label: TAG_LABELS[tag] || tag, items: byTag[tag] });
-    });
-    Object.keys(byTag)
-      .filter((tag) => !TAG_ORDER.includes(tag))
-      .forEach((tag) => sections.push({ tag, label: tag.charAt(0) + tag.slice(1).toLowerCase(), items: byTag[tag] }));
 
     const flatLookup = {};
     const addToLookup = (it) => {
@@ -84,7 +95,9 @@ module.exports = function (app) {
 
     res.render('portfolio', {
       profile,
-      sections,
+      items,
+      categories,
+      playlistJson: JSON.stringify(playlist),
       itemsJson: JSON.stringify(flatLookup),
       loggedIn: !!(req.session && req.session.userId)
     });
