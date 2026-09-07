@@ -48,6 +48,9 @@
       <span class="w-px h-4 bg-line mx-2"></span>
 
       <% if (typeof loggedIn !== 'undefined' && loggedIn) { %>
+        <% if (typeof navIsAdmin !== 'undefined' && navIsAdmin) { %>
+          <a href="/admin" class="menu-btn">Admin</a>
+        <% } %>
         <a href="/dashboard" class="menu-btn text-accent">Dashboard</a>
         <form method="POST" action="/logout" class="inline"><button type="submit" class="menu-btn">Logout</button></form>
       <% } else { %>

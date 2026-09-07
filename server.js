@@ -38,8 +38,15 @@ app.locals.db = knex;
 app.use(async (req, res, next) => {
   try {
     res.locals.navProfiles = await knex('profiles').select('id', 'name', 'token', 'user_id').orderBy('id');
+    // The header's Admin link needs to know, on every page, not just admin ones.
+    res.locals.navIsAdmin = false;
+    if (req.session && req.session.userId) {
+      const u = await knex('users').where({ id: req.session.userId }).first();
+      res.locals.navIsAdmin = !!(u && u.is_admin);
+    }
   } catch {
     res.locals.navProfiles = []; // never let the menu break a page
+    res.locals.navIsAdmin = false;
   }
   next();
 });
@@ -58,6 +65,7 @@ require('./routes/auth')(app);
 require('./routes/admin')(app);
 require('./routes/portfolio')(app);
 require('./routes/gallery')(app);
+require('./routes/admin-panel')(app);
 
 app.use((req, res) => {
   res.status(404).render('not-found');

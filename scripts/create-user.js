@@ -1,7 +1,8 @@
-// One-off CLI to create the first (and, for Phase 1, only) user account and
-// link it to a profile. No public signup UI exists yet — this is it.
+// Creates a user account directly, bypassing the invite flow. This is the
+// bootstrap path: the first admin has to exist before anyone can be invited.
+// Everyone after that should be added from the admin panel instead.
 //
-// Usage: node scripts/create-user.js "you@example.com" "your-password" "Your Name"
+// Usage: node scripts/create-user.js "you@example.com" "password" "Your Name" [--admin]
 require('dotenv').config();
 const { nanoid } = require('nanoid');
 const knexConfig = require('../knexfile');
@@ -21,8 +22,9 @@ async function main() {
     process.exit(1);
   }
 
+  const isAdmin = process.argv.includes('--admin');
   const [userId] = await knex('users')
-    .insert({ email: email.toLowerCase().trim(), password_hash: hashPassword(password) })
+    .insert({ email: email.toLowerCase().trim(), password_hash: hashPassword(password), is_admin: isAdmin })
     .returning('id');
   const id = typeof userId === 'object' ? userId.id : userId;
 
@@ -32,7 +34,7 @@ async function main() {
     token: nanoid(16)
   });
 
-  console.log(`Created user ${email} (id ${id}) with a linked profile. You can log in at /login now.`);
+  console.log(`Created ${isAdmin ? 'admin ' : ''}user ${email} (id ${id}) with a linked profile. You can log in at /login now.`);
   process.exit(0);
 }
 

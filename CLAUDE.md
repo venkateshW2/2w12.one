@@ -93,6 +93,19 @@ Cards with no poster and no YouTube fallback show a section-appropriate glyph �
 3. **Not deployed.** No `render.yaml`/`Procfile`; nothing has run against Postgres yet. `trust proxy` and `engines.node` are in place; still to do: Render service + Postgres, env vars, migrations as **Pre-Deploy** Command, and repointing the domain off GitHub Pages (which is still serving the old static site — that's why the sheet still appears to "work").
 4. Tailwind still loads from `cdn.tailwindcss.com` — fine for now, not a production setup.
 
+## Accounts: invite-only, admin-gated
+
+**There is no public signup route.** A person can only create a login if an admin has pre-added their email — that is the whole access model, so don't add an open `/signup`.
+
+- `users.is_admin` and the `invites` table (migration `20260907000006`). An invite holds email, name, a `nanoid(24)` token, an `is_admin` flag (admins can invite admins), who issued it, and `used_at`.
+- **`/admin`** — `routes/admin-panel.js` + `views/admin.ejs`, gated by `requireAdmin` in `lib/auth.js`. Create invites, copy/reissue/revoke the signup link, list accounts with project counts, promote/demote admins. Non-admins get a **404, not a redirect** — the panel doesn't advertise itself. The header shows an Admin link only for admins (`res.locals.navIsAdmin`, set in the same `server.js` middleware as `navProfiles`).
+- **`/signup/:token`** — the only way in. Valid *unused* token or 404. The invitee sets their own password (min 8, confirmed); the account and its profile are created together, and the invite is stamped `used_at` so **the link works exactly once**. Re-checks the email at submit time in case it was claimed in between.
+- **Guard:** the last remaining admin can't be demoted, or the panel locks everyone out.
+- `requireAdmin` is deliberately separate from `requireAuth` — an admin still has their own profile and portfolio, so the two aren't the same check.
+- **Bootstrap:** `npm run seed:user -- "email" "password" "Name" --admin` creates the first admin directly. Everyone after that goes through the panel.
+
+Verified end to end: invite → signup creates user + profile → invite marked used → the link 404s on reuse → the new (non-admin) account gets a dashboard but 404s on `/admin` → demoting the only admin is refused.
+
 ## Pages and navigation
 
 - **`/`** — `routes/home.js` + `views/home.ejs`. **Registered before the `docs/` static mount in `server.js`** — otherwise `express.static` answers `/` with the old static `docs/index.html`. Keep that ordering. (`index: false` on that mount is *not* the fix — it breaks `docs/tools/<tool>/index.html`.)
