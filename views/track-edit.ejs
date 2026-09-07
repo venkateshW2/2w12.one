@@ -76,6 +76,16 @@
       <label class="block text-xs text-muted mb-1">Technical</label>
       <input type="text" name="technical" value="<%= track.technical || '' %>" class="w-full bg-surface border border-line rounded px-3 py-2 text-sm focus:outline-none focus:border-accent">
     </div>
+    <div>
+      <label class="block text-xs text-muted mb-1">Project page link (IMDb, GitHub, official site)</label>
+      <input type="text" name="external_url" value="<%= track.external_url || '' %>" placeholder="https://..." class="w-full bg-surface border border-line rounded px-3 py-2 text-sm focus:outline-none focus:border-accent">
+    </div>
+    <div class="md:col-span-2 border border-accent/25 bg-accent/[0.04] rounded p-3">
+      <label class="flex items-center gap-2 text-xs text-ink">
+        <input type="checkbox" name="solo_credit" <%= track.solo_credit ? 'checked' : '' %>> Solo &mdash; I handled every department on this
+      </label>
+      <input type="text" name="credit_note" value="<%= track.credit_note || '' %>" placeholder="What exactly, e.g. 'Solo — recording, sound design, mix. Masters thesis project.'" class="w-full bg-surface border border-line rounded px-3 py-2 text-sm mt-2 focus:outline-none focus:border-accent">
+    </div>
     <div class="md:col-span-2">
       <label class="block text-xs text-muted mb-1">Description / context</label>
       <textarea name="description" rows="3" class="w-full bg-surface border border-line rounded px-3 py-2 text-sm focus:outline-none focus:border-accent"><%= track.description || '' %></textarea>

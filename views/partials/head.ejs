@@ -54,6 +54,15 @@
     }
     .project-card.expanded .card-details { max-height: 640px; opacity: 1; }
 
+    /* Solo / all-departments work reads differently from a single credit
+       among many: a persistent accent edge rather than a hover-only cue. */
+    .project-card.solo-credit { border-color: rgba(201,138,63,.45); }
+    .project-card.solo-credit::after {
+      content: ''; position: absolute; top: 0; left: 0; bottom: 0; width: 2px;
+      background: linear-gradient(to bottom, #c98a3f, rgba(201,138,63,.15)); z-index: 2;
+    }
+    .project-card.solo-credit:hover { border-color: rgba(201,138,63,.8); }
+
     .expand-indicator { transition: transform .3s ease, color .3s ease; }
     .project-card.expanded .expand-indicator { transform: rotate(45deg); color: #c98a3f; }
 

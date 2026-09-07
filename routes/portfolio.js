@@ -18,6 +18,8 @@ module.exports = function (app) {
       technical: t.technical,
       context: t.context,
       externalUrl: t.external_url,
+      soloCredit: !!t.solo_credit,
+      creditNote: t.credit_note,
       featured: !!t.featured,
       cover: t.cover_image_url || (kind === 'youtube' ? youtubeThumbnail(t.source_url) : null) || '',
       kind,

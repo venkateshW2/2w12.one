@@ -15,7 +15,8 @@
     "import:showreel": "node scripts/import-showreel.js",
     "media:b2": "node scripts/media-to-b2.js",
     "import:sheet": "node scripts/import-sheet.js",
-    "optimize:images": "node scripts/optimize-images.js"
+    "optimize:images": "node scripts/optimize-images.js",
+    "seed:software": "node scripts/seed-software.js"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.658.1",

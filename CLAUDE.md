@@ -43,6 +43,20 @@ Both importers are **idempotent** and **one-off migrations, not live data paths*
 
 Cards with no stored cover fall back to `youtubeThumbnail()` at render time, so a project only needs a poster if it isn't a YouTube link.
 
+### Software / Research sections
+
+`npm run seed:software` seeds the Software section from the **real GitHub repos** (descriptions taken from `gh repo list` and the repos' own READMEs, not invented copy):
+
+- **SonifyV1** (`sonifyv.1`, C++) — tempo-synchronized microtonal highway sonification; computer vision to audio.
+- **Wall Harp Designer** (`wall-harpDesigner`, JS) — physics simulator/tuning calculator for a 144-string wall harp with dual-capo tuning.
+- **Drive Audio Analyzer** (`drive-audio-analyzer`, JS + the `2w12-backend` Python analysis service) — audio analysis for files held in Google Drive.
+
+The same script sets the solo credits. Other repos that could become cards when wanted: `showreel-builder`, `w2samps` (C++ audio plugins), `audio-sampler-v2` (ML sampler), `StyleBureau`.
+
+Three categories were added for this and for work still to come: **SOFTWARE**, **RESEARCH** ("Research & Development" — for papers and write-ups, empty until populated), and **RECORDING** ("Recording & Tracking" — for the recording work not yet entered). Roles gained `Recording & Tracking`, `Concept / Development` and `Research`.
+
+Cards with no poster and no YouTube fallback show a section-appropriate glyph — a code bracket for Software/Research, a music note elsewhere. The three software cards have no artwork yet; GitHub's OpenGraph image (`https://opengraph.githubassets.com/1/venkateshW2/<repo>`) is one option if real screenshots aren't wanted.
+
 ### Known content gaps
 
 - **22 rows still have no year** — but those are the nested album pieces plus a couple of projects the sheet didn't cover. All 4 formerly-orphan posters now have years. Dashboard has a "Missing year" filter chip.
@@ -62,7 +76,7 @@ Cards with no stored cover fall back to `youtubeThumbnail()` at render time, so 
 
 ### What's left in Phase 1
 
-1. **B2 not configured** — see below. Uploads fail until it is; pasting links works fine.
+1. **B2 blocked on Backblaze's side** — the public-bucket payment gate is failing with "error code 2": money is being deducted with nothing applied to the account. Support ticket open as of 2026-09-07. Nothing in this repo can fix that, and nothing needs to: uploads fail until B2 is configured, pasting links works fine, and the poster set is 0.84 MB served straight from `public/`. Don't spend time on B2 wiring until the account is sorted.
 2. **Not deployed.** No `render.yaml`/`Procfile`; nothing has run against Postgres yet. `trust proxy` and `engines.node` are in place; still to do: Render service + Postgres, env vars, migrations as **Pre-Deploy** Command, and repointing the domain off GitHub Pages (which is still serving the old static site — that's why the sheet still appears to "work").
 3. Tailwind still loads from `cdn.tailwindcss.com` — fine for now, not a production setup.
 
@@ -123,6 +137,8 @@ Express + EJS + Knex — deliberately **not** a framework rewrite. Server-render
 - `users` — email/password_hash. One user ↔ one `profiles` row (`profiles.user_id`, unique).
 - `profiles` — name, tagline, `bio_long`, `education` (newline-separated), avatar/headshot, contact links. `token` column kept for the legacy anonymous collaborator-add-link flow (unrelated to login).
 - `tracks` — one row per project. `source_url` (pasted link or B2 upload URL), `cover_image_url`, `role` (what you actually did — Sound Design / Score / Music Production / Mix & Recording / Film Mix — shown as a small badge on every card), `tags` (comma-separated category — FILM/SERIES/TVC/SHORT FILM/DOCUMENTARY/GALLERY/DIGITAL ADVT/LABS, taxonomy lives in `lib/taxonomy.js`), `parent_track_id` (self-FK — set on the individual pieces of an "album", e.g. each Gangs of Wasseypur song points at the GOW parent track so the public page renders it as one card with a track list, not N separate cards), plus richer metadata fields carried over from the real site's old data (`year`, `collaboration`, `location`, `technical`, `context`, `featured`) that the static site already used but showreel-builder's prototype didn't have.
+- `tracks.external_url` — the IMDb/GitHub/official project page, kept separate from `source_url` (the *playable* thing). Drives the card's "View project" button.
+- `tracks.solo_credit` / `tracks.credit_note` — flags work where **every sound department was handled solo**, which is a materially different claim from one credit among many and so gets a flag rather than being buried in the freeform `role` text. Currently set on Folk 2.0 Documentary (also the Masters thesis project), A Passage Through Passages, and A Terrible Beauty. Renders as a "Solo · All departments" badge, a persistent accent edge on the card (not hover-only), and the full `credit_note` at the top of the expanded details.
 - `sessions` — connect-session-knex's table, explicit migration (not auto-created).
 
 ## Conventions / things not to redo
@@ -131,7 +147,7 @@ Express + EJS + Knex — deliberately **not** a framework rewrite. Server-render
 - Don't re-run `import:showreel` expecting it to refresh content from the showreel repo as a live source — it's a one-off migration. Once a project is edited in the CMS, the DB is the source of truth.
 - Don't rebuild `docs/tools/*` or the landing page as part of this work — explicitly out of scope for Phase 1.
 - Don't buffer uploaded files fully in memory (`multer.memoryStorage()`) — use the disk-temp-then-stream pattern in `routes/admin.js`/`lib/storage.js`. These are real audio/video files, not small form uploads.
-- Category taxonomy and role-short-label mapping live in exactly one place (`lib/taxonomy.js`) — used by both the admin form and the public page. Don't duplicate the list.
+- Category taxonomy and role-short-label mapping live in exactly one place (`lib/taxonomy.js`) — used by both the admin form and the public page. Don't duplicate the list. `TAG_ORDER` also controls **section order** on the public page; a section only renders if it has tracks, so adding a category doesn't create an empty heading.
 - Render-specific requirements to keep in place once this deploys: `app.set('trust proxy', 1)`, migrations run via Render's Pre-Deploy Command (not Build Command), `engines.node` pinned in `package.json`. Render's free Postgres tier auto-deletes after 30 days — must be upgraded before this is treated as the real production DB.
 
 ## Full PRD

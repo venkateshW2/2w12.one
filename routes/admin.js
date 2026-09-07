@@ -70,7 +70,8 @@ module.exports = function (app) {
         pieces: allTracks.length - tracks.length,
         noCover: allTracks.filter((t) => !t.cover_image_url && !t.thumb).length,
         noYear: allTracks.filter((t) => !t.year).length,
-        featured: allTracks.filter((t) => t.featured).length
+        featured: allTracks.filter((t) => t.featured).length,
+        solo: allTracks.filter((t) => t.solo_credit).length
       },
       roles: ROLES,
       tagOrder: TAG_ORDER,
@@ -102,6 +103,7 @@ module.exports = function (app) {
     const { title, source_url, description, role, year, collaboration, location, technical, context, parent_track_id } = req.body;
     const tags = Array.isArray(req.body.tags) ? req.body.tags.join(',') : req.body.tags || '';
     const featured = req.body.featured === 'on';
+    const soloCredit = req.body.solo_credit === 'on';
 
     let finalSourceUrl = source_url || '';
     let type = 'link';
@@ -146,6 +148,9 @@ module.exports = function (app) {
       location: location || null,
       technical: technical || null,
       context: context || null,
+      external_url: (req.body.external_url || '').trim() || null,
+      solo_credit: soloCredit,
+      credit_note: (req.body.credit_note || '').trim() || null,
       featured
     });
 
@@ -181,6 +186,9 @@ module.exports = function (app) {
       technical: technical || null,
       context: context || null,
       featured,
+      external_url: (req.body.external_url || '').trim() || null,
+      solo_credit: req.body.solo_credit === 'on',
+      credit_note: (req.body.credit_note || '').trim() || null,
       parent_track_id: parent_track_id ? Number(parent_track_id) : null
     };
 

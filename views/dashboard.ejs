@@ -18,6 +18,7 @@
         <%= stats.projects %> projects &middot; <%= stats.pieces %> nested pieces &middot; <%= stats.featured %> featured
         <% if (stats.noCover) { %>&middot; <span class="text-amber-400"><%= stats.noCover %> without a cover</span><% } %>
         <% if (stats.noYear) { %>&middot; <span class="text-amber-400"><%= stats.noYear %> without a year</span><% } %>
+        <% if (stats.solo) { %>&middot; <span class="text-accent"><%= stats.solo %> solo credits</span><% } %>
       </div>
     </div>
     <a href="/portfolio" target="_blank" class="text-xs text-accent hover:underline">View public profile &rarr;</a>
@@ -144,6 +145,16 @@
         <label class="block text-xs text-muted mb-1">Technical</label>
         <input type="text" name="technical" class="w-full bg-bg border border-line rounded px-3 py-2 text-sm focus:outline-none focus:border-accent">
       </div>
+      <div>
+        <label class="block text-xs text-muted mb-1">Project page link (IMDb, GitHub, official site)</label>
+        <input type="text" name="external_url" placeholder="https://..." class="w-full bg-bg border border-line rounded px-3 py-2 text-sm focus:outline-none focus:border-accent">
+      </div>
+      <div class="md:col-span-2 border border-accent/25 bg-accent/[0.04] rounded p-3">
+        <label class="flex items-center gap-2 text-xs text-ink">
+          <input type="checkbox" name="solo_credit"> Solo &mdash; I handled every department on this
+        </label>
+        <input type="text" name="credit_note" placeholder="What exactly, e.g. 'Solo — recording, sound design, mix. Masters thesis project.'" class="w-full bg-bg border border-line rounded px-3 py-2 text-sm mt-2 focus:outline-none focus:border-accent">
+      </div>
       <div class="md:col-span-2">
         <label class="block text-xs text-muted mb-1">Description / context</label>
         <textarea name="description" rows="2" class="w-full bg-bg border border-line rounded px-3 py-2 text-sm focus:outline-none focus:border-accent"></textarea>
@@ -174,6 +185,7 @@
       <% tagOrder.forEach(function(tag) { %>
         <button type="button" data-filter="<%= tag.toLowerCase() %>" class="filter-chip border border-line rounded-full px-2.5 py-1 text-muted hover:text-accent transition-colors"><%= tagLabels[tag] %></button>
       <% }) %>
+      <button type="button" data-filter="__solo" class="filter-chip border border-accent/50 rounded-full px-2.5 py-1 text-accent/90 hover:text-accent transition-colors">Solo credits</button>
       <button type="button" data-filter="__nocover" class="filter-chip border border-line rounded-full px-2.5 py-1 text-amber-400/80 hover:text-amber-300 transition-colors">Missing cover</button>
       <button type="button" data-filter="__noyear" class="filter-chip border border-line rounded-full px-2.5 py-1 text-amber-400/80 hover:text-amber-300 transition-colors">Missing year</button>
       <span id="shown" class="ml-auto text-muted"></span>
@@ -184,7 +196,8 @@
         <div class="row bg-surface border border-line rounded-lg"
              data-haystack="<%= t.haystack %>"
              data-nocover="<%= (!t.cover_image_url && !t.thumb) ? '1' : '0' %>"
-             data-noyear="<%= !t.year ? '1' : '0' %>">
+             data-noyear="<%= !t.year ? '1' : '0' %>"
+             data-solo="<%= t.solo_credit ? '1' : '0' %>">
           <div class="p-2.5 flex items-center gap-3">
             <% if (t.thumb) { %>
               <img src="<%= t.thumb %>" class="w-20 h-12 object-cover rounded flex-shrink-0 bg-bg" alt="" loading="lazy">
@@ -196,6 +209,7 @@
               <div class="flex items-center gap-2">
                 <span class="text-sm truncate"><%= t.title %></span>
                 <% if (t.featured) { %><span class="text-accent text-[10px] flex-shrink-0" title="Featured">&#9733;</span><% } %>
+                <% if (t.solo_credit) { %><span class="text-[8.5px] uppercase tracking-wider text-accent border border-accent/60 rounded px-1 py-px flex-shrink-0" title="<%= t.credit_note || 'Solo — all departments' %>">Solo</span><% } %>
               </div>
               <div class="text-[11px] text-muted truncate mt-0.5">
                 <% if (t.role) { %><span class="text-ink/70"><%= t.role %></span><% } else { %><span class="text-amber-400/70">no role</span><% } %>
@@ -269,6 +283,7 @@
             !filter ||
             (filter === '__nocover' ? row.dataset.nocover === '1'
               : filter === '__noyear' ? row.dataset.noyear === '1'
+              : filter === '__solo' ? row.dataset.solo === '1'
               : hay.indexOf(filter) !== -1);
           var show = matchesTerm && matchesFilter;
           row.style.display = show ? '' : 'none';

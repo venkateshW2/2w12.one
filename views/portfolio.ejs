@@ -38,21 +38,34 @@
         <div class="text-[11px] uppercase tracking-[0.14em] text-muted mb-4 pb-2 border-b border-line"><%= section.label %></div>
         <div class="grid gap-4" style="grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));">
           <% section.items.forEach(function(item) { %>
-            <article class="project-card group relative bg-surface border border-line rounded-md overflow-hidden cursor-pointer" data-id="<%= item.id %>">
+            <article class="project-card group relative bg-surface border border-line rounded-md overflow-hidden cursor-pointer<%= item.soloCredit ? ' solo-credit' : '' %>" data-id="<%= item.id %>">
 
               <!-- poster, YouTube thumbnail, or placeholder -->
               <div class="relative aspect-[16/9] bg-bg overflow-hidden">
                 <% if (item.cover) { %>
                   <img src="<%= item.cover %>" loading="lazy" alt="<%= item.title %>" class="card-img w-full h-full object-cover">
                 <% } else { %>
+                  <%# No poster and no YouTube fallback: use a glyph that suits the
+                      section rather than a music note on a code repo. %>
                   <div class="w-full h-full flex items-center justify-center text-muted/40">
-                    <svg viewBox="0 0 24 24" class="w-8 h-8" fill="currentColor"><path d="M12 3v10.55A4 4 0 1014 17V7h4V3h-6z"/></svg>
+                    <% if (section.tag === 'SOFTWARE' || section.tag === 'RESEARCH') { %>
+                      <svg viewBox="0 0 24 24" class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="8,6 3,12 8,18"/><polyline points="16,6 21,12 16,18"/><line x1="13.5" y1="4.5" x2="10.5" y2="19.5"/>
+                      </svg>
+                    <% } else { %>
+                      <svg viewBox="0 0 24 24" class="w-8 h-8" fill="currentColor"><path d="M12 3v10.55A4 4 0 1014 17V7h4V3h-6z"/></svg>
+                    <% } %>
                   </div>
                 <% } %>
 
                 <% if (item.roleShort) { %>
                   <div class="absolute top-2 left-2 text-[8.5px] font-medium uppercase tracking-wider text-bg bg-accent/90 px-1.5 py-0.5 rounded-sm">
                     <%= item.roleShort %>
+                  </div>
+                <% } %>
+                <% if (item.soloCredit) { %>
+                  <div class="solo-badge absolute top-2 <%= item.roleShort ? 'left-2 mt-[18px]' : 'left-2' %> text-[8.5px] font-semibold uppercase tracking-wider text-accent border border-accent/70 bg-bg/85 px-1.5 py-0.5 rounded-sm backdrop-blur-sm">
+                    Solo &middot; All departments
                   </div>
                 <% } %>
                 <% if (item.isAlbum) { %>
@@ -86,6 +99,9 @@
                 <!-- revealed on click -->
                 <div class="card-details">
                   <div class="pt-3 mt-3 border-t border-line space-y-1.5">
+                    <% if (item.creditNote) { %>
+                      <div class="text-[11.5px] text-accent leading-relaxed mb-2 pl-2 border-l-2 border-accent/60"><%= item.creditNote %></div>
+                    <% } %>
                     <% if (item.collaboration) { %>
                       <div class="text-[11px]"><span class="text-muted">Collaboration:</span> <span class="text-ink/80"><%= item.collaboration %></span></div>
                     <% } %>
