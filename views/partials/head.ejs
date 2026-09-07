@@ -65,6 +65,45 @@
     .gal-item { cursor: pointer; transition: transform .25s ease, border-color .25s ease; }
     .gal-item:hover { transform: translateY(-2px); border-color: #2e2e2e; }
 
+    /* Landing: full-bleed accordion sections. Rows are large enough to read as
+       navigation on their own rather than needing a sidebar. */
+    .land-row { border-top: 1px solid #232323; }
+    .land-row:last-of-type { border-bottom: 1px solid #232323; }
+    .land-head {
+      width: 100%; display: flex; align-items: center; gap: 1.25rem;
+      padding: 1.6rem 0; background: none; border: 0; cursor: pointer; text-align: left;
+      transition: color .25s ease;
+    }
+    .land-head:hover { color: #c98a3f; }
+    .land-num {
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: .72rem; color: #86837c; flex: 0 0 auto; padding-top: .35rem;
+    }
+    .land-title {
+      flex: 1 1 auto; min-width: 0;
+      font-size: clamp(1.6rem, 4.2vw, 2.9rem); font-weight: 600; letter-spacing: -.02em; line-height: 1.05;
+    }
+    .land-meta {
+      flex: 0 0 auto; font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: .7rem; text-transform: uppercase; letter-spacing: .12em; color: #86837c;
+    }
+    .land-chev { flex: 0 0 auto; transition: transform .3s ease; color: #86837c; }
+    .land-row.open .land-chev { transform: rotate(90deg); color: #c98a3f; }
+    .land-row.open .land-title { color: #c98a3f; }
+    .land-body { max-height: 0; overflow: hidden; opacity: 0; transition: max-height .4s cubic-bezier(.4,0,.2,1), opacity .3s ease; }
+    .land-row.open .land-body { max-height: 1200px; opacity: 1; }
+
+    .person-row {
+      display: flex; align-items: center; gap: 1rem; padding: .9rem 0;
+      border-top: 1px solid rgba(35,35,35,.7); text-decoration: none;
+      transition: padding-left .25s ease;
+    }
+    .person-row:hover { padding-left: .5rem; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .land-body, .land-chev, .person-row { transition: none; }
+    }
+
     /* Landing rail */
     .rail-link {
       display: block; padding: .3rem .3rem; margin: 0 -.3rem; border-radius: 3px;
@@ -76,7 +115,7 @@
     /* Glitch — the studio's existing motif, carried over from the old landing
        page (which used --glitch-color #ff0080) and re-tuned for dark. */
     .logo-glitch, .glitch { position: relative; color: #e8e6e1; }
-    .logo-glitch { color: #c98a3f; }
+    .logo-glitch { color: #ffffff; } /* the company name stays white */
     .logo-glitch::before, .logo-glitch::after,
     .glitch::before, .glitch::after {
       content: attr(data-text); position: absolute; top: 0; left: 0;

@@ -95,9 +95,18 @@ Cards with no poster and no YouTube fallback show a section-appropriate glyph �
 
 ## Pages and navigation
 
-- **`/`** — `routes/home.js` + `views/home.ejs`. Dynamic, dark, and **registered before the `docs/` static mount in `server.js`** — otherwise `express.static` answers `/` with the old static `docs/index.html`. Keep that ordering. (`index: false` on that mount is *not* the fix — it breaks `docs/tools/<tool>/index.html`.) Ports the old landing's content (SOUND THINGS, the `>` status lines, Mumbai/est. 2004) inverted to the dark palette, with a left rail for **Team**, Tools, Labs and Work. 2w12 is a 3–4 person audio-first studio, so the team rail reads the `profiles` table: the owner's profile links to `/portfolio`, anyone else to their `/p/:token` URL until Phase 2 gives profiles real slugs.
+- **`/`** — `routes/home.js` + `views/home.ejs`. **Registered before the `docs/` static mount in `server.js`** — otherwise `express.static` answers `/` with the old static `docs/index.html`. Keep that ordering. (`index: false` on that mount is *not* the fix — it breaks `docs/tools/<tool>/index.html`.)
+
+  It's a **landing page, sized like one**: a 1500px full-width container and type that scales with the viewport via `clamp()` — wordmark to 10.5rem, body copy to 1.6rem. An earlier version was a 1152px column with a sidebar and 11px type, which read as an app screen. **`2w12.one` is the headline**, big/bold/**white** (the nav wordmark too — orange read as a link, not a company name).
+
+  There is **no team rail**: portfolios lead. The page is a numbered accordion — Portfolios, Work, Tools, Labs, Gallery — each row large enough to work as navigation on its own. Several rows can be open at once, since they're links rather than a wizard. The Portfolios section reads the `profiles` table with per-person project counts; the owner links to `/portfolio`, anyone else to their `/p/:token` URL until Phase 2 gives profiles real slugs.
+- **`/work`** — the studio's own work as a company, distinct from the individual portfolios. **Marked "coming soon"** — a real page, not built out yet.
 - **`/portfolio`** — the work. Category tabs, cards, sidebar with the stream player.
-- **`/gallery`** — `routes/gallery.js` + `views/gallery.ejs` + `gallery_items` table (migration `20260907000004`). Loose images and video from tests and experiments, deliberately **not** in `tracks` — no role, no category, nothing to fill in. CSS-columns masonry so mixed aspect ratios tile uncropped, hover-preview on video, fullscreen viewer with arrow-key nav. Linked from the top nav, the landing rail and the portfolio sidebar; has a "Back to portfolio" control.
+- **Two galleries** — `routes/gallery.js` + `views/gallery.ejs` + `gallery_items` (migration `20260907000004`), scoped by `gallery_items.profile_id`:
+  - `/gallery` — the **studio** gallery (`profile_id IS NULL`), back-links to `/`.
+  - `/portfolio/gallery` and `/p/:token/gallery` — an **individual's** gallery, back-links to that portfolio.
+
+  They were one shared gallery whose back link always went to `/portfolio` no matter where you arrived from. Content is loose images and video from tests and experiments, deliberately **not** in `tracks` — no role, no category, nothing to fill in. CSS-columns masonry so mixed aspect ratios tile uncropped, muted hover-preview on video, fullscreen viewer with arrow-key nav. The dashboard form picks the scope and labels each thumbnail studio/mine; **deletion must not filter on `profile_id` alone** or studio rows become undeletable.
 - **`/login` → `/dashboard`** — the CMS.
 - **`docs/tools/*`** — still static, untouched.
 

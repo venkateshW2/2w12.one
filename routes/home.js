@@ -1,5 +1,3 @@
-const { nanoid } = require('nanoid');
-
 // The landing page. Registered before the static middleware in server.js so it
 // takes precedence over the old static docs/index.html, which is otherwise
 // still what express.static would serve for "/".
@@ -8,16 +6,26 @@ module.exports = function (app) {
 
   app.get('/', async (req, res, next) => {
     try {
-      // 2w12 is a small studio, so the team rail is just the profiles table.
-      // The owner's profile links to /portfolio; anyone else gets their token
-      // URL until Phase 2 gives profiles real slugs.
+      // The landing leads with portfolios, not a staff list — clicking a person
+      // opens their portfolio.
       const profiles = await db()('profiles').select('*').orderBy('id');
       const primary = profiles.find((p) => p.user_id);
 
-      const team = profiles.map((p) => ({
+      const counts = await db()('tracks')
+        .whereNull('parent_track_id')
+        .select('profile_id')
+        .count({ c: '*' })
+        .groupBy('profile_id');
+      const countFor = (id) => {
+        const hit = counts.find((c) => c.profile_id === id);
+        return hit ? Number(hit.c) : 0;
+      };
+
+      const portfolios = profiles.map((p) => ({
         name: p.name,
         tagline: p.tagline,
         avatar_url: p.avatar_url,
+        projectCount: countFor(p.id),
         initials: p.name
           .split(' ')
           .map((w) => w[0])
@@ -27,24 +35,21 @@ module.exports = function (app) {
         url: primary && p.id === primary.id ? '/portfolio' : `/p/${p.token}`
       }));
 
-      const [projects, years] = await Promise.all([
-        db()('tracks').whereNull('parent_track_id').count({ c: '*' }).first(),
-        db()('tracks').min({ min: 'year' }).whereNotNull('year').first()
-      ]);
-      const earliest = years && years.min ? Number(years.min) : 2004;
+      // Company gallery items are the ones with no profile_id.
+      const gallery = await db()('gallery_items').whereNull('profile_id').count({ c: '*' }).first();
 
       res.render('home', {
-        team,
-        stats: [
-          { value: projects.c, label: 'Projects' },
-          { value: new Date().getFullYear() - earliest + '+', label: 'Years' },
-          { value: team.length, label: 'People' },
-          { value: '3', label: 'Tools' }
-        ],
+        portfolios,
+        galleryCount: Number(gallery.c) || 0,
         loggedIn: !!(req.session && req.session.userId)
       });
     } catch (err) {
       next(err);
     }
+  });
+
+  // Studio work as a company — a real page, not yet built out.
+  app.get('/work', (req, res) => {
+    res.render('work', { loggedIn: !!(req.session && req.session.userId) });
   });
 };

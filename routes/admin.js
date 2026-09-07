@@ -67,10 +67,11 @@ module.exports = function (app) {
       t.haystack = [t.title, t.role, t.badge, t.tags, t.year, t.description].filter(Boolean).join(' ').toLowerCase();
     });
 
-    const galleryItems = await db()('gallery_items')
-      .where({ profile_id: req.profile.id })
+    const galleryRows = await db()('gallery_items')
+      .where((q) => q.where({ profile_id: req.profile.id }).orWhereNull('profile_id'))
       .orderBy('sort_order', 'desc')
       .orderBy('created_at', 'desc');
+    const galleryItems = galleryRows.map((g) => ({ ...g, scope: g.profile_id ? 'mine' : 'company' }));
 
     // Everything the sidebar player can actually stream.
     const audioTracks = allTracks.filter((t) => classify(t.source_url || '') === 'direct_audio');
@@ -260,7 +261,9 @@ module.exports = function (app) {
     if (detected === 'direct_video') kind = 'video';
 
     await db()('gallery_items').insert({
-      profile_id: req.profile.id,
+      // NULL profile_id = the studio gallery at /gallery; otherwise it belongs
+      // to this profile's own gallery at /portfolio/gallery.
+      profile_id: req.body.scope === 'company' ? null : req.profile.id,
       url,
       kind,
       caption: (req.body.caption || '').trim() || null,
@@ -270,7 +273,12 @@ module.exports = function (app) {
   });
 
   app.post('/dashboard/gallery/:id/delete', gate, async (req, res) => {
-    await db()('gallery_items').where({ id: req.params.id, profile_id: req.profile.id }).del();
+    // The studio gallery's rows have no profile_id, so scoping the delete to
+    // this profile alone would make them undeletable.
+    await db()('gallery_items')
+      .where({ id: req.params.id })
+      .where((q) => q.where({ profile_id: req.profile.id }).orWhereNull('profile_id'))
+      .del();
     res.redirect('/dashboard#gallery');
   });
 

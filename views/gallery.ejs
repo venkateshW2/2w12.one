@@ -1,26 +1,30 @@
-<%- include('partials/head', { pageTitle: 'Gallery — ' + profile.name, loggedIn: loggedIn }) %>
+<%- include('partials/head', { pageTitle: 'Gallery — ' + heading, loggedIn: loggedIn }) %>
 
-<div class="max-w-7xl mx-auto px-5 py-7">
+<div class="max-w-[1500px] mx-auto px-6 md:px-12 py-9">
 
   <div class="flex items-baseline justify-between gap-4 flex-wrap mb-6">
-    <div>
-      <h1 class="text-lg font-semibold tracking-tight">Gallery</h1>
-      <div class="text-[11px] text-muted mt-1 font-mono uppercase tracking-[0.1em]">
-        Tests &middot; experiments &middot; work in progress
-        <% if (items.length) { %>&middot; <%= items.length %> item<%= items.length === 1 ? '' : 's' %><% } %>
+    <div class="min-w-0">
+      <h1 class="text-[26px] md:text-[34px] font-bold tracking-tight leading-none"><%= heading %></h1>
+      <div class="text-[11.5px] text-muted mt-2 font-mono uppercase tracking-[0.1em]">
+        <%= subheading %><% if (items.length) { %> &middot; <%= items.length %> item<%= items.length === 1 ? '' : 's' %><% } %>
       </div>
     </div>
-    <a href="/portfolio" class="text-[10.5px] font-mono uppercase tracking-wider border border-line text-muted rounded px-3 py-1.5 hover:text-accent hover:border-accent/60 transition-colors">
-      &larr; Back to portfolio
+    <a href="<%= backUrl %>" class="text-[10.5px] font-mono uppercase tracking-wider border border-line text-muted rounded px-3 py-1.5 hover:text-accent hover:border-accent/60 transition-colors flex-shrink-0">
+      &larr; <%= backLabel %>
     </a>
   </div>
+
+  <% if (scopeNote) { %>
+    <div class="text-[11.5px] text-muted/70 border-l-2 border-line pl-3 mb-6"><%= scopeNote %></div>
+  <% } %>
 
   <% if (!items.length) { %>
     <div class="border border-line border-dashed rounded-lg p-10 text-center">
       <div class="text-sm text-muted">Nothing here yet.</div>
       <p class="text-[12px] text-muted/70 mt-2 max-w-md mx-auto leading-relaxed">
         Anything added under <span class="text-accent">Gallery</span> in the dashboard lands here &mdash; loose images and
-        video from tests and experiments, with no project metadata to fill in.
+        video from tests and experiments, with no project metadata to fill in. Pick the right
+        <span class="text-accent">scope</span> there to choose between this and the other gallery.
       </p>
       <% if (loggedIn) { %>
         <a href="/dashboard#gallery" class="inline-block mt-4 text-[10.5px] font-mono uppercase tracking-wider border border-accent/60 text-accent rounded px-3 py-1.5 hover:bg-accent hover:text-bg transition-colors">Add something</a>
