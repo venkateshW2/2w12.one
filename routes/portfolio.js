@@ -1,3 +1,5 @@
+const fs = require('fs');
+const path = require('path');
 const { classify, youtubeId, vimeoId, youtubeThumbnail, youtubeEmbedUrl, vimeoEmbedUrl } = require('../lib/sourceType');
 const { TAG_ORDER, TAG_LABELS } = require('../lib/taxonomy');
 
@@ -118,13 +120,23 @@ module.exports = function (app) {
       { url: profile.imdb_url, label: 'IMDb' }
     ].filter((s) => s.url);
 
-    // Share-card metadata. A scraper needs an absolute URL, and prefers jpg/png
-    // over webp — so if the headshot has an original alongside the .webp, point
-    // at that one.
+    // Share-card metadata.
+    //
+    // Prefer the purpose-built 1200x630 card from scripts/make-og-card.js.
+    // Pointing og:image at the headshot itself did not work: the original is
+    // 2448x3264 and 3.6 MB, and WhatsApp silently skips images that large — the
+    // title and description rendered, the picture did not. Scrapers also want
+    // landscape, which a portrait headshot is not.
     const origin = `${req.protocol}://${req.get('host')}`;
     const shareUrl = origin + (profile.slug ? '/@' + profile.slug : req.originalUrl);
+
     let shareImage = null;
-    if (profile.avatar_url) {
+    const cardRel = profile.slug ? `/images/og/${profile.slug}.jpg` : null;
+    if (cardRel && fs.existsSync(path.join(__dirname, '..', 'public', cardRel))) {
+      shareImage = origin + cardRel;
+    } else if (profile.avatar_url) {
+      // Fallback for a profile with no generated card yet. Still better than
+      // nothing, even if a big portrait may be skipped.
       const abs = profile.avatar_url.startsWith('http') ? profile.avatar_url : origin + profile.avatar_url;
       shareImage = abs.replace(/\.webp$/i, '.jpg');
     }

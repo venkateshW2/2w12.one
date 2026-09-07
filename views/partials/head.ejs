@@ -17,6 +17,14 @@
   <% if (typeof ogUrl !== 'undefined' && ogUrl) { %><meta property="og:url" content="<%= ogUrl %>"><% } %>
   <% if (typeof ogImage !== 'undefined' && ogImage) { %>
     <meta property="og:image" content="<%= ogImage %>">
+    <meta property="og:image:secure_url" content="<%= ogImage %>">
+    <%# Declaring the dimensions lets a scraper lay out the card before it has
+        fetched the file, and some will not show an image without them. %>
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:type" content="image/jpeg">
+    <meta property="og:image:alt" content="<%= typeof ogTitle !== 'undefined' ? ogTitle : '2w12.one' %>">
+    <meta name="twitter:image" content="<%= ogImage %>">
     <meta name="twitter:card" content="summary_large_image">
   <% } else { %>
     <meta name="twitter:card" content="summary">
