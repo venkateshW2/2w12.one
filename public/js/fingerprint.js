@@ -22,7 +22,12 @@
   const host = document.getElementById('fingerprint');
   if (!host) return;
 
-  const ACCENT = '201,138,63';
+  // Peaks are cool, the playhead stays the brand's amber — the contrast is what
+  // makes it read as instrument data rather than as more of the same accent.
+  // Swap PEAK for a variant: '201,138,63' amber, '126,231,135' phosphor green,
+  // '210,214,220' neutral steel.
+  const PEAK = '138,196,214';   // cool steel-cyan
+  const SCAN = '201,138,63';    // accent
   const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   // Deterministic PRNG (mulberry32) so the fingerprint is stable across loads.
@@ -46,15 +51,15 @@
     const peaks = [];
 
     // Musical events: a fundamental, a set of harmonics, a decay.
-    const EVENTS = 7;
+    const EVENTS = 16;
     for (let e = 0; e < EVENTS; e++) {
       const t0 = 0.045 + (e / EVENTS) * 0.9 + (r() - 0.5) * 0.035;
       const f0 = 90 * Math.pow(2, Math.floor(r() * 4) + r() * 0.4); // roughly musical
-      const nHarm = 5 + Math.floor(r() * 7);
-      const life = 0.06 + r() * 0.15; // how long it rings
+      const nHarm = 7 + Math.floor(r() * 10);
+      const life = 0.04 + r() * 0.12; // how long it rings
 
       // Onset: a transient spraying energy across the whole spectrum.
-      const onsetCount = 5 + Math.floor(r() * 5);
+      const onsetCount = 7 + Math.floor(r() * 7);
       for (let i = 0; i < onsetCount; i++) {
         const f = F_MIN * Math.pow(F_MAX / F_MIN, r());
         peaks.push({ t: t0 + (r() - 0.5) * 0.004, y: yOf(f), a: 0.35 + r() * 0.4, kind: 'onset' });
@@ -66,7 +71,7 @@
         if (f > F_MAX) break;
         const y = yOf(f);
         const strength = (1 / Math.pow(h, 0.85)) * (0.75 + r() * 0.25);
-        const steps = 2 + Math.floor(life * 26);
+        const steps = 3 + Math.floor(life * 40);
         for (let s = 0; s < steps; s++) {
           const frac = s / Math.max(steps - 1, 1);
           const a = strength * Math.exp(-frac * 2.6);
@@ -83,7 +88,7 @@
 
     // Noise floor — sparse, weak, everywhere. Without it the field looks
     // synthetic; real peak-picking always leaves scattered survivors.
-    for (let i = 0; i < 90; i++) {
+    for (let i = 0; i < 260; i++) {
       peaks.push({ t: r(), y: r(), a: 0.07 + r() * 0.1, kind: 'floor' });
     }
 
@@ -94,7 +99,7 @@
     const anchors = peaks.filter((p) => p.a > 0.55);
     const links = [];
     anchors.forEach((anchor, i) => {
-      if (i % 2) return;
+      if (i % 5) return;
       const targets = peaks.filter((q) => q.t > anchor.t + 0.012 && q.t < anchor.t + 0.11 && q.a > 0.32);
       targets.slice(0, 2).forEach((q) => links.push([anchor, q]));
     });
@@ -135,7 +140,7 @@
     ctx.lineWidth = 0.6;
     links.forEach(([a, b]) => {
       const near = scan === null ? 0 : Math.max(0, 1 - Math.abs(a.t - scan) / 0.10);
-      ctx.strokeStyle = `rgba(${ACCENT},${0.05 + near * 0.20})`;
+      ctx.strokeStyle = `rgba(${PEAK},${0.04 + near * 0.16})`;
       ctx.beginPath();
       ctx.moveTo(px(a.t), py(a.y));
       ctx.lineTo(px(b.t), py(b.y));
@@ -147,8 +152,8 @@
     peaks.forEach((p) => {
       const lift = scan === null ? 0 : Math.max(0, 1 - Math.abs(p.t - scan) / 0.055);
       const a = Math.min(1, p.a * (0.55 + lift * 1.5));
-      const rad = (p.kind === 'floor' ? 0.7 : p.kind === 'fund' ? 1.5 : 1.1) + lift * 0.9;
-      ctx.fillStyle = `rgba(${ACCENT},${a * (p.kind === 'floor' ? 0.45 : 0.95)})`;
+      const rad = (p.kind === 'floor' ? 0.5 : p.kind === 'fund' ? 1.15 : 0.85) + lift * 0.7;
+      ctx.fillStyle = `rgba(${PEAK},${a * (p.kind === 'floor' ? 0.40 : 0.92)})`;
       ctx.beginPath();
       ctx.arc(px(p.t), py(p.y), rad, 0, 6.2832);
       ctx.fill();
@@ -158,11 +163,11 @@
     if (scan !== null) {
       const x = px(scan);
       const grad = ctx.createLinearGradient(x - 26, 0, x, 0);
-      grad.addColorStop(0, `rgba(${ACCENT},0)`);
-      grad.addColorStop(1, `rgba(${ACCENT},0.16)`);
+      grad.addColorStop(0, `rgba(${SCAN},0)`);
+      grad.addColorStop(1, `rgba(${SCAN},0.18)`);
       ctx.fillStyle = grad;
       ctx.fillRect(x - 26, 0, 26, H);
-      ctx.fillStyle = `rgba(${ACCENT},0.30)`;
+      ctx.fillStyle = `rgba(${SCAN},0.42)`;
       ctx.fillRect(x, 0, 0.8, H);
     }
   }

@@ -155,6 +155,8 @@ Two intensities: `.glitch` (landing wordmark) slips several times per cycle and 
 
 The PRNG seed is **fixed**. A field that re-randomises each visit reads as arbitrary; a stable one reads as a measurement of a specific thing.
 
+Placed **above the title** as a wide, short readout strip (820 × 58px, ~1050 peaks) rather than as a centred block in the middle of the page, where it competed with the type. Peaks are **cool steel-cyan** while the scan line keeps the brand amber — the contrast is what makes it read as instrument data instead of more accent decoration. `PEAK` at the top of the file swaps the palette in one line (amber / phosphor green / neutral steel are noted there).
+
 **To make it real:** replace `buildPeaks()` with a precomputed JSON of peaks from an actual 2w12 recording (analysed offline — no runtime audio, no autoplay problem) and keep the renderer unchanged. That is the step that makes the visual unfakeable, since specific data is the one thing generic output cannot imitate.
 
 Rejected on the way here, in order: an oscilloscope (3 traces, then 1), a DAW-style bar waveform, and a physics-accurate propagating wave packet. All were dropped for the same reason — **they encode nothing**. A sine sum has no relationship to any real sound, and anyone who works with audio reads that as decoration immediately. Don't reintroduce a synthetic waveform as the landing visual.
