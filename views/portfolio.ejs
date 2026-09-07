@@ -142,7 +142,11 @@
       <div class="h-px bg-line -mt-px"></div>
     </div>
 
-    <div id="grid" class="grid gap-4 pt-4" style="grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));">
+    <%# items-start matters: a grid row defaults to align-items:stretch, so
+        expanding one card grew the row and stretched its neighbours to match,
+        which looked like every card in the row had opened. With start, each
+        card keeps its own height and only the expanded one grows. %>
+    <div id="grid" class="grid gap-4 pt-4 items-start" style="grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));">
       <% items.forEach(function(item) { %>
         <article class="project-card group relative bg-surface border border-line rounded-md overflow-hidden cursor-pointer<%= item.soloCredit ? ' solo-credit' : '' %>"
                  data-id="<%= item.id %>" data-tags="<%= item.tags.join(',') %>">
