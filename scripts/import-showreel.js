@@ -17,6 +17,7 @@ const fs = require('fs');
 const path = require('path');
 const knexConfig = require('../knexfile');
 const knex = require('knex')(knexConfig);
+const { slugify, validate: validateSlug, uniqueSlug } = require('../lib/slug');
 
 const arg = (name, fallback) => {
   const hit = process.argv.find((a) => a.startsWith(`--${name}=`));
@@ -149,9 +150,17 @@ async function main() {
   Object.entries(PROFILE).forEach(([k, v]) => {
     if (!profile[k]) profileUpdate[k] = v; // never clobber something already edited in the CMS
   });
+  // The shareable handle. Without this, /@name 404s until someone happens to
+  // open the dashboard — which is how it shipped to production once already.
+  if (!profile.slug) {
+    const first = slugify((profile.name || '').split(/\s+/)[0]);
+    profileUpdate.slug = await uniqueSlug(knex, validateSlug(first) ? profile.name : first, profile.id);
+  }
+
   if (Object.keys(profileUpdate).length) {
     await knex('profiles').where({ id: profile.id }).update(profileUpdate);
     console.log(`Profile: filled in ${Object.keys(profileUpdate).join(', ')}`);
+    if (profileUpdate.slug) console.log(`Profile: shareable link is /@${profileUpdate.slug}`);
   } else {
     console.log('Profile: already populated, left untouched.');
   }
