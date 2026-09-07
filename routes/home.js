@@ -42,7 +42,10 @@ module.exports = function (app) {
       const years = await db()('tracks').min({ min: 'year' }).whereNotNull('year').first();
       const earliest = years && years.min ? Number(years.min) : 2004;
 
+      const statusLines = await db()('status_lines').orderBy('sort_order', 'desc').orderBy('id');
+
       res.render('home', {
+        statusLines,
         portfolios,
         totalProjects: Number(total.c) || 0,
         stats: [

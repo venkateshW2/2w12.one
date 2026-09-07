@@ -7,15 +7,18 @@
     <h1 class="glitch inline-block font-bold leading-[0.85] tracking-[-0.04em] text-white"
         style="font-size:clamp(3.6rem,13vw,10rem)" data-text="2w12.one">2w12.one</h1>
 
-    <div class="mt-6 font-mono font-medium uppercase tracking-[0.34em] text-accent"
-         style="font-size:clamp(.8rem,2.1vw,1.5rem)">
-      Sound Things
+    <div class="mt-6 font-mono font-medium uppercase tracking-[0.3em] text-accent"
+         style="font-size:clamp(.78rem,2vw,1.4rem)">
+      Anything With Audio
     </div>
 
     <p class="mt-9 mx-auto max-w-2xl text-ink/80 leading-[1.55] font-light" style="font-size:clamp(1.05rem,1.9vw,1.4rem)">
-      An audio-first studio. Sound design, mixing and music production for film and series &mdash;
-      alongside the tools and research that come out of doing the work.
+      A group of individuals who work on sound together, and on each other's work. We build what a project
+      needs &mdash; custom instruments, software for artists, scores, mixes &mdash; and we&rsquo;re most
+      interested in whatever hasn&rsquo;t been done before.
     </p>
+
+    <div class="mt-6 side-label">Open to commissions and collaborations</div>
 
     <div class="mt-10 flex flex-wrap justify-center gap-3">
       <a href="/work" class="font-mono uppercase tracking-wider font-medium bg-accent text-bg rounded px-6 py-3.5 hover:brightness-110 transition" style="font-size:clamp(.75rem,1.15vw,.88rem)">
@@ -29,18 +32,19 @@
   <!-- What's happening -->
   <section class="pb-16 border-t border-line pt-12">
     <div class="mx-auto max-w-2xl space-y-3.5 text-left font-mono leading-relaxed" style="font-size:clamp(.82rem,1.3vw,1rem)">
-      <div class="flex gap-3">
-        <span class="text-accent flex-shrink-0">&gt;</span>
-        <span class="text-muted"><span class="text-ink font-medium">Current:</span> Film mixing, AI music workflows, spatial audio, workshops</span>
-      </div>
-      <div class="flex gap-3">
-        <span class="text-accent flex-shrink-0">&gt;</span>
-        <span class="text-muted"><span class="text-ink font-medium">Released:</span> SonifyV1 &mdash; CV to MIDI/OSC (80 object classes, 60fps)</span>
-      </div>
-      <div class="flex gap-3">
-        <span class="text-accent flex-shrink-0">&gt;</span>
-        <span class="text-muted"><span class="text-ink font-medium">Labs:</span> Audio classification &amp; analysis tools <span class="text-muted/60">[experimental]</span></span>
-      </div>
+      <%# Edited from the admin panel, not here — these change whenever
+          something ships. %>
+      <% statusLines.forEach(function (l) { %>
+        <div class="flex gap-3">
+          <span class="text-accent flex-shrink-0">&gt;</span>
+          <span class="text-muted">
+            <span class="text-ink font-medium"><%= l.label %>:</span> <%= l.body %><% if (l.note) { %> <span class="text-muted/60"><%= l.note %></span><% } %>
+          </span>
+        </div>
+      <% }) %>
+      <% if (!statusLines.length) { %>
+        <div class="text-muted/60">No status lines yet &mdash; add them in the admin panel.</div>
+      <% } %>
     </div>
   </section>
 

@@ -93,6 +93,18 @@ Cards with no poster and no YouTube fallback show a section-appropriate glyph �
 3. **Not deployed.** No `render.yaml`/`Procfile`; nothing has run against Postgres yet. `trust proxy` and `engines.node` are in place; still to do: Render service + Postgres, env vars, migrations as **Pre-Deploy** Command, and repointing the domain off GitHub Pages (which is still serving the old static site — that's why the sheet still appears to "work").
 4. Tailwind still loads from `cdn.tailwindcss.com` — fine for now, not a production setup.
 
+## Editable content vs. code
+
+The landing page's `> Label: text` status lines live in the **`status_lines` table** (migration `20260907000007`) and are edited at **`/admin` → Landing page status lines** — label, text, an optional dimmed aside, and a sort order. They change whenever a project ships, so they must not be a code edit. Clearing a line's label or text deletes it; the always-present blank row adds one.
+
+The POST **validates that all the parallel field arrays are the same length** before walking them. A browser form always sends every named input, so they arrive aligned — but a malformed payload paired with "a missing id means new" silently duplicated rows instead of failing, which is exactly what happened during testing.
+
+### The company copy — what it must not say
+
+2w12.one is **not a studio** and shouldn't be described as one; that framing was explicitly rejected. It's a **group of individuals** who share work, work on each other's, and build what a project needs. Two things carry equal weight and neither should be dropped: **custom instruments** (pipe instruments built and sampled for a composer on a Netflix series, out December 2026) **and custom software for artists**. Most of the work has not been commercial, but the site should still read as open to commissions — hence the quiet "Open to commissions and collaborations" line rather than a pitch.
+
+**Don't** claim a single location: the group isn't all in Mumbai. The tagline is currently **"Anything With Audio"**; "SOUND THINGS" was the previous one, from the old static site.
+
 ## Accounts: invite-only, admin-gated
 
 **There is no public signup route.** A person can only create a login if an admin has pre-added their email — that is the whole access model, so don't add an open `/signup`.

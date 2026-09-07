@@ -30,8 +30,11 @@ module.exports = function (app) {
       };
     });
 
+    const statusLines = await db()('status_lines').orderBy('sort_order', 'desc').orderBy('id');
+
     res.render('admin', {
       me: req.user,
+      statusLines,
       people,
       pending: invites.filter((i) => !i.used_at),
       accepted: invites.filter((i) => i.used_at),
@@ -99,6 +102,59 @@ module.exports = function (app) {
 
     await db()('users').where({ id: target.id }).update({ is_admin: !target.is_admin });
     res.redirect('/admin?notice=' + encodeURIComponent(`${target.email} is ${target.is_admin ? 'no longer' : 'now'} an admin.`));
+  });
+
+  // --------------------------------------------------- landing status lines ----
+  // Content, not code: these change whenever a project ships.
+  app.post('/admin/status', gate, async (req, res) => {
+    const ids = [].concat(req.body.id || []);
+    const labels = [].concat(req.body.label || []);
+    const bodies = [].concat(req.body.body || []);
+    const notes = [].concat(req.body.note || []);
+    const orders = [].concat(req.body.sort_order || []);
+
+    // A browser form always sends every named input, so these arrays arrive the
+    // same length. If they don't, the payload is malformed and walking it by
+    // index would pair the wrong label with the wrong row — and, because a
+    // missing id reads as "new", quietly duplicate lines instead of failing.
+    const lengths = [ids.length, labels.length, bodies.length, notes.length, orders.length];
+    if (new Set(lengths).size !== 1) {
+      return res.redirect('/admin?error=' + encodeURIComponent('That form submission was malformed — nothing was changed.'));
+    }
+
+    for (let i = 0; i < ids.length; i++) {
+      const label = (labels[i] || '').trim();
+      const body = (bodies[i] || '').trim();
+      if (!ids[i]) {
+        // A blank new row is not an error — it just means "I didn't add one".
+        if (label && body) {
+          await db()('status_lines').insert({
+            label,
+            body,
+            note: (notes[i] || '').trim() || null,
+            sort_order: Number(orders[i]) || 0
+          });
+        }
+        continue;
+      }
+      // Clearing the text of an existing line deletes it, so the page never
+      // renders an empty "> Label:".
+      if (!label || !body) {
+        await db()('status_lines').where({ id: ids[i] }).del();
+        continue;
+      }
+      await db()('status_lines')
+        .where({ id: ids[i] })
+        .update({
+          label,
+          body,
+          note: (notes[i] || '').trim() || null,
+          sort_order: Number(orders[i]) || 0,
+          updated_at: new Date().toISOString()
+        });
+    }
+
+    res.redirect('/admin?notice=' + encodeURIComponent('Status lines updated — the landing page is live with them now.'));
   });
 
   // --------------------------------------------------------------- signup ----

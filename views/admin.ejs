@@ -40,6 +40,48 @@
     </form>
   </section>
 
+  <!-- Landing status lines -->
+  <section class="bg-surface border border-line rounded-lg p-6">
+    <h2 class="text-sm font-semibold mb-1.5">Landing page status lines</h2>
+    <p class="text-[11.5px] text-muted leading-relaxed mb-4">
+      The <span class="font-mono text-accent">&gt; Label: text</span> lines on
+      <a href="/" target="_blank" class="text-accent hover:underline">the front page</a>.
+      Higher order sits further up. Clear a line's label or text to remove it; fill the blank row to add one.
+    </p>
+
+    <form method="POST" action="/admin/status" class="space-y-3">
+      <% statusLines.concat([{ id: '', label: '', body: '', note: '', sort_order: 0 }]).forEach(function (l) { %>
+        <div class="grid grid-cols-12 gap-2 items-start <%= l.id ? '' : 'pt-3 border-t border-line' %>">
+          <input type="hidden" name="id" value="<%= l.id %>">
+          <div class="col-span-12 md:col-span-2">
+            <% if (!l.id) { %><label class="block text-[10px] text-muted/70 mb-1">New label</label><% } %>
+            <input type="text" name="label" value="<%= l.label %>" placeholder="Built"
+                   class="w-full bg-bg border border-line rounded px-2.5 py-2 text-[12.5px] font-mono focus:outline-none focus:border-accent">
+          </div>
+          <div class="col-span-12 md:col-span-6">
+            <% if (!l.id) { %><label class="block text-[10px] text-muted/70 mb-1">New text</label><% } %>
+            <input type="text" name="body" value="<%= l.body %>" placeholder="What happened"
+                   class="w-full bg-bg border border-line rounded px-2.5 py-2 text-[12.5px] focus:outline-none focus:border-accent">
+          </div>
+          <div class="col-span-8 md:col-span-3">
+            <% if (!l.id) { %><label class="block text-[10px] text-muted/70 mb-1">Aside (dimmed)</label><% } %>
+            <input type="text" name="note" value="<%= l.note || '' %>" placeholder="[experimental]"
+                   class="w-full bg-bg border border-line rounded px-2.5 py-2 text-[12.5px] text-muted focus:outline-none focus:border-accent">
+          </div>
+          <div class="col-span-4 md:col-span-1">
+            <% if (!l.id) { %><label class="block text-[10px] text-muted/70 mb-1">Order</label><% } %>
+            <input type="number" name="sort_order" value="<%= l.sort_order %>"
+                   class="w-full bg-bg border border-line rounded px-2 py-2 text-[12.5px] focus:outline-none focus:border-accent">
+          </div>
+        </div>
+      <% }) %>
+
+      <div class="pt-2">
+        <button type="submit" class="bg-accent text-bg text-sm font-medium rounded px-4 py-2 hover:brightness-110 transition">Save status lines</button>
+      </div>
+    </form>
+  </section>
+
   <!-- Pending -->
   <% if (pending.length) { %>
     <section>
