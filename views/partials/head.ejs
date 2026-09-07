@@ -250,19 +250,33 @@
     .card-img { filter: saturate(.9) brightness(.85); transition: filter .3s ease, transform .4s ease; }
     .project-card:hover .card-img { filter: saturate(1) brightness(.62); transform: scale(1.04); }
 
-    /* Collapsed: clamp the blurb so every card in a row is the same height.
-       Expanded: release it and reveal the metadata block. */
-    .card-desc {
-      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
-      overflow: hidden; transition: -webkit-line-clamp .3s ease;
-    }
-    .project-card.expanded .card-desc { -webkit-line-clamp: 99; }
+    /* Every collapsed card is the same size — a fixed body height plus the
+       fixed 16/9 poster. The grid uses items-start (so expanding one card can't
+       stretch its neighbours), which means uniformity has to come from the card
+       itself rather than from the row. */
+    .card-body { min-height: 9.5rem; }
 
-    .card-details {
-      max-height: 0; opacity: 0; overflow: hidden;
-      transition: max-height .35s cubic-bezier(.4,0,.2,1), opacity .25s ease;
+    /* Two lines each, always. The blurb used to unclamp on expand with a
+       transition on -webkit-line-clamp — which is not an animatable property,
+       so it snapped and shunted everything below it mid-animation. That was
+       most of the jerkiness. */
+    .card-title {
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
     }
-    .project-card.expanded .card-details { max-height: 640px; opacity: 1; }
+    .card-desc {
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+
+    /* 0fr -> 1fr animates to the content's exact height. max-height:640px was
+       the other half of the problem: content shorter than 640px finished early
+       and the rest of the duration did nothing, so the motion looked like it
+       stalled. */
+    .card-details {
+      display: grid; grid-template-rows: 0fr; opacity: 0;
+      transition: grid-template-rows .34s cubic-bezier(.32,.72,0,1), opacity .22s ease;
+    }
+    .card-details > * { overflow: hidden; }
+    .project-card.expanded .card-details { grid-template-rows: 1fr; opacity: 1; }
 
     /* Solo / all-departments work reads differently from a single credit
        among many: a persistent accent edge rather than a hover-only cue. */
@@ -280,6 +294,10 @@
       .project-card, .project-card::before, .card-img, .card-details, .expand-indicator { transition: none; }
       .project-card:hover { transform: none; }
     }
+
+    /* Cards animate their own height, so the browser shouldn't also be trying
+       to reflow the whole grid on every frame. */
+    .project-card { contain: layout paint; }
   </style>
 </head>
 <body class="bg-bg text-ink font-sans antialiased min-h-screen">

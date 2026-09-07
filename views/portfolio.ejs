@@ -188,7 +188,7 @@
             <% } %>
           </div>
 
-          <div class="p-4">
+          <div class="card-body p-4">
             <div class="flex items-baseline justify-between gap-2 mb-1.5">
               <div class="text-[9.5px] font-mono uppercase tracking-[0.12em] text-muted truncate">
                 <%= item.tags.map(function(t){ return t === 'MORE' ? 'Other' : t; }).join(' &middot; ') %>
@@ -196,7 +196,7 @@
               <% if (item.year) { %><div class="text-[9.5px] font-mono text-muted flex-shrink-0"><%= item.year %></div><% } %>
             </div>
 
-            <h3 class="project-title text-[15px] leading-snug font-medium tracking-tight transition-colors"><%= item.title %></h3>
+            <h3 class="project-title card-title text-[15px] leading-snug font-medium tracking-tight transition-colors"><%= item.title %></h3>
             <% if (item.role) { %><div class="text-[11.5px] italic text-muted mt-0.5"><%= item.role %></div><% } %>
 
             <% if (item.description) { %>
