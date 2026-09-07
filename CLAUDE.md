@@ -126,6 +126,8 @@ Verified end to end: invite → signup creates user + profile → invite marked 
 
   The terminal (`public/js/home.js`) types `$ cat status`, then each status line character by character with scrambled characters at the head of the cursor so lines look like they're *resolving*; the cadence is uneven (fixed intervals read as a progress bar) with brief catches at punctuation. When it finishes, the cursor parks on a trailing `$` prompt so it reads as live. Line text is rendered **in the HTML** and the script empties and retypes it, so no-JS and `prefers-reduced-motion` both get the full content immediately.
 
+  The rows are `display:none` and revealed one at a time inside a **bottom-anchored** (`justify-end`) container with a reserved `min-height`. Revealing a row therefore appends it at the bottom and pushes the earlier rows up, the way a terminal scrolls — rather than filling in downward. `visibility:hidden` does **not** work for this: it reserves the space, so nothing moves. The reserved height stops the page reflowing as rows arrive.
+
   **No window chrome.** An earlier version wrapped it in a fake terminal window — border, title bar, traffic-light dots, scanlines — which read as a gimmick. The lines now sit directly on the page; only a small pulsing `live` indicator marks it as a terminal. Don't re-add the window.
 
   Landing layout went through five passes worth recording, so they don't get re-tried: **(1)** 1152px column + narrow rail + 11px type — cramped, read as an app screen. **(2)** Full-width numbered accordion — read as a stock template. **(3)** Sidebar restored at larger scale — duplicated the header nav. **(4)** Centered hero with a copy paragraph, CTA buttons, stats and a portfolios list — too much, and the copy was placeholder-grade. **(5) Current:** wordmark + tagline + self-typing CLI.
@@ -150,7 +152,9 @@ y(x,t) = Σ Aₙ · e^(−ax) · sin(kₙx − ωₙt)
 
 A harmonic series (`kₙ = n·k₁`, `Aₙ = A/n`) sharing one phase velocity, so the packet propagates intact; a small `+k³` dispersion term so harmonics creep out of step and the crest reforms instead of visibly looping; `e^(−ax)` spatial attenuation left to right. The slope is taken **analytically** and the distance divided by `√(1+slope²)`, so the stroke keeps constant width where the wave is steep instead of thinning.
 
-Faults land on **discrete ticks** — phase tears, zero-order hold (stair steps), dropouts, chromatic split — because continuous wobble reads as animation while discrete events read as something going wrong. Chromatic offsets appear only on torn blocks, never at rest.
+Faults land on **discrete ticks** (~1/s) because continuous wobble reads as animation while discrete events read as something going wrong. Critically, every fault **acts on the wave itself** — phase step, wavenumber jump, level jump, hard clipping that flattens the crests, decimation into stair steps, dropouts. An earlier version added a chromatic colour split on top, which read as an overlay sitting on the image rather than as the signal breaking. **Don't paint faults over the wave; break the wave.**
+
+It's deliberately slow (phase velocity 0.42) and small (amplitude 0.040/n).
 
 It went from three flat traces → a DAW-style bar waveform → this. **Validate shader edits** with `glslangValidator -S frag` (installable via `brew install glslang`): a compile error mounts nothing and looks identical to a working page with the effect disabled, so it fails silently. Chosen over the usual animated-gradient blob because it *means something here* — it's a signal, on a site about audio.
 

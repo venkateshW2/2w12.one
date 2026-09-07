@@ -2,10 +2,10 @@
   const term = document.getElementById('term');
   if (!term) return;
 
-  const lines = Array.prototype.slice
-    .call(term.querySelectorAll('.term-line'))
-    .filter((el) => el.querySelector('.term-label, .term-body, .term-note'));
-  if (!lines.length) return;
+  // Every row, including the trailing prompt — the prompt has to be hidden too
+  // or it sits at the bottom from the start and the stack can't grow into it.
+  const rows = Array.prototype.slice.call(term.querySelectorAll('.term-line'));
+  if (!rows.length) return;
 
   // Reduced motion: leave the text exactly as rendered.
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -14,10 +14,14 @@
   const rnd = (n) => Math.floor(Math.random() * n);
   const pick = () => GLITCH_CHARS[rnd(GLITCH_CHARS.length)];
 
-  // Each line's spans are captured, emptied, then refilled character by
+  // Each row's spans are captured and emptied, then refilled character by
   // character. Storing the text first means the DOM keeps the real content for
   // no-JS and for search engines.
-  const plan = lines.map((line) => {
+  //
+  // Rows are display:none rather than hidden — they must take no space, so that
+  // revealing one appends it at the bottom of a bottom-anchored stack and
+  // pushes the earlier rows up, the way a terminal scrolls.
+  const plan = rows.map((line) => {
     const parts = Array.prototype.slice
       .call(line.querySelectorAll('.term-label, .term-body, .term-note'))
       .map((el) => {
@@ -25,7 +29,7 @@
         el.textContent = '';
         return { el, text };
       });
-    line.style.visibility = 'hidden';
+    line.style.display = 'none';
     return { line, parts };
   });
 
@@ -60,21 +64,25 @@
   }
 
   function typeLine(n) {
-    if (n >= plan.length) {
-      // Park the cursor on the trailing prompt so the terminal reads as live
-      // rather than finished.
+    if (n >= plan.length) return;
+
+    const { line, parts } = plan[n];
+    line.style.display = ''; // appears at the bottom; everything above shifts up
+
+    // A row with nothing to type is the trailing prompt: park the cursor there
+    // and stop, so the terminal reads as waiting for input rather than finished.
+    if (!parts.length) {
       const idle = document.getElementById('term-idle');
       if (idle) idle.appendChild(cursor);
       else cursor.remove();
       return;
     }
-    const { line, parts } = plan[n];
-    line.style.visibility = '';
 
     let p = 0;
     (function nextPart() {
       if (p >= parts.length) {
-        return setTimeout(() => typeLine(n + 1), 170);
+        // Beat between rows — longer after the command line, as though it ran.
+        return setTimeout(() => typeLine(n + 1), n === 0 ? 340 : 150);
       }
       typePart(parts[p++], nextPart);
     })();

@@ -8,9 +8,10 @@
 // spatial attenuation. The slope is taken analytically so the stroke keeps a
 // constant width where the wave is steep.
 //
-// Faults land on discrete ticks — phase tears, zero-order hold, dropouts,
-// chromatic split — because continuous wobble reads as animation while
-// discrete events read as something going wrong.
+// Faults land on discrete ticks and act ON the wave — phase steps, wavenumber
+// jumps, level jumps, hard clipping, decimation, dropouts. Nothing is painted
+// over the top: an additive colour split reads as an overlay sitting on the
+// image rather than as the signal itself breaking.
 //
 // Chosen over the usual animated-gradient blob because it means something here:
 // this is a signal, on a site about audio. Still restrained — the rule worth
@@ -68,12 +69,17 @@
     // ---- glitch clock -------------------------------------------------------
     // Faults land on discrete ticks. Continuous wobble reads as animation;
     // discrete events read as something going wrong.
-    float tick = floor(uTime * 2.7);
+    float tick = floor(uTime * 1.05);
     float blockId = floor(uv.x * 11.0);
     float gr = hash(vec2(blockId, tick));
+    float fault = step(0.90, gr);
 
-    float tear = step(0.90, gr) * (hash(vec2(blockId, tick + 3.0)) - 0.5) * 2.2; // phase jump
-    float hold = step(0.93, gr);   // zero-order hold -> stair steps
+    // Every fault below changes the wave itself — its phase, its wavenumber,
+    // its gain, its sample rate. Nothing is painted over the top.
+    float tear = fault * (hash(vec2(blockId, tick + 3.0)) - 0.5) * 2.2;  // phase step
+    float bend = 1.0 + fault * (hash(vec2(blockId, tick + 11.0)) - 0.5) * 0.9; // wavenumber jump
+    float gain = 1.0 + fault * (hash(vec2(blockId, tick + 19.0)) - 0.35) * 1.4; // level jump
+    float hold = step(0.93, gr);       // decimation -> stair steps
     float mute = 1.0 - step(0.965, gr);
     float Xs = mix(X, floor(X * 16.0) / 16.0, hold);
 
@@ -85,9 +91,9 @@
     // velocity common (the shape propagates intact); the small +k^3 term is
     // dispersion, so harmonics creep out of step and the crest slowly reforms
     // instead of looping. e^(-a x) is spatial attenuation left to right.
-    float k1 = 2.2;      // fundamental wavenumber
-    float c = 1.15;      // phase velocity
-    float a = 0.055;     // attenuation
+    float k1 = 2.2 * bend; // fundamental wavenumber, jumps on a fault
+    float c = 0.42;        // phase velocity — slow propagation
+    float a = 0.055;       // attenuation
 
     float damp = exp(-a * (Xs + 3.0));
     float y = 0.0;
@@ -96,14 +102,20 @@
     for (int n = 1; n <= 4; n++) {
       float fn = float(n);
       float kn = k1 * fn;
-      float wn = c * kn + 0.012 * kn * kn * kn;
-      float An = 0.075 / fn;
+      float wn = c * kn + 0.004 * kn * kn * kn;
+      float An = 0.040 / fn;
       float ph = kn * Xs - wn * t + tear;
       y += An * sin(ph);
       dydX += An * kn * cos(ph);   // analytic slope, for constant line width
     }
-    y *= damp * mute;
-    dydX *= damp * mute;
+    y *= damp * mute * gain;
+    dydX *= damp * mute * gain;
+
+    // Hard clipping — a fault flattens the crests, the way a signal clips.
+    float ceilY = mix(1.0, 0.055, fault);
+    y = clamp(y, -ceilY, ceilY);
+    // Slope goes to zero wherever the wave is sitting on the rail.
+    dydX *= 1.0 - step(ceilY, abs(y));
 
     // ---- draw ---------------------------------------------------------------
     // Dividing by sqrt(1 + slope^2) is the perpendicular distance to the curve,
@@ -117,11 +129,6 @@
     float trace = core * 0.55 + glow;
 
     col += trace * accent;
-
-    // Chromatic split only on blocks that tore — never at rest.
-    float split = step(0.90, gr);
-    col.r += trace * split * 0.16;
-    col.b += trace * split * 0.09;
 
     // Faint zero axis, so it reads as a wave about an equilibrium.
     col += smoothstep(0.0016, 0.0, abs(p.y - baseline)) * accent * 0.10;
