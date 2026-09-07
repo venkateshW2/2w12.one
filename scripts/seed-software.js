@@ -17,6 +17,7 @@ const SOFTWARE = [
     year: 2025,
     source_url: 'https://github.com/venkateshW2/sonifyv.1',
     external_url: 'https://github.com/venkateshW2/sonifyv.1',
+    cover_image_url: '/images/sonifyV1.webp',
     description:
       'Tempo-synchronized microtonal highway sonification system. Converts real-world visual scenes into musical output using computer vision, tempo-synchronized randomization and microtonal scales.',
     technical: 'C++, computer vision, ML vehicle detection, microtonal tuning systems',
@@ -28,8 +29,9 @@ const SOFTWARE = [
     role: 'Concept / Development',
     tags: 'SOFTWARE,RESEARCH',
     year: 2026,
-    source_url: 'https://github.com/venkateshW2/wall-harpDesigner',
+    source_url: 'https://venkateshw2.github.io/wall-harpDesigner/',
     external_url: 'https://github.com/venkateshW2/wall-harpDesigner',
+    cover_image_url: '/images/wallharpdesigner.webp',
     description:
       'Browser-based physics simulator and tuning calculator for a 144-string wall harp with a dual-capo tuning system. Calculates string type and length for musical intervals.',
     technical: 'JavaScript, wave equation f = v / (2L), dual-capo pitch modelling, 144-string layout',

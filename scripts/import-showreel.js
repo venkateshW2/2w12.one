@@ -36,6 +36,7 @@ const PROFILE = {
     'Masters in Audio Technology — West London University, 2008',
     'Bachelor of Physics — Mumbai University, 2004'
   ].join('\n'),
+  avatar_url: '/images/venkateshheadhsot.webp',
   email: 'whencut.y@gmail.com',
   linkedin_url: 'https://www.linkedin.com/in/whencut',
   website_url: 'https://2w12.one'
