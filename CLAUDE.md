@@ -140,30 +140,24 @@ Verified end to end: invite → signup creates user + profile → invite marked 
 
 Two intensities: `.glitch` (landing wordmark) slips several times per cycle and twitches the whole word on the same frames; `.logo-glitch` (nav) uses the identical technique but fires roughly once every 7–9s. Don't make the nav heavier — a permanently glitching header reads as a broken page.
 
-### WebGL background
+### Landing visual — spectral fingerprint (PROTOTYPE)
 
-`public/js/shader-bg.js` — a **propagating wave** low on the landing page, with film grain and a vignette folded into the same fragment shader plus half-LSB dithering to kill banding.
+`public/js/fingerprint.js` — a **constellation map**: spectral peaks plotted as time × log-frequency, with anchor→target pair lines and a slow scan line, drawn in Canvas 2D.
 
-Real wave physics rather than a decorative squiggle:
+**The point set is generated, not measured.** It is a deliberate fake, built to test the direction before wiring real audio. What makes it read as data rather than decoration is that its *structure* matches what real peak-picking produces:
 
-```
-y(x,t) = Σ Aₙ · e^(−ax) · sin(kₙx − ωₙt)
-```
+- time on x, **log** frequency on y, so octaves space evenly
+- **harmonic stacks** at f0, 2f0, 3f0… which compress as they rise on a log axis — the single most recognisable signature of a pitched sound
+- **onsets** as broadband vertical smears, energy across every band at once
+- **sustains** as horizontal runs decaying in amplitude
+- a **sparse noise floor**, because real peak-picking always leaves scattered survivors and a field without them looks synthetic
+- **anchor→target pair lines**, the relationship a Shazam-style fingerprint hashes
 
-A harmonic series (`kₙ = n·k₁`, `Aₙ = A/n`) sharing one phase velocity, so the packet propagates intact; a small `+k³` dispersion term so harmonics creep out of step and the crest reforms instead of visibly looping; `e^(−ax)` spatial attenuation left to right. The slope is taken **analytically** and the distance divided by `√(1+slope²)`, so the stroke keeps constant width where the wave is steep instead of thinning.
+The PRNG seed is **fixed**. A field that re-randomises each visit reads as arbitrary; a stable one reads as a measurement of a specific thing.
 
-**No glitching on the wave.** Faults were built and removed: first a chromatic colour split, which read as an overlay sitting on the image rather than the signal breaking; then faults acting on the wave itself (phase steps, wavenumber jumps, clipping, decimation, dropouts), which at this size read as noise rather than as a signal failing. The glitch belongs on the **wordmark**, where there's enough mass for it to register. Don't re-add it here.
+**To make it real:** replace `buildPeaks()` with a precomputed JSON of peaks from an actual 2w12 recording (analysed offline — no runtime audio, no autoplay problem) and keep the renderer unchanged. That is the step that makes the visual unfakeable, since specific data is the one thing generic output cannot imitate.
 
-Deliberately slow (phase velocity 0.42) and small (amplitude 0.016/n), confined to the **bottom-left corner** by a smoothstep envelope — windowed rather than cropped, so the packet has ends instead of being sliced by the viewport, with the zero axis windowed to the same span so it reads as a readout rather than a stray squiggle.
-
-It went from three flat traces → a DAW-style bar waveform → this. **Validate shader edits** with `glslangValidator -S frag` (installable via `brew install glslang`): a compile error mounts nothing and looks identical to a working page with the effect disabled, so it fails silently. Chosen over the usual animated-gradient blob because it *means something here* — it's a signal, on a site about audio.
-
-Rules it follows, from the research (see [award-grade webgl-shader-fx](https://github.com/praveentewatia26/award-grade/blob/main/skills/webgl-shader-fx/SKILL.md)):
-
-- **"If you can immediately name the effect, halve it."** The traces are deliberately near-invisible. Resist brightening them.
-- **One post effect.** Grain and vignette are folded into the material shader rather than run as passes; there is no bloom (multiple downsampled blurs — the expensive one).
-- **Three-tier progressive enhancement:** no WebGL2 / low-memory device / ≤2 cores / failed compile → nothing mounts and the flat background stands, indistinguishable to the visitor; `prefers-reduced-motion` → one static frame, no loop; otherwise animate, and **pause on `visibilitychange`**.
-- **DPR capped at 1.5** — a full-screen fragment shader at DPR 3 is 4× the work for no visible gain at this faintness. One full-screen triangle, no libraries.
+Rejected on the way here, in order: an oscilloscope (3 traces, then 1), a DAW-style bar waveform, and a physics-accurate propagating wave packet. All were dropped for the same reason — **they encode nothing**. A sine sum has no relationship to any real sound, and anyone who works with audio reads that as decoration immediately. Don't reintroduce a synthetic waveform as the landing visual.
 
 ### The CLI keeps blinking
 

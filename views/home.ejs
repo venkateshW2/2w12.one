@@ -1,9 +1,5 @@
 <%- include('partials/head', { pageTitle: '2w12.one — the sound thing', loggedIn: loggedIn }) %>
 
-<%# WebGL oscilloscope behind the content. Mounts only if WebGL2 and the
-    device heuristics pass; the page is complete without it. %>
-<div id="shader-bg" aria-hidden="true"></div>
-
 <div class="relative z-10 max-w-[1100px] mx-auto px-6 text-center">
 
   <!-- Hero: the wordmark and a terminal that types itself. Nothing else. -->
@@ -20,10 +16,19 @@
       All Things Sound
     </div>
 
+    <%# Spectral-peak fingerprint. Structured fake for now — see fingerprint.js. %>
+    <div class="mx-auto max-w-[620px] mt-12">
+      <div class="flex items-baseline justify-between mb-2">
+        <span class="font-mono text-[9px] uppercase tracking-[0.2em] text-muted/45">Spectral peaks &middot; 60 Hz &ndash; 12 kHz</span>
+        <span class="font-mono text-[9px] uppercase tracking-[0.2em] text-muted/30">fingerprint</span>
+      </div>
+      <div id="fingerprint" class="w-full" style="height:104px" aria-hidden="true"></div>
+    </div>
+
     <%# Not a fake window — just typed lines sitting on the page. The window
         chrome read as a gimmick. Typed by /js/home.js; the text is in the DOM
         so no-JS and reduced-motion get it immediately. %>
-    <div class="mx-auto max-w-[620px] mt-14 text-left">
+    <div class="mx-auto max-w-[620px] mt-10 text-left">
 
       <div class="flex items-center gap-1.5 mb-4">
         <span class="term-led w-1.5 h-1.5 rounded-full bg-accent"></span>
@@ -62,7 +67,7 @@
   </section>
 
 </div>
-<script src="/js/shader-bg.js"></script>
+<script src="/js/fingerprint.js"></script>
 <script src="/js/home.js"></script>
 </body>
 </html>
