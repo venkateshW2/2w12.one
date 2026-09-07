@@ -23,7 +23,18 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(
   session({
-    store: new KnexSessionStore({ knex, tablename: 'sessions', createtable: false }),
+    store: new KnexSessionStore({
+      knex,
+      tablename: 'sessions',
+      createtable: false,
+      // The store sweeps expired sessions on a timer and does `.catch(cb)` with
+      // whatever callback is passed. With none, that's `.catch(undefined)` — an
+      // unhandled rejection, which Node exits on. So a single failing sweep
+      // query killed the whole site (it did: a bigint/timestamptz mismatch on
+      // the first Postgres deploy). Losing session pruning is survivable;
+      // losing the site is not.
+      onDbCleanupError: (err) => console.error('[sessions] cleanup failed:', err && err.message)
+    }),
     secret: SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
@@ -71,6 +82,16 @@ require('./routes/admin-panel')(app);
 
 app.use((req, res) => {
   res.status(404).render('not-found');
+});
+
+// Last line of defence. Anything that escapes a route's try/catch or fires from
+// a timer would otherwise exit the process and take every page down with it.
+// Logged loudly rather than swallowed silently — but the site stays up.
+process.on('unhandledRejection', (err) => {
+  console.error('[unhandledRejection]', err && (err.stack || err.message || err));
+});
+process.on('uncaughtException', (err) => {
+  console.error('[uncaughtException]', err && (err.stack || err.message || err));
 });
 
 app.listen(PORT, () => {
