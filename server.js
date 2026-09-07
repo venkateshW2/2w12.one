@@ -33,6 +33,17 @@ app.use(
 
 app.locals.db = knex;
 
+// The header menu lists every portfolio, so it needs profiles on each render.
+// Tiny table, single query — cheaper than threading it through every route.
+app.use(async (req, res, next) => {
+  try {
+    res.locals.navProfiles = await knex('profiles').select('id', 'name', 'token', 'user_id').orderBy('id');
+  } catch {
+    res.locals.navProfiles = []; // never let the menu break a page
+  }
+  next();
+});
+
 // The landing page route must come before the docs/ static mount, or
 // express.static answers "/" with the old static index.html instead.
 require('./routes/home')(app);

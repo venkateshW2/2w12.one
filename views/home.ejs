@@ -1,118 +1,80 @@
-<%- include('partials/head', { pageTitle: '2w12.one — Sound Things', loggedIn: loggedIn }) %>
+<%- include('partials/head', { pageTitle: '2w12.one — Audio-first studio', loggedIn: loggedIn }) %>
 
-<div class="max-w-[1500px] mx-auto px-6 md:px-10 lg:px-14">
-  <div class="flex flex-col lg:flex-row gap-10 lg:gap-16 py-12 md:py-16">
+<div class="max-w-[1100px] mx-auto px-6 text-center">
 
-    <!-- Sidebar: wordmark + primary navigation -->
-    <aside class="lg:w-[268px] flex-shrink-0">
-      <div class="lg:sticky lg:top-[76px]">
+  <!-- Hero: the company name is the headline; SOUND THINGS is its tagline. -->
+  <section class="pt-20 md:pt-28 pb-16">
+    <h1 class="glitch inline-block font-bold leading-[0.85] tracking-[-0.04em] text-white"
+        style="font-size:clamp(3.6rem,13vw,10rem)" data-text="2w12.one">2w12.one</h1>
 
-        <a href="/" class="glitch block font-bold leading-none tracking-[-0.035em] text-white"
-           style="font-size:clamp(2rem,3.4vw,2.7rem)" data-text="2w12.one">2w12.one</a>
-        <div class="side-label mt-3">Audio-first studio &middot; Mumbai</div>
+    <div class="mt-6 font-mono font-medium uppercase tracking-[0.34em] text-accent"
+         style="font-size:clamp(.8rem,2.1vw,1.5rem)">
+      Sound Things
+    </div>
 
-        <div class="mt-9 space-y-8">
+    <p class="mt-9 mx-auto max-w-2xl text-ink/80 leading-[1.55] font-light" style="font-size:clamp(1.05rem,1.9vw,1.4rem)">
+      An audio-first studio. Sound design, mixing and music production for film and series &mdash;
+      alongside the tools and research that come out of doing the work.
+    </p>
 
-          <div>
-            <div class="side-label mb-2.5">Portfolios</div>
-            <div class="space-y-0">
-              <% portfolios.forEach(function(p) { %>
-                <a href="<%= p.url %>" class="person-row group">
-                  <% if (p.avatar_url) { %>
-                    <img src="<%= p.avatar_url %>" alt="" class="w-9 h-9 rounded-full object-cover object-top border border-line flex-shrink-0">
-                  <% } else { %>
-                    <span class="w-9 h-9 rounded-full border border-line bg-surface flex items-center justify-center text-[11px] font-semibold text-accent flex-shrink-0"><%= p.initials %></span>
-                  <% } %>
-                  <span class="min-w-0 flex-1">
-                    <span class="block text-[15px] font-semibold leading-tight truncate group-hover:text-accent transition-colors"><%= p.name %></span>
-                    <span class="block text-[10.5px] font-mono uppercase tracking-[0.08em] text-muted/80 truncate mt-0.5"><%= p.projectCount %> projects</span>
-                  </span>
-                </a>
-              <% }) %>
-            </div>
-          </div>
+    <div class="mt-10 flex flex-wrap justify-center gap-3">
+      <a href="/portfolio" class="font-mono uppercase tracking-wider font-medium bg-accent text-bg rounded px-6 py-3.5 hover:brightness-110 transition" style="font-size:clamp(.75rem,1.15vw,.88rem)">View the work</a>
+      <a href="/work" class="font-mono uppercase tracking-wider border border-line text-muted rounded px-6 py-3.5 hover:text-ink hover:border-muted transition-colors" style="font-size:clamp(.75rem,1.15vw,.88rem)">Studio work</a>
+    </div>
+  </section>
 
-          <div>
-            <div class="side-label mb-2">Studio</div>
-            <a href="/portfolio" class="side-link">Portfolio <span class="tick"><%= totalProjects %></span></a>
-            <a href="/work" class="side-link">Work <span class="tick text-accent/80">soon</span></a>
-            <a href="/gallery" class="side-link">Gallery <span class="tick"><%= galleryCount %></span></a>
-          </div>
+  <!-- What's happening -->
+  <section class="pb-16 border-t border-line pt-12">
+    <div class="mx-auto max-w-2xl space-y-3.5 text-left font-mono leading-relaxed" style="font-size:clamp(.82rem,1.3vw,1rem)">
+      <div class="flex gap-3">
+        <span class="text-accent flex-shrink-0">&gt;</span>
+        <span class="text-muted"><span class="text-ink font-medium">Current:</span> Film mixing, AI music workflows, spatial audio, workshops</span>
+      </div>
+      <div class="flex gap-3">
+        <span class="text-accent flex-shrink-0">&gt;</span>
+        <span class="text-muted"><span class="text-ink font-medium">Released:</span> SonifyV1 &mdash; CV to MIDI/OSC (80 object classes, 60fps)</span>
+      </div>
+      <div class="flex gap-3">
+        <span class="text-accent flex-shrink-0">&gt;</span>
+        <span class="text-muted"><span class="text-ink font-medium">Labs:</span> Audio classification &amp; analysis tools <span class="text-muted/60">[experimental]</span></span>
+      </div>
+    </div>
+  </section>
 
-          <div>
-            <div class="side-label mb-2">Tools</div>
-            <a href="/tools/visualizer/" class="side-link">Visualizer</a>
-            <a href="/tools/keyfinder/" class="side-link">Key Finder</a>
-            <a href="/tools/youtube/" class="side-link">YouTube</a>
-          </div>
-
-          <div>
-            <div class="side-label mb-2">Labs</div>
-            <a href="https://github.com/venkateshW2/sonifyv.1" target="_blank" rel="noopener" class="side-link">SonifyV1 <span class="tick">&nearr;</span></a>
-            <a href="https://venkateshw2.github.io/wall-harpDesigner/" target="_blank" rel="noopener" class="side-link">Wall Harp <span class="tick">&nearr;</span></a>
-            <a href="https://github.com/venkateshW2/2w12-backend" target="_blank" rel="noopener" class="side-link">Audio Analysis <span class="tick">&nearr;</span></a>
-          </div>
-
-          <div class="pt-1">
-            <% if (loggedIn) { %>
-              <a href="/dashboard" class="side-link text-accent">Dashboard <span class="tick text-accent">&rarr;</span></a>
-            <% } else { %>
-              <a href="/login" class="side-link">Login <span class="tick">&rarr;</span></a>
-            <% } %>
-          </div>
-
+  <!-- Numbers -->
+  <section class="pb-16 border-t border-line pt-12">
+    <div class="flex flex-wrap justify-center gap-x-16 gap-y-8">
+      <% stats.forEach(function(s) { %>
+        <div>
+          <div class="font-bold text-accent leading-none tracking-tight" style="font-size:clamp(1.8rem,3.4vw,2.7rem)"><%= s.value %></div>
+          <div class="side-label mt-2"><%= s.label %></div>
         </div>
-      </div>
-    </aside>
+      <% }) %>
+    </div>
+  </section>
 
-    <!-- Main -->
-    <main class="min-w-0 flex-1">
-      <h1 class="glitch font-bold leading-[0.86] tracking-[-0.035em]"
-          style="font-size:clamp(3.1rem,9.5vw,8rem)" data-text="SOUND THINGS">SOUND THINGS</h1>
+  <!-- Portfolios: the people, since the menu only lists their names -->
+  <section class="pb-20 border-t border-line pt-12">
+    <div class="side-label mb-6">Portfolios</div>
+    <div class="mx-auto max-w-2xl grid gap-3 <%= portfolios.length > 1 ? 'sm:grid-cols-2' : '' %>">
+      <% portfolios.forEach(function(p) { %>
+        <a href="<%= p.url %>" class="group flex items-center gap-3.5 text-left border border-line rounded-md px-4 py-3.5 hover:border-accent/50 transition-colors">
+          <% if (p.avatar_url) { %>
+            <img src="<%= p.avatar_url %>" alt="" class="w-11 h-11 rounded-full object-cover object-top border border-line flex-shrink-0">
+          <% } else { %>
+            <span class="w-11 h-11 rounded-full border border-line bg-surface flex items-center justify-center text-[12px] font-semibold text-accent flex-shrink-0"><%= p.initials %></span>
+          <% } %>
+          <span class="min-w-0 flex-1">
+            <span class="block text-[15.5px] font-semibold leading-tight truncate group-hover:text-accent transition-colors"><%= p.name %></span>
+            <span class="block text-[11px] font-mono uppercase tracking-[0.08em] text-muted/80 truncate mt-1"><%= [p.tagline, p.projectCount + ' projects'].filter(Boolean).join(' · ') %></span>
+          </span>
+          <span class="font-mono text-[10px] uppercase tracking-wider text-muted group-hover:text-accent transition-colors flex-shrink-0">Open &rarr;</span>
+        </a>
+      <% }) %>
+    </div>
+  </section>
 
-      <div class="mt-7 font-mono font-medium uppercase tracking-[0.16em] text-accent"
-           style="font-size:clamp(.78rem,1.35vw,1.05rem)">
-        Audio Services &nbsp;&middot;&nbsp; Tool Development &nbsp;&middot;&nbsp; Sound Research
-      </div>
-
-      <p class="mt-8 max-w-3xl text-ink/85 leading-[1.5] font-light" style="font-size:clamp(1.15rem,2.3vw,1.85rem)">
-        Sound design, mixing and music production for film and series &mdash; alongside the tools and
-        research that come out of doing the work.
-      </p>
-
-      <div class="mt-10 space-y-3 max-w-3xl font-mono leading-relaxed" style="font-size:clamp(.85rem,1.4vw,1.05rem)">
-        <div class="flex gap-3">
-          <span class="text-accent flex-shrink-0">&gt;</span>
-          <span class="text-muted"><span class="text-ink font-medium">Current:</span> Film mixing, AI music workflows, spatial audio, workshops</span>
-        </div>
-        <div class="flex gap-3">
-          <span class="text-accent flex-shrink-0">&gt;</span>
-          <span class="text-muted"><span class="text-ink font-medium">Released:</span> SonifyV1 &mdash; CV to MIDI/OSC (80 object classes, 60fps)</span>
-        </div>
-        <div class="flex gap-3">
-          <span class="text-accent flex-shrink-0">&gt;</span>
-          <span class="text-muted"><span class="text-ink font-medium">Labs:</span> Audio classification &amp; analysis tools <span class="text-muted/60">[experimental]</span></span>
-        </div>
-      </div>
-
-      <div class="mt-12 flex flex-wrap items-stretch gap-y-6 gap-x-12 border-t border-line pt-7 max-w-3xl">
-        <% stats.forEach(function(s) { %>
-          <div>
-            <div class="font-bold text-accent leading-none tracking-tight" style="font-size:clamp(1.7rem,3.2vw,2.5rem)"><%= s.value %></div>
-            <div class="side-label mt-2"><%= s.label %></div>
-          </div>
-        <% }) %>
-      </div>
-
-      <div class="mt-11 flex flex-wrap gap-3">
-        <a href="/portfolio" class="font-mono uppercase tracking-wider font-medium bg-accent text-bg rounded px-6 py-3.5 hover:brightness-110 transition" style="font-size:clamp(.75rem,1.15vw,.9rem)">View the work</a>
-        <a href="/work" class="font-mono uppercase tracking-wider border border-line text-muted rounded px-6 py-3.5 hover:text-ink hover:border-muted transition-colors" style="font-size:clamp(.75rem,1.15vw,.9rem)">Studio work</a>
-      </div>
-
-      <div class="mt-14 side-label">Mumbai, India &middot; est. 2004</div>
-    </main>
-
-  </div>
+  <div class="pb-14 side-label">Mumbai, India &middot; est. 2004</div>
 </div>
 </body>
 </html>

@@ -65,40 +65,39 @@
     .gal-item { cursor: pointer; transition: transform .25s ease, border-color .25s ease; }
     .gal-item:hover { transform: translateY(-2px); border-color: #2e2e2e; }
 
-    /* Landing sidebar. Bigger and bolder than the first pass — these are the
-       page's primary navigation, not footnotes. */
+    /* Header menu */
+    .menu { position: relative; }
+    .menu-btn {
+      display: inline-flex; align-items: center; gap: .3rem;
+      padding: .45rem .7rem; border-radius: 4px; background: none; border: 0;
+      color: #86837c; text-decoration: none; font-size: 12.5px; cursor: pointer;
+      transition: color .18s ease, background .18s ease;
+    }
+    .menu-btn:hover { color: #e8e6e1; background: #141414; }
+    .menu-caret { transition: transform .2s ease; }
+    .menu.open .menu-btn { color: #c98a3f; background: #141414; }
+    .menu.open .menu-caret { transform: rotate(180deg); }
+    .menu-panel {
+      position: absolute; top: calc(100% + .35rem); left: 0; min-width: 190px;
+      background: #141414; border: 1px solid #232323; border-radius: 6px;
+      padding: .35rem; box-shadow: 0 12px 32px rgba(0,0,0,.55);
+      opacity: 0; visibility: hidden; transform: translateY(-4px);
+      transition: opacity .18s ease, transform .18s ease, visibility .18s;
+    }
+    .menu.open .menu-panel { opacity: 1; visibility: visible; transform: none; }
+    .menu-item {
+      display: block; padding: .45rem .6rem; border-radius: 4px;
+      color: #b8b5ae; text-decoration: none; font-size: 12.5px; white-space: nowrap;
+      transition: color .15s ease, background .15s ease;
+    }
+    .menu-item:hover { color: #c98a3f; background: #1b1b1b; }
+    .menu-sep { height: 1px; background: #232323; margin: .35rem .3rem; }
+
+    /* Small uppercase mono label, used across the landing and gallery. */
     .side-label {
       font-family: 'JetBrains Mono', ui-monospace, monospace;
       font-size: 10px; text-transform: uppercase; letter-spacing: .2em; color: #6e6b64;
     }
-    .side-link {
-      display: flex; align-items: center; justify-content: space-between; gap: .75rem;
-      padding: .42rem 0; color: #b8b5ae; text-decoration: none;
-      font-size: 14.5px; font-weight: 500; letter-spacing: -.005em;
-      border-bottom: 1px solid transparent;
-      transition: color .18s ease, padding-left .18s ease;
-    }
-    .side-link:hover { color: #c98a3f; padding-left: .3rem; }
-    .side-link .tick {
-      font-family: 'JetBrains Mono', ui-monospace, monospace;
-      font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; color: #5f5c56;
-      flex: 0 0 auto;
-    }
-    .side-link:hover .tick { color: #c98a3f; }
-
-    .person-row {
-      display: flex; align-items: center; gap: .7rem; padding: .5rem 0;
-      text-decoration: none; transition: padding-left .18s ease;
-    }
-    .person-row:hover { padding-left: .3rem; }
-
-    /* Landing rail */
-    .rail-link {
-      display: block; padding: .3rem .3rem; margin: 0 -.3rem; border-radius: 3px;
-      font-size: 11.5px; color: #86837c; text-decoration: none;
-      transition: color .2s ease, background .2s ease;
-    }
-    .rail-link:hover { color: #c98a3f; background: #141414; }
 
     /* Glitch — the studio's existing motif, carried over from the old landing
        page (which used --glitch-color #ff0080) and re-tuned for dark. */

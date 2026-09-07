@@ -97,9 +97,15 @@ Cards with no poster and no YouTube fallback show a section-appropriate glyph �
 
 - **`/`** — `routes/home.js` + `views/home.ejs`. **Registered before the `docs/` static mount in `server.js`** — otherwise `express.static` answers `/` with the old static `docs/index.html`. Keep that ordering. (`index: false` on that mount is *not* the fix — it breaks `docs/tools/<tool>/index.html`.)
 
-  It's a **landing page, sized like one**: a 1500px full-width container and type that scales with the viewport via `clamp()` — wordmark to 10.5rem, body copy to 1.6rem. An earlier version was a 1152px column with a sidebar and 11px type, which read as an app screen. **`2w12.one` is the headline**, big/bold/**white** (the nav wordmark too — orange read as a link, not a company name).
+  **Centered, header-nav only, no sidebar.** `2w12.one` is the headline — big, bold, **white**, glitched — and **"SOUND THINGS" is its tagline** beneath it, in letterspaced mono. Two competing display lines was the problem with the previous pass; one headline plus a tagline is one voice. Then: intro, `>` status lines, the numbers row, and a Portfolios block listing the people. Type scales with the viewport via `clamp()`.
 
-  There is **no team rail**: portfolios lead. The page is a numbered accordion — Portfolios, Work, Tools, Labs, Gallery — each row large enough to work as navigation on its own. Several rows can be open at once, since they're links rather than a wizard. The Portfolios section reads the `profiles` table with per-person project counts; the owner links to `/portfolio`, anyone else to their `/p/:token` URL until Phase 2 gives profiles real slugs.
+  Landing layout went through three passes worth recording, so they don't get re-tried: **(1)** 1152px column + narrow rail + 11px type — cramped, read as an app screen. **(2)** Full-width numbered accordion (Portfolios/Work/Tools/Labs/Gallery) — read as a stock template, and it dropped SOUND THINGS. **(3)** Sidebar restored at larger scale — but duplicated the header nav. **Current:** centered hero, all navigation in the header.
+
+### Header menu
+
+`views/partials/nav.ejs` is the single navigation surface for the whole site: wordmark, a **Portfolios** dropdown listing every profile (owner → `/portfolio`, others → `/p/:token`), Work, Gallery, a **Tools** dropdown (the three browser tools plus the Labs links), and Login/Dashboard/Logout. Dropdowns are **click-to-open, not hover** — hover menus are unusable on touch and jumpy on the way to a neighbouring item. Below `md` it collapses to a burger.
+
+It needs the profile list on every render, so `server.js` sets `res.locals.navProfiles` in one small middleware rather than every route passing it; a failure there falls back to `[]` so the menu can never break a page.
 - **`/work`** — the studio's own work as a company, distinct from the individual portfolios. **Marked "coming soon"** — a real page, not built out yet.
 - **`/portfolio`** — the work. Category tabs, cards, sidebar with the stream player.
 - **Two galleries** — `routes/gallery.js` + `views/gallery.ejs` + `gallery_items` (migration `20260907000004`), scoped by `gallery_items.profile_id`:
