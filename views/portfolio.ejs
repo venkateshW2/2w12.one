@@ -45,10 +45,18 @@
           </a>
         </div>
 
-        <div class="mt-4 pt-4 border-t border-line flex flex-col gap-2 text-[11.5px]">
-          <% if (profile.email) { %><a href="mailto:<%= profile.email %>" class="text-muted hover:text-accent transition-colors"><%= profile.email %></a><% } %>
-          <% if (profile.website_url) { %><a href="<%= profile.website_url %>" target="_blank" rel="noopener" class="text-muted hover:text-accent transition-colors">Website</a><% } %>
-          <% if (profile.linkedin_url) { %><a href="<%= profile.linkedin_url %>" target="_blank" rel="noopener" class="text-muted hover:text-accent transition-colors">LinkedIn</a><% } %>
+        <div class="mt-4 pt-4 border-t border-line space-y-2 text-[11.5px]">
+          <% if (profile.email) { %><a href="mailto:<%= profile.email %>" class="block text-muted hover:text-accent transition-colors break-all"><%= profile.email %></a><% } %>
+          <% if (profile.phone) { %><a href="tel:<%= profile.phone.replace(/\s/g,'') %>" class="block text-muted hover:text-accent transition-colors"><%= profile.phone %></a><% } %>
+          <% if (profile.location) { %><div class="text-muted/70"><%= profile.location %></div><% } %>
+
+          <% if (socials.length) { %>
+            <div class="flex flex-wrap gap-x-3 gap-y-1.5 pt-1">
+              <% socials.forEach(function(s) { %>
+                <a href="<%= s.url %>" target="_blank" rel="noopener" class="text-muted hover:text-accent transition-colors"><%= s.label %> <span class="text-muted/40">&nearr;</span></a>
+              <% }) %>
+            </div>
+          <% } %>
         </div>
       </div>
 

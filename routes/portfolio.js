@@ -32,7 +32,11 @@ module.exports = function (app) {
   }
 
   async function renderProfile(req, res, profile) {
-    const allTracks = await db()('tracks').where({ profile_id: profile.id }).select('*');
+    const everything = await db()('tracks').where({ profile_id: profile.id }).select('*');
+    const hiddenIds = new Set(everything.filter((t) => t.hidden).map((t) => t.id));
+    // A hidden parent takes its pieces with it, otherwise an "album" would lose
+    // its card but keep leaking tracks into the player and lightbox.
+    const allTracks = everything.filter((t) => !t.hidden && !hiddenIds.has(t.parent_track_id));
     const pieces = allTracks.filter((t) => t.parent_track_id);
     const topLevel = allTracks.filter((t) => !t.parent_track_id);
 
@@ -103,8 +107,20 @@ module.exports = function (app) {
     };
     items.forEach(addToLookup);
 
+    const socials = [
+      { url: profile.website_url, label: 'Website' },
+      { url: profile.instagram_url, label: 'Instagram' },
+      { url: profile.linkedin_url, label: 'LinkedIn' },
+      { url: profile.twitter_url, label: 'Twitter' },
+      { url: profile.substack_url, label: 'Substack' },
+      { url: profile.soundcloud_url, label: 'SoundCloud' },
+      { url: profile.spotify_url, label: 'Spotify' },
+      { url: profile.imdb_url, label: 'IMDb' }
+    ].filter((s) => s.url);
+
     res.render('portfolio', {
       profile,
+      socials,
       items,
       categories,
       playlistJson: JSON.stringify(playlist),

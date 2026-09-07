@@ -61,6 +61,9 @@
       <label class="flex items-center gap-1.5 text-xs text-muted mb-2">
         <input type="checkbox" name="featured" <%= track.featured ? 'checked' : '' %>> Featured
       </label>
+      <label class="flex items-center gap-1.5 text-xs text-muted mb-2" title="Keeps the project here but takes it off the public page">
+        <input type="checkbox" name="hidden" <%= track.hidden ? 'checked' : '' %>> Hidden
+      </label>
       <div>
         <label class="block text-xs text-muted mb-1">Pin (higher = further up)</label>
         <input type="number" name="sort_order" value="<%= track.sort_order || 0 %>" class="w-24 bg-surface border border-line rounded px-3 py-2 text-sm focus:outline-none focus:border-accent">

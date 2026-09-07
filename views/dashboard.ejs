@@ -1,6 +1,10 @@
 <%- include('partials/head', { pageTitle: 'Dashboard — 2w12.one', loggedIn: true }) %>
 
-<div class="max-w-5xl mx-auto px-5 py-8 space-y-10">
+<div class="max-w-5xl mx-auto px-5 py-8">
+  <%- include('partials/dash-nav', { active: '' }) %>
+</div>
+
+<div class="max-w-5xl mx-auto px-5 pb-10 space-y-10">
 
   <% if (error) { %>
     <div class="text-xs text-red-400 bg-red-950/40 border border-red-900 rounded px-3 py-2"><%= error %></div>
@@ -19,6 +23,7 @@
         <% if (stats.noCover) { %>&middot; <span class="text-amber-400"><%= stats.noCover %> without a cover</span><% } %>
         <% if (stats.noYear) { %>&middot; <span class="text-amber-400"><%= stats.noYear %> without a year</span><% } %>
         <% if (stats.solo) { %>&middot; <span class="text-accent"><%= stats.solo %> solo credits</span><% } %>
+        <% if (stats.hidden) { %>&middot; <span class="text-muted/70"><%= stats.hidden %> hidden</span><% } %>
       </div>
     </div>
     <a href="/portfolio" target="_blank" class="text-xs text-accent hover:underline">View public profile &rarr;</a>
@@ -64,8 +69,28 @@
         <input type="text" name="website_url" value="<%= profile.website_url || '' %>" class="w-full bg-bg border border-line rounded px-3 py-2 text-sm focus:outline-none focus:border-accent">
       </div>
       <div>
-        <label class="block text-xs text-muted mb-1">LinkedIn</label>
-        <input type="text" name="linkedin_url" value="<%= profile.linkedin_url || '' %>" class="w-full bg-bg border border-line rounded px-3 py-2 text-sm focus:outline-none focus:border-accent">
+        <label class="block text-xs text-muted mb-1">Phone</label>
+        <input type="text" name="phone" value="<%= profile.phone || '' %>" class="w-full bg-bg border border-line rounded px-3 py-2 text-sm focus:outline-none focus:border-accent">
+      </div>
+      <div>
+        <label class="block text-xs text-muted mb-1">Location</label>
+        <input type="text" name="location" value="<%= profile.location || '' %>" placeholder="Mumbai, India" class="w-full bg-bg border border-line rounded px-3 py-2 text-sm focus:outline-none focus:border-accent">
+      </div>
+
+      <div class="md:col-span-2 border-t border-line pt-4">
+        <div class="side-label mb-3">Links &mdash; blank ones stay off the public page</div>
+        <div class="grid md:grid-cols-2 gap-3">
+          <% [
+            ['linkedin_url','LinkedIn'], ['instagram_url','Instagram'], ['twitter_url','Twitter / X'],
+            ['substack_url','Substack'], ['soundcloud_url','SoundCloud'], ['spotify_url','Spotify'],
+            ['imdb_url','IMDb']
+          ].forEach(function(f) { %>
+            <div>
+              <label class="block text-xs text-muted mb-1"><%= f[1] %></label>
+              <input type="text" name="<%= f[0] %>" value="<%= profile[f[0]] || '' %>" placeholder="https://..." class="w-full bg-bg border border-line rounded px-3 py-2 text-sm focus:outline-none focus:border-accent">
+            </div>
+          <% }) %>
+        </div>
       </div>
       <div class="md:col-span-2">
         <button type="submit" class="bg-accent text-bg text-sm font-medium rounded px-4 py-2 hover:brightness-110 transition">Save profile</button>
@@ -130,6 +155,9 @@
       <div class="flex items-end gap-4">
         <label class="flex items-center gap-1.5 text-xs text-muted mb-2">
           <input type="checkbox" name="featured"> Featured
+        </label>
+        <label class="flex items-center gap-1.5 text-xs text-muted mb-2">
+          <input type="checkbox" name="hidden"> Hidden
         </label>
         <div>
           <label class="block text-xs text-muted mb-1">Pin (higher = further up)</label>
@@ -337,6 +365,7 @@
       <% tagOrder.forEach(function(tag) { %>
         <button type="button" data-filter="<%= tag.toLowerCase() %>" class="filter-chip border border-line rounded-full px-2.5 py-1 text-muted hover:text-accent transition-colors"><%= tagLabels[tag] %></button>
       <% }) %>
+      <button type="button" data-filter="__hidden" class="filter-chip border border-line rounded-full px-2.5 py-1 text-muted hover:text-ink transition-colors">Hidden</button>
       <button type="button" data-filter="__solo" class="filter-chip border border-accent/50 rounded-full px-2.5 py-1 text-accent/90 hover:text-accent transition-colors">Solo credits</button>
       <button type="button" data-filter="__nocover" class="filter-chip border border-line rounded-full px-2.5 py-1 text-amber-400/80 hover:text-amber-300 transition-colors">Missing cover</button>
       <button type="button" data-filter="__noyear" class="filter-chip border border-line rounded-full px-2.5 py-1 text-amber-400/80 hover:text-amber-300 transition-colors">Missing year</button>
@@ -345,11 +374,12 @@
 
     <div id="rows" class="space-y-1.5">
       <% tracks.forEach(function(t) { %>
-        <div class="row bg-surface border border-line rounded-lg"
+        <div class="row bg-surface border border-line rounded-lg <%= t.hidden ? 'opacity-55' : '' %>"
              data-haystack="<%= t.haystack %>"
              data-nocover="<%= (!t.cover_image_url && !t.thumb) ? '1' : '0' %>"
              data-noyear="<%= !t.year ? '1' : '0' %>"
-             data-solo="<%= t.solo_credit ? '1' : '0' %>">
+             data-solo="<%= t.solo_credit ? '1' : '0' %>"
+             data-hidden="<%= t.hidden ? '1' : '0' %>">
           <div class="p-2.5 flex items-center gap-3">
             <% if (t.thumb) { %>
               <img src="<%= t.thumb %>" class="w-20 h-12 object-cover rounded flex-shrink-0 bg-bg" alt="" loading="lazy">
@@ -362,6 +392,7 @@
                 <span class="text-sm truncate"><%= t.title %></span>
                 <% if (t.featured) { %><span class="text-accent text-[10px] flex-shrink-0" title="Featured">&#9733;</span><% } %>
                 <% if (t.solo_credit) { %><span class="text-[8.5px] uppercase tracking-wider text-accent border border-accent/60 rounded px-1 py-px flex-shrink-0" title="<%= t.credit_note || 'Solo — all departments' %>">Solo</span><% } %>
+                <% if (t.hidden) { %><span class="text-[8.5px] uppercase tracking-wider text-muted border border-line rounded px-1 py-px flex-shrink-0" title="Not shown on the public page">Hidden</span><% } %>
               </div>
               <div class="text-[11px] text-muted truncate mt-0.5">
                 <% if (t.badge) { %><span class="text-accent/85"><%= t.badge %></span><% } else { %><span class="text-amber-400/70">no badge</span><% } %>
@@ -378,6 +409,10 @@
               <form method="POST" action="/dashboard/tracks/<%= t.id %>/featured" class="inline">
                 <input type="hidden" name="sort" value="<%= sort %>">
                 <button type="submit" class="text-xs <%= t.featured ? 'text-accent' : 'text-muted' %> hover:text-accent transition-colors" title="Toggle featured"><%= t.featured ? '&#9733;' : '&#9734;' %></button>
+              </form>
+              <form method="POST" action="/dashboard/tracks/<%= t.id %>/hidden" class="inline">
+                <input type="hidden" name="sort" value="<%= sort %>">
+                <button type="submit" class="text-xs <%= t.hidden ? 'text-accent' : 'text-muted' %> hover:text-accent transition-colors" title="<%= t.hidden ? 'Hidden — click to show' : 'Visible — click to hide' %>"><%= t.hidden ? '&#128065;&#65038;' : '&#128065;' %></button>
               </form>
               <a href="/dashboard/tracks/<%= t.id %>/edit" class="text-xs text-accent hover:underline">Edit</a>
               <form method="POST" action="/dashboard/tracks/<%= t.id %>/delete" onsubmit="return confirm('Delete <%= t.title.replace(/'/g, "\\'") %> and all its nested pieces?')" class="inline">
@@ -437,6 +472,7 @@
             (filter === '__nocover' ? row.dataset.nocover === '1'
               : filter === '__noyear' ? row.dataset.noyear === '1'
               : filter === '__solo' ? row.dataset.solo === '1'
+              : filter === '__hidden' ? row.dataset.hidden === '1'
               : hay.indexOf(filter) !== -1);
           var show = matchesTerm && matchesFilter;
           row.style.display = show ? '' : 'none';

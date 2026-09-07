@@ -113,7 +113,12 @@ It needs the profile list on every render, so `server.js` sets `res.locals.navPr
   - `/portfolio/gallery` and `/p/:token/gallery` — an **individual's** gallery, back-links to that portfolio.
 
   They were one shared gallery whose back link always went to `/portfolio` no matter where you arrived from. Content is loose images and video from tests and experiments, deliberately **not** in `tracks` — no role, no category, nothing to fill in. CSS-columns masonry so mixed aspect ratios tile uncropped, muted hover-preview on video, fullscreen viewer with arrow-key nav. The dashboard form picks the scope and labels each thumbnail studio/mine; **deletion must not filter on `profile_id` alone** or studio rows become undeletable.
-- **`/login` → `/dashboard`** — the CMS.
+- **`/login` → `/dashboard`** — lands on **Edit portfolio**. The dashboard is a hub with a section switcher (`views/partials/dash-nav.ejs`): Edit portfolio, plus three **skeleton pages** rendered from one `SOON` table in `routes/admin.js` via `views/dashboard-soon.ejs` — each states what it will do rather than being an empty shell:
+  - `/dashboard/files` — **Send your files**: expiring links for mixes/stems/masters, download tracking, no account needed to receive.
+  - `/dashboard/share` — **Share audio for feedback**: Samply-style streaming-only links, timestamped comments, versions side by side.
+  - `/dashboard/tools` — **Your tools**: the studio tools per account, batch analysis, saved presets/history.
+
+  The direction: **2w12.one as a portfolio builder** — everyone in the studio builds their own portfolio and uses the shared tools. Skeletons first, features after.
 - **`docs/tools/*`** — still static, untouched.
 
 ### Glitch motif
@@ -190,6 +195,8 @@ Express + EJS + Knex — deliberately **not** a framework rewrite. Server-render
 - `profiles` — name, tagline, `bio_long`, `education` (newline-separated), avatar/headshot, contact links. `token` column kept for the legacy anonymous collaborator-add-link flow (unrelated to login).
 - `tracks` — one row per project. `source_url` (pasted link or B2 upload URL), `cover_image_url`, `role` (what you actually did — Sound Design / Score / Music Production / Mix & Recording / Film Mix — shown as a small badge on every card), `tags` (comma-separated category — FILM/SERIES/TVC/SHORT FILM/DOCUMENTARY/GALLERY/DIGITAL ADVT/LABS, taxonomy lives in `lib/taxonomy.js`), `parent_track_id` (self-FK — set on the individual pieces of an "album", e.g. each Gangs of Wasseypur song points at the GOW parent track so the public page renders it as one card with a track list, not N separate cards), plus richer metadata fields carried over from the real site's old data (`year`, `collaboration`, `location`, `technical`, `context`, `featured`) that the static site already used but showreel-builder's prototype didn't have.
 - `tracks.external_url` — the IMDb/GitHub/official project page, kept separate from `source_url` (the *playable* thing). Drives the card's "View project" button.
+- `tracks.hidden` — takes a project off the public page without deleting it (drafts, embargoed client work, retired pieces). **A hidden parent hides its nested pieces too** — otherwise an album loses its card but keeps feeding tracks into the lightbox and sidebar player. Toggle from the list (eye icon) or the edit form; the dashboard has a "Hidden" filter chip and dims hidden rows.
+- `profiles.instagram_url` / `twitter_url` / `substack_url` / `soundcloud_url` / `spotify_url` / `imdb_url` / `phone` / `location` — the contact and social surface anyone building a portfolio here needs (migration `20260907000005`). Blank fields simply don't render, so the sidebar shows only what's filled in.
 - `tracks.solo_credit` / `tracks.credit_note` — flags work where **every sound department was handled solo**, which is a materially different claim from one credit among many and so gets a flag rather than being buried in the freeform `role` text. Currently set on Folk 2.0 Documentary (also the Masters thesis project), A Passage Through Passages, and A Terrible Beauty. Renders as a "Solo · All departments" badge, a persistent accent edge on the card (not hover-only), and the full `credit_note` at the top of the expanded details.
 - `sessions` — connect-session-knex's table, explicit migration (not auto-created).
 

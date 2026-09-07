@@ -88,7 +88,8 @@ module.exports = function (app) {
         noCover: allTracks.filter((t) => !t.cover_image_url && !t.thumb).length,
         noYear: allTracks.filter((t) => !t.year).length,
         featured: allTracks.filter((t) => t.featured).length,
-        solo: allTracks.filter((t) => t.solo_credit).length
+        solo: allTracks.filter((t) => t.solo_credit).length,
+        hidden: allTracks.filter((t) => t.hidden).length
       },
       roles: ROLES,
       roleShort: ROLE_SHORT,
@@ -103,6 +104,11 @@ module.exports = function (app) {
   app.post('/dashboard/profile', gate, upload.single('headshot'), async (req, res) => {
     const { name, tagline, bio_long, education, email, linkedin_url, website_url } = req.body;
     const update = { name, tagline, bio_long, education, email, linkedin_url, website_url };
+
+    // Contact + social surface. Anyone building a portfolio here needs their own.
+    ['instagram_url', 'twitter_url', 'substack_url', 'soundcloud_url', 'spotify_url', 'imdb_url', 'phone', 'location'].forEach((f) => {
+      if (typeof req.body[f] === 'string') update[f] = req.body[f].trim() || null;
+    });
 
     // A pasted path works without B2; an actual upload overrides it below.
     if (typeof req.body.avatar_url === 'string') {
@@ -127,6 +133,7 @@ module.exports = function (app) {
     const tags = Array.isArray(req.body.tags) ? req.body.tags.join(',') : req.body.tags || '';
     const featured = req.body.featured === 'on';
     const soloCredit = req.body.solo_credit === 'on';
+    const hidden = req.body.hidden === 'on';
 
     let finalSourceUrl = source_url || '';
     let type = 'link';
@@ -175,6 +182,7 @@ module.exports = function (app) {
       solo_credit: soloCredit,
       credit_note: (req.body.credit_note || '').trim() || null,
       sort_order: Number(req.body.sort_order) || 0,
+      hidden,
       featured
     });
 
@@ -214,6 +222,7 @@ module.exports = function (app) {
       solo_credit: req.body.solo_credit === 'on',
       credit_note: (req.body.credit_note || '').trim() || null,
       sort_order: Number(req.body.sort_order) || 0,
+      hidden: req.body.hidden === 'on',
       parent_track_id: parent_track_id ? Number(parent_track_id) : null
     };
 
@@ -236,6 +245,44 @@ module.exports = function (app) {
 
     await db()('tracks').where({ id: track.id }).update(update);
     res.redirect('/dashboard');
+  });
+
+  // Planned sections. Skeletons on purpose — the shape of the product is
+  // decided here, the features get built later.
+  const SOON = {
+    files: {
+      title: 'Send your files',
+      lede: 'Send finished mixes, stems and masters to clients without email attachment limits.',
+      points: [
+        'Upload once, share a link that expires',
+        'Download tracking so you know it arrived',
+        'No account needed for whoever receives it'
+      ]
+    },
+    share: {
+      title: 'Share audio for feedback',
+      lede: 'Private streaming links for work in progress — like Samply. Send a mix, collect timestamped notes.',
+      points: [
+        'Streaming-only links, no downloadable file',
+        'Timestamped comments from clients and collaborators',
+        'Versions side by side so notes stay attached to the right take'
+      ]
+    },
+    tools: {
+      title: 'Your tools',
+      lede: 'The studio tools, available to everyone with a portfolio here.',
+      points: [
+        'Visualizer, Key Finder and the YouTube reference grabber',
+        'Batch audio analysis over a whole library',
+        'Saved presets and analysis history per account'
+      ]
+    }
+  };
+
+  Object.entries(SOON).forEach(([slug, section]) => {
+    app.get(`/dashboard/${slug}`, gate, (req, res) => {
+      res.render('dashboard-soon', { profile: req.profile, active: slug, section });
+    });
   });
 
   // ---------- Gallery: loose images/video from tests and experiments ----------
@@ -332,6 +379,12 @@ module.exports = function (app) {
     if (track) {
       await db()('tracks').where({ id: track.id }).update({ featured: !track.featured });
     }
+    res.redirect('/dashboard?sort=' + encodeURIComponent(req.body.sort || 'recent'));
+  });
+
+  app.post('/dashboard/tracks/:id/hidden', gate, async (req, res) => {
+    const track = await db()('tracks').where({ id: req.params.id, profile_id: req.profile.id }).first();
+    if (track) await db()('tracks').where({ id: track.id }).update({ hidden: !track.hidden });
     res.redirect('/dashboard?sort=' + encodeURIComponent(req.body.sort || 'recent'));
   });
 
