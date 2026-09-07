@@ -128,7 +128,17 @@ Verified end to end: invite → signup creates user + profile → invite marked 
 
   Landing layout went through five passes worth recording, so they don't get re-tried: **(1)** 1152px column + narrow rail + 11px type — cramped, read as an app screen. **(2)** Full-width numbered accordion — read as a stock template. **(3)** Sidebar restored at larger scale — duplicated the header nav. **(4)** Centered hero with a copy paragraph, CTA buttons, stats and a portfolios list — too much, and the copy was placeholder-grade. **(5) Current:** wordmark + tagline + self-typing CLI.
 
-  The glitch has **two intensities**: `.logo-glitch` (nav) rests ~90% of the time, while `.glitch` (the landing wordmark) runs the heavy variant — RGB layers slipping through most of the cycle plus the element itself skewing on its own timer. Don't apply the heavy one to the nav; a permanently shimmering header reads as a broken page.
+### The glitch — how it works, and how it went wrong
+
+**Slice displacement.** The two `::before`/`::after` copies sit **on top** of the text, painted with the page background (`#0c0c0c`) so they occlude what's beneath, and are clipped to `inset(50% 0 50% 0)` — collapsed to nothing — except during a slip. On a slip frame a copy is clipped to a thin horizontal band, shoved sideways, and given a one-sided magenta/cyan `text-shadow`. The effect is a band of the word jumping while the rest holds still.
+
+**The earlier version was wrong** and it's worth knowing why: it parked the two coloured copies *behind* the text with `z-index: -1/-2`, so their fringes showed permanently and it read as a coloured overlay/underlay rather than a glitch. If it ever looks like a drop shadow again, that's the mistake to check for. Chromatic offsets must appear **only on slip frames**, never at rest.
+
+Two intensities: `.glitch` (landing wordmark) slips several times per cycle and twitches the whole word on the same frames; `.logo-glitch` (nav) uses the identical technique but fires roughly once every 7–9s. Don't make the nav heavier — a permanently glitching header reads as a broken page.
+
+### The CLI keeps blinking
+
+Once the lines finish typing, the block cursor parks on a trailing `$` prompt and both keep blinking on the same 1.05s beat (the prompt dips to 28% rather than 0 so the two read as one caret). A `live` LED in the title bar pulses on a slower, softer 1.9s cycle. The panel should never look like a finished screenshot. All of it stops under `prefers-reduced-motion`.
 
 ### Header menu
 
