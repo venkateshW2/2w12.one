@@ -1,208 +1,118 @@
-<%- include('partials/head', { pageTitle: '2w12.one — Audio-first studio', loggedIn: loggedIn }) %>
+<%- include('partials/head', { pageTitle: '2w12.one — Sound Things', loggedIn: loggedIn }) %>
 
-<div class="max-w-[1500px] mx-auto px-6 md:px-12">
+<div class="max-w-[1500px] mx-auto px-6 md:px-10 lg:px-14">
+  <div class="flex flex-col lg:flex-row gap-10 lg:gap-16 py-12 md:py-16">
 
-  <!-- Hero -->
-  <section class="pt-16 md:pt-24 pb-14 md:pb-20">
-    <h1 class="glitch font-bold leading-[0.88] tracking-[-0.03em] text-white"
-        style="font-size:clamp(3.4rem,13vw,10.5rem)" data-text="2w12.one">2w12.one</h1>
+    <!-- Sidebar: wordmark + primary navigation -->
+    <aside class="lg:w-[268px] flex-shrink-0">
+      <div class="lg:sticky lg:top-[76px]">
 
-    <div class="mt-7 md:mt-9 font-mono uppercase tracking-[0.18em] text-accent"
-         style="font-size:clamp(.72rem,1.35vw,1rem)">
-      Audio Services &nbsp;&middot;&nbsp; Tool Development &nbsp;&middot;&nbsp; Sound Research
-    </div>
+        <a href="/" class="glitch block font-bold leading-none tracking-[-0.035em] text-white"
+           style="font-size:clamp(2rem,3.4vw,2.7rem)" data-text="2w12.one">2w12.one</a>
+        <div class="side-label mt-3">Audio-first studio &middot; Mumbai</div>
 
-    <p class="mt-8 max-w-3xl text-ink/85 leading-[1.55]" style="font-size:clamp(1.05rem,2.1vw,1.6rem)">
-      An audio-first studio. Sound design, mixing and music production for film and series &mdash;
-      alongside the tools and research that come out of doing the work.
-    </p>
+        <div class="mt-9 space-y-8">
 
-    <div class="mt-10 space-y-3 max-w-3xl font-mono leading-relaxed" style="font-size:clamp(.8rem,1.35vw,1rem)">
-      <div class="flex gap-3">
-        <span class="text-accent flex-shrink-0">&gt;</span>
-        <span class="text-muted"><span class="text-ink">Current:</span> Film mixing, AI music workflows, spatial audio, workshops</span>
-      </div>
-      <div class="flex gap-3">
-        <span class="text-accent flex-shrink-0">&gt;</span>
-        <span class="text-muted"><span class="text-ink">Released:</span> SonifyV1 &mdash; CV to MIDI/OSC (80 object classes, 60fps)</span>
-      </div>
-      <div class="flex gap-3">
-        <span class="text-accent flex-shrink-0">&gt;</span>
-        <span class="text-muted"><span class="text-ink">Labs:</span> Audio classification &amp; analysis tools <span class="text-muted/60">[experimental]</span></span>
-      </div>
-    </div>
-
-    <div class="mt-12 flex flex-wrap gap-3">
-      <a href="/portfolio" class="font-mono uppercase tracking-wider bg-accent text-bg rounded px-5 py-3 hover:brightness-110 transition" style="font-size:clamp(.72rem,1.1vw,.85rem)">View the work</a>
-      <a href="/work" class="font-mono uppercase tracking-wider border border-line text-muted rounded px-5 py-3 hover:text-ink hover:border-muted transition-colors" style="font-size:clamp(.72rem,1.1vw,.85rem)">Studio work</a>
-      <% if (loggedIn) { %>
-        <a href="/dashboard" class="font-mono uppercase tracking-wider border border-accent/60 text-accent rounded px-5 py-3 hover:bg-accent hover:text-bg transition-colors" style="font-size:clamp(.72rem,1.1vw,.85rem)">Dashboard</a>
-      <% } else { %>
-        <a href="/login" class="font-mono uppercase tracking-wider border border-line text-muted rounded px-5 py-3 hover:text-accent hover:border-accent/60 transition-colors" style="font-size:clamp(.72rem,1.1vw,.85rem)">Login</a>
-      <% } %>
-    </div>
-  </section>
-
-  <!-- Expandable sections -->
-  <section class="pb-4">
-
-    <!-- Portfolios -->
-    <div class="land-row open" data-row>
-      <button type="button" class="land-head" data-toggle>
-        <span class="land-num">01</span>
-        <span class="land-title">Portfolios</span>
-        <span class="land-meta hidden sm:block"><%= portfolios.length %> <%= portfolios.length === 1 ? 'person' : 'people' %></span>
-        <span class="land-chev">
-          <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9,5 16,12 9,19"/></svg>
-        </span>
-      </button>
-      <div class="land-body">
-        <div class="pb-7">
-          <% portfolios.forEach(function(p) { %>
-            <a href="<%= p.url %>" class="person-row group">
-              <% if (p.avatar_url) { %>
-                <img src="<%= p.avatar_url %>" alt="" class="w-12 h-12 rounded-full object-cover object-top border border-line flex-shrink-0">
-              <% } else { %>
-                <span class="w-12 h-12 rounded-full border border-line bg-surface flex items-center justify-center text-[13px] font-medium text-accent flex-shrink-0"><%= p.initials %></span>
-              <% } %>
-              <span class="min-w-0 flex-1">
-                <span class="block text-[17px] md:text-[19px] font-medium leading-tight group-hover:text-accent transition-colors"><%= p.name %></span>
-                <span class="block text-[12.5px] text-muted mt-1"><%= [p.tagline, p.projectCount ? p.projectCount + ' projects' : null].filter(Boolean).join(' · ') %></span>
-              </span>
-              <span class="font-mono text-[11px] uppercase tracking-wider text-muted group-hover:text-accent transition-colors flex-shrink-0">Open &rarr;</span>
-            </a>
-          <% }) %>
-          <% if (portfolios.length < 2) { %>
-            <div class="person-row text-[12.5px] text-muted/60">More portfolios appear here as the studio's accounts are added.</div>
-          <% } %>
-        </div>
-      </div>
-    </div>
-
-    <!-- Work (not built yet) -->
-    <div class="land-row" data-row>
-      <button type="button" class="land-head" data-toggle>
-        <span class="land-num">02</span>
-        <span class="land-title">Work</span>
-        <span class="land-meta hidden sm:block text-accent/70">Coming soon</span>
-        <span class="land-chev">
-          <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9,5 16,12 9,19"/></svg>
-        </span>
-      </button>
-      <div class="land-body">
-        <div class="pb-7 max-w-3xl">
-          <p class="text-[14.5px] leading-relaxed text-ink/70">
-            Studio work as a company &mdash; services, capabilities and commissioned projects, separate from the
-            individual portfolios above.
-          </p>
-          <a href="/work" class="inline-block mt-5 font-mono text-[11px] uppercase tracking-wider border border-line text-muted rounded px-4 py-2 hover:text-accent hover:border-accent/60 transition-colors">See what's planned &rarr;</a>
-        </div>
-      </div>
-    </div>
-
-    <!-- Tools -->
-    <div class="land-row" data-row>
-      <button type="button" class="land-head" data-toggle>
-        <span class="land-num">03</span>
-        <span class="land-title">Tools</span>
-        <span class="land-meta hidden sm:block">3 in the browser</span>
-        <span class="land-chev">
-          <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9,5 16,12 9,19"/></svg>
-        </span>
-      </button>
-      <div class="land-body">
-        <div class="pb-7 grid sm:grid-cols-3 gap-3 max-w-4xl">
-          <a href="/tools/visualizer/" class="border border-line rounded-md p-4 hover:border-accent/50 transition-colors group">
-            <div class="text-[15px] font-medium group-hover:text-accent transition-colors">Visualizer</div>
-            <div class="text-[12px] text-muted mt-1.5 leading-relaxed">Spectrum and vectorscope analysis in the browser.</div>
-          </a>
-          <a href="/tools/keyfinder/" class="border border-line rounded-md p-4 hover:border-accent/50 transition-colors group">
-            <div class="text-[15px] font-medium group-hover:text-accent transition-colors">Key Finder</div>
-            <div class="text-[12px] text-muted mt-1.5 leading-relaxed">Detect musical key and tempo from a file.</div>
-          </a>
-          <a href="/tools/youtube/" class="border border-line rounded-md p-4 hover:border-accent/50 transition-colors group">
-            <div class="text-[15px] font-medium group-hover:text-accent transition-colors">YouTube</div>
-            <div class="text-[12px] text-muted mt-1.5 leading-relaxed">Pull reference audio for analysis.</div>
-          </a>
-        </div>
-      </div>
-    </div>
-
-    <!-- Labs -->
-    <div class="land-row" data-row>
-      <button type="button" class="land-head" data-toggle>
-        <span class="land-num">04</span>
-        <span class="land-title">Labs</span>
-        <span class="land-meta hidden sm:block">Open source</span>
-        <span class="land-chev">
-          <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9,5 16,12 9,19"/></svg>
-        </span>
-      </button>
-      <div class="land-body">
-        <div class="pb-7 max-w-3xl">
-          <div class="space-y-0">
-            <a href="https://github.com/venkateshW2/sonifyv.1" target="_blank" rel="noopener" class="person-row group">
-              <span class="min-w-0 flex-1">
-                <span class="block text-[16px] font-medium group-hover:text-accent transition-colors">SonifyV1</span>
-                <span class="block text-[12px] text-muted mt-1">Computer vision to MIDI/OSC &mdash; traffic as a musical instrument.</span>
-              </span>
-              <span class="font-mono text-[11px] uppercase tracking-wider text-muted group-hover:text-accent transition-colors flex-shrink-0">GitHub &nearr;</span>
-            </a>
-            <a href="https://venkateshw2.github.io/wall-harpDesigner/" target="_blank" rel="noopener" class="person-row group">
-              <span class="min-w-0 flex-1">
-                <span class="block text-[16px] font-medium group-hover:text-accent transition-colors">Wall Harp Designer</span>
-                <span class="block text-[12px] text-muted mt-1">Physics simulator and tuning calculator for a multi-string wall harp.</span>
-              </span>
-              <span class="font-mono text-[11px] uppercase tracking-wider text-muted group-hover:text-accent transition-colors flex-shrink-0">Live demo &nearr;</span>
-            </a>
-            <a href="https://github.com/venkateshW2/2w12-backend" target="_blank" rel="noopener" class="person-row group">
-              <span class="min-w-0 flex-1">
-                <span class="block text-[16px] font-medium group-hover:text-accent transition-colors">Audio Analysis</span>
-                <span class="block text-[12px] text-muted mt-1">Batch analysis backend for large sample libraries.</span>
-              </span>
-              <span class="font-mono text-[11px] uppercase tracking-wider text-muted group-hover:text-accent transition-colors flex-shrink-0">GitHub &nearr;</span>
-            </a>
+          <div>
+            <div class="side-label mb-2.5">Portfolios</div>
+            <div class="space-y-0">
+              <% portfolios.forEach(function(p) { %>
+                <a href="<%= p.url %>" class="person-row group">
+                  <% if (p.avatar_url) { %>
+                    <img src="<%= p.avatar_url %>" alt="" class="w-9 h-9 rounded-full object-cover object-top border border-line flex-shrink-0">
+                  <% } else { %>
+                    <span class="w-9 h-9 rounded-full border border-line bg-surface flex items-center justify-center text-[11px] font-semibold text-accent flex-shrink-0"><%= p.initials %></span>
+                  <% } %>
+                  <span class="min-w-0 flex-1">
+                    <span class="block text-[15px] font-semibold leading-tight truncate group-hover:text-accent transition-colors"><%= p.name %></span>
+                    <span class="block text-[10.5px] font-mono uppercase tracking-[0.08em] text-muted/80 truncate mt-0.5"><%= p.projectCount %> projects</span>
+                  </span>
+                </a>
+              <% }) %>
+            </div>
           </div>
-          <a href="/portfolio" class="inline-block mt-5 font-mono text-[11px] uppercase tracking-wider border border-line text-muted rounded px-4 py-2 hover:text-accent hover:border-accent/60 transition-colors">All software in the portfolio &rarr;</a>
+
+          <div>
+            <div class="side-label mb-2">Studio</div>
+            <a href="/portfolio" class="side-link">Portfolio <span class="tick"><%= totalProjects %></span></a>
+            <a href="/work" class="side-link">Work <span class="tick text-accent/80">soon</span></a>
+            <a href="/gallery" class="side-link">Gallery <span class="tick"><%= galleryCount %></span></a>
+          </div>
+
+          <div>
+            <div class="side-label mb-2">Tools</div>
+            <a href="/tools/visualizer/" class="side-link">Visualizer</a>
+            <a href="/tools/keyfinder/" class="side-link">Key Finder</a>
+            <a href="/tools/youtube/" class="side-link">YouTube</a>
+          </div>
+
+          <div>
+            <div class="side-label mb-2">Labs</div>
+            <a href="https://github.com/venkateshW2/sonifyv.1" target="_blank" rel="noopener" class="side-link">SonifyV1 <span class="tick">&nearr;</span></a>
+            <a href="https://venkateshw2.github.io/wall-harpDesigner/" target="_blank" rel="noopener" class="side-link">Wall Harp <span class="tick">&nearr;</span></a>
+            <a href="https://github.com/venkateshW2/2w12-backend" target="_blank" rel="noopener" class="side-link">Audio Analysis <span class="tick">&nearr;</span></a>
+          </div>
+
+          <div class="pt-1">
+            <% if (loggedIn) { %>
+              <a href="/dashboard" class="side-link text-accent">Dashboard <span class="tick text-accent">&rarr;</span></a>
+            <% } else { %>
+              <a href="/login" class="side-link">Login <span class="tick">&rarr;</span></a>
+            <% } %>
+          </div>
+
         </div>
       </div>
-    </div>
+    </aside>
 
-    <!-- Gallery (company) -->
-    <div class="land-row" data-row>
-      <button type="button" class="land-head" data-toggle>
-        <span class="land-num">05</span>
-        <span class="land-title">Gallery</span>
-        <span class="land-meta hidden sm:block"><%= galleryCount %> item<%= galleryCount === 1 ? '' : 's' %></span>
-        <span class="land-chev">
-          <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9,5 16,12 9,19"/></svg>
-        </span>
-      </button>
-      <div class="land-body">
-        <div class="pb-7 max-w-3xl">
-          <p class="text-[14.5px] leading-relaxed text-ink/70">
-            The studio's own gallery &mdash; tests, experiments and work in progress. Each portfolio keeps a separate
-            gallery of its own.
-          </p>
-          <a href="/gallery" class="inline-block mt-5 font-mono text-[11px] uppercase tracking-wider border border-line text-muted rounded px-4 py-2 hover:text-accent hover:border-accent/60 transition-colors">Open the studio gallery &rarr;</a>
+    <!-- Main -->
+    <main class="min-w-0 flex-1">
+      <h1 class="glitch font-bold leading-[0.86] tracking-[-0.035em]"
+          style="font-size:clamp(3.1rem,9.5vw,8rem)" data-text="SOUND THINGS">SOUND THINGS</h1>
+
+      <div class="mt-7 font-mono font-medium uppercase tracking-[0.16em] text-accent"
+           style="font-size:clamp(.78rem,1.35vw,1.05rem)">
+        Audio Services &nbsp;&middot;&nbsp; Tool Development &nbsp;&middot;&nbsp; Sound Research
+      </div>
+
+      <p class="mt-8 max-w-3xl text-ink/85 leading-[1.5] font-light" style="font-size:clamp(1.15rem,2.3vw,1.85rem)">
+        Sound design, mixing and music production for film and series &mdash; alongside the tools and
+        research that come out of doing the work.
+      </p>
+
+      <div class="mt-10 space-y-3 max-w-3xl font-mono leading-relaxed" style="font-size:clamp(.85rem,1.4vw,1.05rem)">
+        <div class="flex gap-3">
+          <span class="text-accent flex-shrink-0">&gt;</span>
+          <span class="text-muted"><span class="text-ink font-medium">Current:</span> Film mixing, AI music workflows, spatial audio, workshops</span>
+        </div>
+        <div class="flex gap-3">
+          <span class="text-accent flex-shrink-0">&gt;</span>
+          <span class="text-muted"><span class="text-ink font-medium">Released:</span> SonifyV1 &mdash; CV to MIDI/OSC (80 object classes, 60fps)</span>
+        </div>
+        <div class="flex gap-3">
+          <span class="text-accent flex-shrink-0">&gt;</span>
+          <span class="text-muted"><span class="text-ink font-medium">Labs:</span> Audio classification &amp; analysis tools <span class="text-muted/60">[experimental]</span></span>
         </div>
       </div>
-    </div>
 
-  </section>
+      <div class="mt-12 flex flex-wrap items-stretch gap-y-6 gap-x-12 border-t border-line pt-7 max-w-3xl">
+        <% stats.forEach(function(s) { %>
+          <div>
+            <div class="font-bold text-accent leading-none tracking-tight" style="font-size:clamp(1.7rem,3.2vw,2.5rem)"><%= s.value %></div>
+            <div class="side-label mt-2"><%= s.label %></div>
+          </div>
+        <% }) %>
+      </div>
 
-  <div class="py-12 font-mono uppercase tracking-[0.18em] text-muted/60" style="font-size:clamp(.62rem,1vw,.75rem)">
-    Mumbai, India &middot; est. 2004
+      <div class="mt-11 flex flex-wrap gap-3">
+        <a href="/portfolio" class="font-mono uppercase tracking-wider font-medium bg-accent text-bg rounded px-6 py-3.5 hover:brightness-110 transition" style="font-size:clamp(.75rem,1.15vw,.9rem)">View the work</a>
+        <a href="/work" class="font-mono uppercase tracking-wider border border-line text-muted rounded px-6 py-3.5 hover:text-ink hover:border-muted transition-colors" style="font-size:clamp(.75rem,1.15vw,.9rem)">Studio work</a>
+      </div>
+
+      <div class="mt-14 side-label">Mumbai, India &middot; est. 2004</div>
+    </main>
+
   </div>
 </div>
-
-<script>
-  // Accordion. Multiple rows can be open — these are navigation, not a wizard.
-  document.querySelectorAll('[data-row]').forEach(function (row) {
-    row.querySelector('[data-toggle]').addEventListener('click', function () {
-      row.classList.toggle('open');
-    });
-  });
-</script>
 </body>
 </html>

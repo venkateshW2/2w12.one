@@ -38,8 +38,19 @@ module.exports = function (app) {
       // Company gallery items are the ones with no profile_id.
       const gallery = await db()('gallery_items').whereNull('profile_id').count({ c: '*' }).first();
 
+      const total = await db()('tracks').whereNull('parent_track_id').count({ c: '*' }).first();
+      const years = await db()('tracks').min({ min: 'year' }).whereNotNull('year').first();
+      const earliest = years && years.min ? Number(years.min) : 2004;
+
       res.render('home', {
         portfolios,
+        totalProjects: Number(total.c) || 0,
+        stats: [
+          { value: Number(total.c) || 0, label: 'Projects' },
+          { value: new Date().getFullYear() - earliest + '+', label: 'Years' },
+          { value: portfolios.length, label: 'People' },
+          { value: 3, label: 'Tools' }
+        ],
         galleryCount: Number(gallery.c) || 0,
         loggedIn: !!(req.session && req.session.userId)
       });

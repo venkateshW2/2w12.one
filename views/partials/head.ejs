@@ -65,44 +65,32 @@
     .gal-item { cursor: pointer; transition: transform .25s ease, border-color .25s ease; }
     .gal-item:hover { transform: translateY(-2px); border-color: #2e2e2e; }
 
-    /* Landing: full-bleed accordion sections. Rows are large enough to read as
-       navigation on their own rather than needing a sidebar. */
-    .land-row { border-top: 1px solid #232323; }
-    .land-row:last-of-type { border-bottom: 1px solid #232323; }
-    .land-head {
-      width: 100%; display: flex; align-items: center; gap: 1.25rem;
-      padding: 1.6rem 0; background: none; border: 0; cursor: pointer; text-align: left;
-      transition: color .25s ease;
-    }
-    .land-head:hover { color: #c98a3f; }
-    .land-num {
+    /* Landing sidebar. Bigger and bolder than the first pass — these are the
+       page's primary navigation, not footnotes. */
+    .side-label {
       font-family: 'JetBrains Mono', ui-monospace, monospace;
-      font-size: .72rem; color: #86837c; flex: 0 0 auto; padding-top: .35rem;
+      font-size: 10px; text-transform: uppercase; letter-spacing: .2em; color: #6e6b64;
     }
-    .land-title {
-      flex: 1 1 auto; min-width: 0;
-      font-size: clamp(1.6rem, 4.2vw, 2.9rem); font-weight: 600; letter-spacing: -.02em; line-height: 1.05;
+    .side-link {
+      display: flex; align-items: center; justify-content: space-between; gap: .75rem;
+      padding: .42rem 0; color: #b8b5ae; text-decoration: none;
+      font-size: 14.5px; font-weight: 500; letter-spacing: -.005em;
+      border-bottom: 1px solid transparent;
+      transition: color .18s ease, padding-left .18s ease;
     }
-    .land-meta {
-      flex: 0 0 auto; font-family: 'JetBrains Mono', ui-monospace, monospace;
-      font-size: .7rem; text-transform: uppercase; letter-spacing: .12em; color: #86837c;
+    .side-link:hover { color: #c98a3f; padding-left: .3rem; }
+    .side-link .tick {
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; color: #5f5c56;
+      flex: 0 0 auto;
     }
-    .land-chev { flex: 0 0 auto; transition: transform .3s ease; color: #86837c; }
-    .land-row.open .land-chev { transform: rotate(90deg); color: #c98a3f; }
-    .land-row.open .land-title { color: #c98a3f; }
-    .land-body { max-height: 0; overflow: hidden; opacity: 0; transition: max-height .4s cubic-bezier(.4,0,.2,1), opacity .3s ease; }
-    .land-row.open .land-body { max-height: 1200px; opacity: 1; }
+    .side-link:hover .tick { color: #c98a3f; }
 
     .person-row {
-      display: flex; align-items: center; gap: 1rem; padding: .9rem 0;
-      border-top: 1px solid rgba(35,35,35,.7); text-decoration: none;
-      transition: padding-left .25s ease;
+      display: flex; align-items: center; gap: .7rem; padding: .5rem 0;
+      text-decoration: none; transition: padding-left .18s ease;
     }
-    .person-row:hover { padding-left: .5rem; }
-
-    @media (prefers-reduced-motion: reduce) {
-      .land-body, .land-chev, .person-row { transition: none; }
-    }
+    .person-row:hover { padding-left: .3rem; }
 
     /* Landing rail */
     .rail-link {
