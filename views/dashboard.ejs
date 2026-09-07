@@ -101,11 +101,12 @@
         <div class="text-[10px] text-muted mt-1">Leave both empty and YouTube links use their own thumbnail.</div>
       </div>
       <div>
-        <label class="block text-xs text-muted mb-1">Role</label>
-        <select name="role" class="w-full bg-bg border border-line rounded px-3 py-2 text-sm focus:outline-none focus:border-accent">
-          <option value="">—</option>
-          <% roles.forEach(function(r) { %><option value="<%= r %>"><%= r %></option><% }) %>
-        </select>
+        <label class="block text-xs text-muted mb-1">Badge &mdash; the orange tag on the card</label>
+        <input type="text" name="role" list="badge-options" autocomplete="off" placeholder="Type anything, e.g. Sound Design + Mix"
+               class="w-full bg-bg border border-line rounded px-3 py-2 text-sm focus:outline-none focus:border-accent">
+        <datalist id="badge-options">
+          <% roles.forEach(function(r) { %><option value="<%= r %>"></option><% }) %>
+        </datalist>
       </div>
 
       <div class="md:col-span-2">
@@ -220,9 +221,7 @@
                 <% if (t.solo_credit) { %><span class="text-[8.5px] uppercase tracking-wider text-accent border border-accent/60 rounded px-1 py-px flex-shrink-0" title="<%= t.credit_note || 'Solo — all departments' %>">Solo</span><% } %>
               </div>
               <div class="text-[11px] text-muted truncate mt-0.5">
-                <% if (t.badge) { %>
-                  <span class="text-accent/85"><%= t.badge %></span><% if (t.badge !== t.role) { %><span class="text-muted/50"> (<%= t.role %>)</span><% } %>
-                <% } else { %><span class="text-amber-400/70">no role</span><% } %>
+                <% if (t.badge) { %><span class="text-accent/85"><%= t.badge %></span><% } else { %><span class="text-amber-400/70">no badge</span><% } %>
                 <% if (t.tags) { %> &middot; <%= t.tags %><% } %>
                 <% if (t.year) { %> &middot; <%= t.year %><% } %>
                 <% if (t.pieces.length) { %> &middot; <span class="text-accent/80"><%= t.pieces.length %> pieces</span><% } %>

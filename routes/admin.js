@@ -63,7 +63,7 @@ module.exports = function (app) {
       t.pieces = allTracks.filter((p) => p.parent_track_id === t.id);
       // Everything the list filters/searches on, precomputed into one string so
       // the client-side filter doesn't have to know the row's structure.
-      t.badge = ROLE_SHORT[t.role] || t.role || '';
+      t.badge = t.role || '';
       t.haystack = [t.title, t.role, t.badge, t.tags, t.year, t.description].filter(Boolean).join(' ').toLowerCase();
     });
 

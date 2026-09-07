@@ -1,5 +1,5 @@
 const { classify, youtubeId, vimeoId, youtubeThumbnail, youtubeEmbedUrl, vimeoEmbedUrl } = require('../lib/sourceType');
-const { TAG_ORDER, TAG_LABELS, ROLE_SHORT } = require('../lib/taxonomy');
+const { TAG_ORDER, TAG_LABELS } = require('../lib/taxonomy');
 
 module.exports = function (app) {
   const db = () => app.locals.db;
@@ -11,7 +11,7 @@ module.exports = function (app) {
       title: t.title,
       description: t.description || '',
       role: t.role || '',
-      roleShort: ROLE_SHORT[t.role] || t.role || '',
+      roleShort: t.role || '', // the badge is the role text verbatim, no mapping
       year: t.year,
       collaboration: t.collaboration,
       location: t.location,
