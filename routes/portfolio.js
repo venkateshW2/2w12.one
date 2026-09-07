@@ -118,8 +118,29 @@ module.exports = function (app) {
       { url: profile.imdb_url, label: 'IMDb' }
     ].filter((s) => s.url);
 
+    // Share-card metadata. A scraper needs an absolute URL, and prefers jpg/png
+    // over webp — so if the headshot has an original alongside the .webp, point
+    // at that one.
+    const origin = `${req.protocol}://${req.get('host')}`;
+    const shareUrl = origin + (profile.slug ? '/@' + profile.slug : req.originalUrl);
+    let shareImage = null;
+    if (profile.avatar_url) {
+      const abs = profile.avatar_url.startsWith('http') ? profile.avatar_url : origin + profile.avatar_url;
+      shareImage = abs.replace(/\.webp$/i, '.jpg');
+    }
+    const projectCount = items.length;
+
     res.render('portfolio', {
       profile,
+      pageTitle: profile.name + ' — 2w12.one',
+      ogTitle: profile.name + (profile.tagline ? ' — ' + profile.tagline : ''),
+      ogDescription:
+        (profile.bio_long || '').slice(0, 180) ||
+        `${projectCount} projects — film, series, installations, instruments and software.`,
+      ogImage: shareImage,
+      ogUrl: shareUrl,
+      ogType: 'profile',
+      shareUrl,
       socials,
       items,
       categories,
@@ -131,9 +152,12 @@ module.exports = function (app) {
 
   // Primary public profile — single-tenant for Phase 1: whichever profile
   // has a user_id (a real logged-in owner) is the site's main profile.
+  // One canonical URL per person: /portfolio redirects to the owner's slug
+  // rather than serving a duplicate of the same page at two addresses.
   app.get('/portfolio', async (req, res) => {
     const profile = await db()('profiles').whereNotNull('user_id').first();
     if (!profile) return res.status(404).render('not-found');
+    if (profile.slug) return res.redirect(302, '/@' + profile.slug);
     renderProfile(req, res, profile);
   });
 
@@ -143,5 +167,22 @@ module.exports = function (app) {
     const profile = await db()('profiles').where({ token: req.params.token }).first();
     if (!profile) return res.status(404).render('not-found');
     renderProfile(req, res, profile);
+  });
+
+  // The shareable personal URL: 2w12.one/@venkatesh.
+  //
+  // The @ prefix is why this can live here rather than as a catch-all
+  // registered last: it can never shadow a real path, so no reserved-word list
+  // is load-bearing and any future top-level page stays free.
+  app.get('/@:slug', async (req, res, next) => {
+    const slug = (req.params.slug || '').toLowerCase();
+    if (!slug) return next();
+    try {
+      const profile = await db()('profiles').where({ slug }).first();
+      if (!profile) return res.status(404).render('not-found');
+      return renderProfile(req, res, profile);
+    } catch (err) {
+      return next(err);
+    }
   });
 };

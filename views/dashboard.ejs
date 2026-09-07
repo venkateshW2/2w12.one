@@ -9,6 +9,9 @@
   <% if (error) { %>
     <div class="text-xs text-red-400 bg-red-950/40 border border-red-900 rounded px-3 py-2"><%= error %></div>
   <% } %>
+  <% if (typeof notice !== 'undefined' && notice) { %>
+    <div class="text-xs text-accent bg-accent/[0.07] border border-accent/30 rounded px-3 py-2"><%= notice %></div>
+  <% } %>
   <% if (!b2Ready) { %>
     <div class="text-xs text-amber-300 bg-amber-950/30 border border-amber-900 rounded px-3 py-2">
       Backblaze B2 isn't configured yet (missing env vars) — file uploads will fail until B2_KEY_ID/B2_APP_KEY/B2_BUCKET/B2_ENDPOINT/B2_REGION are set. Pasting links still works.
@@ -28,6 +31,39 @@
     </div>
     <a href="/portfolio" target="_blank" class="text-xs text-accent hover:underline">View public profile &rarr;</a>
   </div>
+
+  <!-- Share link -->
+  <section class="bg-surface border border-accent/25 rounded-lg p-6">
+    <h2 class="text-sm font-semibold mb-1.5">Your share link</h2>
+    <p class="text-[11.5px] text-muted leading-relaxed mb-4">
+      Send this to a client. It opens your page directly &mdash; and pastes into WhatsApp, Slack or a DM
+      as a card with your name, tagline and photo, not a bare URL.
+    </p>
+
+    <div class="flex items-center gap-2 mb-4">
+      <input readonly value="<%= shareOrigin %>/@<%= profile.slug %>"
+             class="flex-1 min-w-0 bg-bg border border-line rounded px-3 py-2.5 text-[13px] font-mono text-accent focus:outline-none focus:border-accent"
+             onclick="this.select()">
+      <button type="button" id="copy-share"
+              class="text-[10.5px] font-mono uppercase tracking-wider border border-accent/60 text-accent rounded px-3.5 py-2.5 hover:bg-accent hover:text-bg transition-colors flex-shrink-0"
+              data-link="<%= shareOrigin %>/@<%= profile.slug %>">Copy</button>
+      <a href="/@<%= profile.slug %>" target="_blank"
+         class="text-[10.5px] font-mono uppercase tracking-wider border border-line text-muted rounded px-3.5 py-2.5 hover:text-ink hover:border-muted transition-colors flex-shrink-0">Preview</a>
+    </div>
+
+    <details class="border-t border-line pt-3">
+      <summary class="text-[11.5px] text-muted cursor-pointer hover:text-accent transition-colors">Change the handle</summary>
+      <form method="POST" action="/dashboard/handle" class="flex items-center gap-2 mt-3">
+        <span class="text-[13px] font-mono text-muted flex-shrink-0"><%= shareOrigin.replace(/^https?:\/\//, '') %>/@</span>
+        <input type="text" name="slug" value="<%= profile.slug %>" required
+               class="flex-1 min-w-0 bg-bg border border-line rounded px-3 py-2 text-[13px] font-mono focus:outline-none focus:border-accent">
+        <button type="submit" class="bg-accent text-bg text-xs font-medium rounded px-3.5 py-2 hover:brightness-110 transition flex-shrink-0">Save</button>
+      </form>
+      <div class="text-[10px] text-muted/60 mt-2">
+        Lowercase letters, numbers and hyphens. Changing it breaks any link you already sent.
+      </div>
+    </details>
+  </section>
 
   <!-- Profile / bio -->
   <details class="bg-surface border border-line rounded-lg">
@@ -498,6 +534,29 @@
     })();
   </script>
 
+<script>
+  // Clipboard needs a secure context; localhost counts but a plain-http LAN
+  // address does not, so fall back rather than silently doing nothing.
+  (function () {
+    var btn = document.getElementById('copy-share');
+    if (!btn) return;
+    btn.addEventListener('click', function () {
+      var link = btn.getAttribute('data-link');
+      var done = function () {
+        var was = btn.textContent;
+        btn.textContent = 'Copied';
+        setTimeout(function () { btn.textContent = was; }, 1400);
+      };
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(link).then(done);
+      } else {
+        var t = document.createElement('textarea');
+        t.value = link; document.body.appendChild(t); t.select();
+        document.execCommand('copy'); document.body.removeChild(t); done();
+      }
+    });
+  })();
+</script>
 </div>
 </body>
 </html>

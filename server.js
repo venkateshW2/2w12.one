@@ -37,7 +37,7 @@ app.locals.db = knex;
 // Tiny table, single query — cheaper than threading it through every route.
 app.use(async (req, res, next) => {
   try {
-    res.locals.navProfiles = await knex('profiles').select('id', 'name', 'token', 'user_id').orderBy('id');
+    res.locals.navProfiles = await knex('profiles').select('id', 'name', 'token', 'slug', 'user_id').orderBy('id');
     // The header's Admin link needs to know, on every page, not just admin ones.
     res.locals.currentPath = req.path;
     res.locals.navIsAdmin = false;

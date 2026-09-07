@@ -5,6 +5,7 @@ const { requireAuth } = require('../lib/auth');
 const { classify, youtubeThumbnail } = require('../lib/sourceType');
 const { uploadToB2, configured: b2Configured } = require('../lib/storage');
 const { TAG_ORDER, TAG_LABELS, ROLES, ROLE_SHORT } = require('../lib/taxonomy');
+const { slugify, validate: validateSlug, uniqueSlug } = require('../lib/slug');
 
 const upload = multer({ dest: os.tmpdir(), limits: { fileSize: 500 * 1024 * 1024 } });
 
@@ -76,8 +77,18 @@ module.exports = function (app) {
     // Everything the sidebar player can actually stream.
     const audioTracks = allTracks.filter((t) => classify(t.source_url || '') === 'direct_audio');
 
+    // Backfill on first view, so nobody sees an empty share panel.
+    if (!req.profile.slug) {
+      const first = slugify((req.profile.name || '').split(/\s+/)[0]);
+      const slug = await uniqueSlug(db(), validateSlug(first) ? req.profile.name : first, req.profile.id);
+      await db()('profiles').where({ id: req.profile.id }).update({ slug });
+      req.profile.slug = slug;
+    }
+
     res.render('dashboard', {
       profile: req.profile,
+      shareOrigin: `${req.protocol}://${req.get('host')}`,
+      notice: req.query.notice || null,
       tracks,
       galleryItems,
       audioTracks,
@@ -283,6 +294,21 @@ module.exports = function (app) {
     app.get(`/dashboard/${slug}`, gate, (req, res) => {
       res.render('dashboard-soon', { profile: req.profile, active: slug, section });
     });
+  });
+
+  // ---------- The shareable handle ----------
+  app.post('/dashboard/handle', gate, async (req, res) => {
+    const wanted = slugify(req.body.slug || '');
+    const problem = validateSlug(wanted);
+    if (problem) return res.redirect('/dashboard?error=' + encodeURIComponent(problem));
+
+    const taken = await db()('profiles').where({ slug: wanted }).whereNot({ id: req.profile.id }).first();
+    if (taken) {
+      return res.redirect('/dashboard?error=' + encodeURIComponent(`/@${wanted} is already taken.`));
+    }
+
+    await db()('profiles').where({ id: req.profile.id }).update({ slug: wanted });
+    res.redirect('/dashboard?notice=' + encodeURIComponent(`Your link is now /@${wanted}`));
   });
 
   // ---------- Gallery: loose images/video from tests and experiments ----------

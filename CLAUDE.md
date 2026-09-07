@@ -105,6 +105,19 @@ The POST **validates that all the parallel field arrays are the same length** be
 
 **Don't** claim a single location: the group isn't all in Mumbai. The tagline is currently **"Anything With Audio"**; "SOUND THINGS" was the previous one, from the old static site.
 
+## Sharing: personal handles and link cards
+
+Clients should **never see the word "portfolio"** in the public UI — the header menu says **Team**, and picking a person opens their page. That's a deliberate framing decision, not cosmetic.
+
+- **`profiles.slug`** (migration `20260907000008`) + `lib/slug.js`. Each person's page is at **`/@handle`** — `2w12.one/@venkatesh`. Handles default to the **first name** where free, since the point is brevity.
+- The **`@` prefix is why this is safe**: a bare `/venkatesh` would be a catch-all on one path segment, would have to be the last route registered, and would compete with every future top-level page. With `@` it can't shadow anything, so `RESERVED` in `lib/slug.js` is only about keeping handles sensible (no `/@admin`), not about routing.
+- **`/portfolio` 302s to `/@<owner>`** so there's one canonical URL per person and old links keep working.
+- `/p/:token` still exists for the unguessable link.
+- **Open Graph tags** in `views/partials/head.ejs`, populated per profile in `routes/portfolio.js` — name + tagline as the title, bio as the description, headshot as the image. This is the part that makes a pasted link render as a card in WhatsApp/Slack/iMessage instead of a bare URL, which was the actual complaint. Two gotchas: `og:image` must be an **absolute** URL, and it points at the **`.jpg`** rather than the `.webp` because scraper support for WebP previews is still patchy.
+- **Dashboard → "Your share link"**: the URL, a copy button, a preview link, and a collapsible handle editor that refuses reserved and taken handles. A missing slug is backfilled on first dashboard view, so nobody sees an empty panel.
+
+Verified: `/@venkatesh` 200, `/portfolio` → 302 to it, `/@nobody` 404, a new account auto-gets `/@ravi`, handle changes take effect immediately, and reserved/taken handles are both refused.
+
 ## Accounts: invite-only, admin-gated
 
 **There is no public signup route.** A person can only create a login if an admin has pre-added their email — that is the whole access model, so don't add an open `/signup`.

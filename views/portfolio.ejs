@@ -1,4 +1,8 @@
-<%- include('partials/head', { pageTitle: profile.name + ' — Work', loggedIn: loggedIn }) %>
+<%- include('partials/head', {
+  pageTitle: pageTitle,
+  ogTitle: ogTitle, ogDescription: ogDescription, ogImage: ogImage, ogUrl: ogUrl, ogType: ogType,
+  loggedIn: loggedIn
+}) %>
 
 <div class="max-w-7xl mx-auto px-5 py-7 flex flex-col md:flex-row gap-7">
 
