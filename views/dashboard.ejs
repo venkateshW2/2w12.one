@@ -1,0 +1,174 @@
+<%- include('partials/head', { pageTitle: 'Dashboard — 2w12.one', loggedIn: true }) %>
+
+<div class="max-w-5xl mx-auto px-5 py-8 space-y-10">
+
+  <% if (error) { %>
+    <div class="text-xs text-red-400 bg-red-950/40 border border-red-900 rounded px-3 py-2"><%= error %></div>
+  <% } %>
+  <% if (!b2Ready) { %>
+    <div class="text-xs text-amber-300 bg-amber-950/30 border border-amber-900 rounded px-3 py-2">
+      Backblaze B2 isn't configured yet (missing env vars) — file uploads will fail until B2_KEY_ID/B2_APP_KEY/B2_BUCKET/B2_ENDPOINT/B2_REGION are set. Pasting links still works.
+    </div>
+  <% } %>
+
+  <a href="/portfolio" target="_blank" class="text-xs text-accent hover:underline">View public profile &rarr;</a>
+
+  <!-- Profile / bio -->
+  <section class="bg-surface border border-line rounded-lg p-6">
+    <h2 class="text-sm font-semibold mb-4">About you</h2>
+    <form method="POST" action="/dashboard/profile" enctype="multipart/form-data" class="grid md:grid-cols-2 gap-4">
+      <div class="md:col-span-2 flex items-center gap-4">
+        <% if (profile.avatar_url) { %><img src="<%= profile.avatar_url %>" class="w-16 h-16 rounded-full object-cover border border-line" alt=""><% } %>
+        <div>
+          <label class="block text-xs text-muted mb-1">Headshot</label>
+          <input type="file" name="headshot" accept="image/*" class="text-xs">
+        </div>
+      </div>
+      <div>
+        <label class="block text-xs text-muted mb-1">Name</label>
+        <input type="text" name="name" value="<%= profile.name %>" required class="w-full bg-bg border border-line rounded px-3 py-2 text-sm focus:outline-none focus:border-accent">
+      </div>
+      <div>
+        <label class="block text-xs text-muted mb-1">Tagline</label>
+        <input type="text" name="tagline" value="<%= profile.tagline || '' %>" placeholder="Sound Artist — Mumbai" class="w-full bg-bg border border-line rounded px-3 py-2 text-sm focus:outline-none focus:border-accent">
+      </div>
+      <div class="md:col-span-2">
+        <label class="block text-xs text-muted mb-1">Bio</label>
+        <textarea name="bio_long" rows="4" class="w-full bg-bg border border-line rounded px-3 py-2 text-sm focus:outline-none focus:border-accent"><%= profile.bio_long || '' %></textarea>
+      </div>
+      <div class="md:col-span-2">
+        <label class="block text-xs text-muted mb-1">Education (one per line)</label>
+        <textarea name="education" rows="2" class="w-full bg-bg border border-line rounded px-3 py-2 text-sm focus:outline-none focus:border-accent"><%= profile.education || '' %></textarea>
+      </div>
+      <div>
+        <label class="block text-xs text-muted mb-1">Email</label>
+        <input type="email" name="email" value="<%= profile.email || '' %>" class="w-full bg-bg border border-line rounded px-3 py-2 text-sm focus:outline-none focus:border-accent">
+      </div>
+      <div>
+        <label class="block text-xs text-muted mb-1">Website</label>
+        <input type="text" name="website_url" value="<%= profile.website_url || '' %>" class="w-full bg-bg border border-line rounded px-3 py-2 text-sm focus:outline-none focus:border-accent">
+      </div>
+      <div>
+        <label class="block text-xs text-muted mb-1">LinkedIn</label>
+        <input type="text" name="linkedin_url" value="<%= profile.linkedin_url || '' %>" class="w-full bg-bg border border-line rounded px-3 py-2 text-sm focus:outline-none focus:border-accent">
+      </div>
+      <div class="md:col-span-2">
+        <button type="submit" class="bg-accent text-bg text-sm font-medium rounded px-4 py-2 hover:brightness-110 transition">Save profile</button>
+      </div>
+    </form>
+  </section>
+
+  <!-- Add project -->
+  <section class="bg-surface border border-line rounded-lg p-6">
+    <h2 class="text-sm font-semibold mb-4">Add a project</h2>
+    <form method="POST" action="/dashboard/tracks" enctype="multipart/form-data" class="grid md:grid-cols-2 gap-4">
+      <div class="md:col-span-2">
+        <label class="block text-xs text-muted mb-1">Title</label>
+        <input type="text" name="title" required class="w-full bg-bg border border-line rounded px-3 py-2 text-sm focus:outline-none focus:border-accent">
+      </div>
+
+      <div>
+        <label class="block text-xs text-muted mb-1">Paste a link (YouTube, Vimeo, SoundCloud...)</label>
+        <input type="text" name="source_url" class="w-full bg-bg border border-line rounded px-3 py-2 text-sm focus:outline-none focus:border-accent">
+      </div>
+      <div>
+        <label class="block text-xs text-muted mb-1">...or upload a file (audio/video)</label>
+        <input type="file" name="media_file" accept="audio/*,video/*" class="text-xs">
+      </div>
+
+      <div>
+        <label class="block text-xs text-muted mb-1">Cover image (optional)</label>
+        <input type="file" name="cover_file" accept="image/*" class="text-xs">
+      </div>
+      <div>
+        <label class="block text-xs text-muted mb-1">Role</label>
+        <select name="role" class="w-full bg-bg border border-line rounded px-3 py-2 text-sm focus:outline-none focus:border-accent">
+          <option value="">—</option>
+          <% roles.forEach(function(r) { %><option value="<%= r %>"><%= r %></option><% }) %>
+        </select>
+      </div>
+
+      <div class="md:col-span-2">
+        <label class="block text-xs text-muted mb-2">Category</label>
+        <div class="flex flex-wrap gap-3">
+          <% tagOrder.forEach(function(tag) { %>
+            <label class="flex items-center gap-1.5 text-xs text-muted">
+              <input type="checkbox" name="tags" value="<%= tag %>"> <%= tagLabels[tag] %>
+            </label>
+          <% }) %>
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-xs text-muted mb-1">Nest under (make this a piece of an album)</label>
+        <select name="parent_track_id" class="w-full bg-bg border border-line rounded px-3 py-2 text-sm focus:outline-none focus:border-accent">
+          <option value="">— top-level project —</option>
+          <% tracks.forEach(function(t) { %><option value="<%= t.id %>"><%= t.title %></option><% }) %>
+        </select>
+      </div>
+      <div class="flex items-end">
+        <label class="flex items-center gap-1.5 text-xs text-muted mb-2">
+          <input type="checkbox" name="featured"> Featured
+        </label>
+      </div>
+
+      <div>
+        <label class="block text-xs text-muted mb-1">Year</label>
+        <input type="number" name="year" class="w-full bg-bg border border-line rounded px-3 py-2 text-sm focus:outline-none focus:border-accent">
+      </div>
+      <div>
+        <label class="block text-xs text-muted mb-1">Collaboration</label>
+        <input type="text" name="collaboration" class="w-full bg-bg border border-line rounded px-3 py-2 text-sm focus:outline-none focus:border-accent">
+      </div>
+      <div>
+        <label class="block text-xs text-muted mb-1">Location</label>
+        <input type="text" name="location" class="w-full bg-bg border border-line rounded px-3 py-2 text-sm focus:outline-none focus:border-accent">
+      </div>
+      <div>
+        <label class="block text-xs text-muted mb-1">Technical</label>
+        <input type="text" name="technical" class="w-full bg-bg border border-line rounded px-3 py-2 text-sm focus:outline-none focus:border-accent">
+      </div>
+      <div class="md:col-span-2">
+        <label class="block text-xs text-muted mb-1">Description / context</label>
+        <textarea name="description" rows="2" class="w-full bg-bg border border-line rounded px-3 py-2 text-sm focus:outline-none focus:border-accent"></textarea>
+      </div>
+
+      <div class="md:col-span-2">
+        <button type="submit" class="bg-accent text-bg text-sm font-medium rounded px-4 py-2 hover:brightness-110 transition">Add project</button>
+      </div>
+    </form>
+  </section>
+
+  <!-- Existing projects -->
+  <section>
+    <h2 class="text-sm font-semibold mb-4">Your projects (<%= tracks.length %>)</h2>
+    <div class="space-y-2">
+      <% tracks.forEach(function(t) { %>
+        <div class="bg-surface border border-line rounded-lg p-3 flex items-center gap-3">
+          <% if (t.thumb) { %><img src="<%= t.thumb %>" class="w-16 h-10 object-cover rounded flex-shrink-0" alt=""><% } else { %><div class="w-16 h-10 bg-bg rounded flex-shrink-0"></div><% } %>
+          <div class="min-w-0 flex-1">
+            <div class="text-sm truncate"><%= t.title %></div>
+            <div class="text-[11px] text-muted truncate"><%= t.role || '—' %> &middot; <%= t.tags || '—' %><% if (t.pieces && t.pieces.length) { %> &middot; <%= t.pieces.length %> pieces<% } %></div>
+          </div>
+          <a href="/dashboard/tracks/<%= t.id %>/edit" class="text-xs text-accent hover:underline flex-shrink-0">Edit</a>
+          <form method="POST" action="/dashboard/tracks/<%= t.id %>/delete" onsubmit="return confirm('Delete this project?')" class="flex-shrink-0">
+            <button type="submit" class="text-xs text-red-400 hover:underline">Delete</button>
+          </form>
+        </div>
+        <% (t.pieces || []).forEach(function(p) { %>
+          <div class="ml-8 bg-surface/60 border border-line rounded-lg p-2.5 flex items-center gap-3">
+            <span class="text-accent text-xs">&#9656;</span>
+            <div class="min-w-0 flex-1 text-xs text-muted truncate"><%= p.title %></div>
+            <a href="/dashboard/tracks/<%= p.id %>/edit" class="text-xs text-accent hover:underline flex-shrink-0">Edit</a>
+            <form method="POST" action="/dashboard/tracks/<%= p.id %>/delete" onsubmit="return confirm('Delete this piece?')" class="flex-shrink-0">
+              <button type="submit" class="text-xs text-red-400 hover:underline">Delete</button>
+            </form>
+          </div>
+        <% }) %>
+      <% }) %>
+    </div>
+  </section>
+
+</div>
+</body>
+</html>

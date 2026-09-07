@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= typeof pageTitle !== 'undefined' ? pageTitle : '2w12.one' %></title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            bg: '#0c0c0c',
+            surface: '#141414',
+            line: '#232323',
+            ink: '#e8e6e1',
+            muted: '#86837c',
+            accent: '#c98a3f'
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    .card img { filter: saturate(0.9) brightness(0.82); transition: filter .25s ease, transform .35s ease; }
+    .card:hover img { filter: saturate(1) brightness(0.5); transform: scale(1.035); }
+    #lightbox.open { display: flex; }
+  </style>
+</head>
+<body class="bg-bg text-ink font-sans antialiased min-h-screen">
+  <%- include('nav', { loggedIn: typeof loggedIn !== 'undefined' ? loggedIn : false }) %>

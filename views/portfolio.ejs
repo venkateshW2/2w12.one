@@ -1,0 +1,94 @@
+<%- include('partials/head', { pageTitle: profile.name + ' — Work', loggedIn: loggedIn }) %>
+
+<div class="max-w-7xl mx-auto px-5 py-8 flex flex-col md:flex-row gap-8">
+
+  <!-- Sidebar: About -->
+  <aside class="md:w-72 flex-shrink-0">
+    <div class="md:sticky md:top-20 bg-surface border border-line rounded-lg p-6">
+      <% if (profile.avatar_url) { %>
+        <img src="<%= profile.avatar_url %>" alt="<%= profile.name %>" class="w-24 h-24 rounded-full object-cover object-top border border-line mb-4">
+      <% } %>
+      <div class="text-sm font-semibold"><%= profile.name %></div>
+      <% if (profile.tagline) { %><div class="text-xs text-muted mt-0.5"><%= profile.tagline %></div><% } %>
+
+      <% if (profile.bio_long) { %>
+        <p class="text-xs leading-relaxed text-ink/85 mt-4"><%= profile.bio_long %></p>
+      <% } %>
+
+      <% if (profile.education) { %>
+        <ul class="mt-4 space-y-1">
+          <% profile.education.split('\n').filter(Boolean).forEach(function(line) { %>
+            <li class="text-[11px] text-muted">&middot; <%= line %></li>
+          <% }) %>
+        </ul>
+      <% } %>
+
+      <div class="mt-5 pt-4 border-t border-line flex flex-col gap-1.5 text-xs">
+        <% if (profile.email) { %><a href="mailto:<%= profile.email %>" class="text-muted hover:text-accent transition-colors"><%= profile.email %></a><% } %>
+        <% if (profile.website_url) { %><a href="<%= profile.website_url %>" target="_blank" rel="noopener" class="text-muted hover:text-accent transition-colors">Website</a><% } %>
+        <% if (profile.linkedin_url) { %><a href="<%= profile.linkedin_url %>" target="_blank" rel="noopener" class="text-muted hover:text-accent transition-colors">LinkedIn</a><% } %>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main: project mosaic -->
+  <main class="min-w-0 flex-1">
+    <% sections.forEach(function(section) { %>
+      <div class="mb-10">
+        <div class="text-[11px] uppercase tracking-[0.14em] text-muted mb-3"><%= section.label %></div>
+        <div class="grid gap-[3px]" style="grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));">
+          <% section.items.forEach(function(item) { %>
+            <div class="card group relative aspect-[16/10] bg-surface overflow-hidden cursor-pointer" data-id="<%= item.id %>">
+              <% if (item.cover) { %><img src="<%= item.cover %>" loading="lazy" alt="" class="w-full h-full object-cover"><% } %>
+
+              <% if (item.roleShort) { %>
+                <div class="absolute top-1.5 left-1.5 text-[8.5px] font-medium uppercase tracking-wide text-bg bg-accent/90 px-1.5 py-0.5 rounded-sm">
+                  <%= item.roleShort %>
+                </div>
+              <% } %>
+
+              <% if (item.isAlbum) { %>
+                <div class="absolute top-1.5 right-1.5 text-[9px] text-ink bg-black/55 px-1.5 py-0.5 rounded-sm">
+                  <%= item.pieces.length %> pieces
+                </div>
+              <% } %>
+
+              <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100 transition-all duration-150">
+                <div class="w-9 h-9 rounded-full bg-black/50 border border-white/40 flex items-center justify-center">
+                  <svg viewBox="0 0 24 24" class="w-3 h-3"><polygon points="5,3 21,12 5,21" fill="#fff"/></svg>
+                </div>
+              </div>
+
+              <div class="absolute left-0 right-0 bottom-0 px-2 py-1.5 text-[11px] leading-tight text-ink whitespace-nowrap overflow-hidden text-ellipsis"
+                   style="background: linear-gradient(to top, rgba(0,0,0,.78), rgba(0,0,0,0));">
+                <%= item.title %>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+      </div>
+    <% }) %>
+    <% if (!sections.length) { %>
+      <div class="text-sm text-muted">No projects yet.</div>
+    <% } %>
+  </main>
+</div>
+
+<!-- Lightbox -->
+<div id="lightbox" class="fixed inset-0 bg-black/92 z-50 hidden items-center justify-center p-6">
+  <button id="lightbox-close" type="button" class="absolute top-5 right-6 text-2xl text-ink hover:text-accent transition-colors">&#10005;</button>
+  <div class="w-full max-w-5xl max-h-[90vh] flex bg-surface border border-line">
+    <div id="lb-video" class="flex-1 min-w-0 aspect-video bg-black"></div>
+    <div id="lb-side" class="hidden w-60 flex-shrink-0 overflow-y-auto border-l border-line max-h-[90vh]">
+      <div id="lb-title" class="text-[11px] uppercase tracking-wide text-muted px-3.5 pt-3 pb-2"></div>
+      <div id="lb-pieces"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  window.ITEMS = <%- itemsJson %>;
+</script>
+<script src="/js/portfolio.js"></script>
+</body>
+</html>

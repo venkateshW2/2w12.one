@@ -1,0 +1,16 @@
+<nav class="sticky top-0 z-40 bg-bg/90 backdrop-blur border-b border-line">
+  <div class="max-w-6xl mx-auto px-5 h-12 flex items-center justify-between text-xs">
+    <a href="/" class="font-semibold tracking-wide text-ink hover:text-accent transition-colors">2w12.one</a>
+    <div class="flex items-center gap-4 text-muted">
+      <a href="/portfolio" class="hover:text-accent transition-colors">Portfolio</a>
+      <% if (typeof loggedIn !== 'undefined' && loggedIn) { %>
+        <a href="/dashboard" class="hover:text-accent transition-colors">Dashboard</a>
+        <form method="POST" action="/logout" class="inline">
+          <button type="submit" class="hover:text-accent transition-colors">Logout</button>
+        </form>
+      <% } else { %>
+        <a href="/login" class="hover:text-accent transition-colors">Login</a>
+      <% } %>
+    </div>
+  </div>
+</nav>
