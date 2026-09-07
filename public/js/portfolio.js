@@ -64,7 +64,7 @@
       lbSide.classList.remove('block');
       const html = embedHtml(item);
       if (!html) {
-        window.open(item.src, '_blank', 'noopener');
+        if (item.src) window.open(item.src, '_blank', 'noopener');
         return;
       }
       lbVideo.innerHTML = html;
@@ -85,7 +85,42 @@
   lightbox.addEventListener('click', (e) => { if (e.target === lightbox) closeLightbox(); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeLightbox(); });
 
-  document.querySelectorAll('.card').forEach((card) => {
-    card.addEventListener('click', () => openLightbox(card.getAttribute('data-id')));
+  document.querySelectorAll('.project-card').forEach((card) => {
+    card.addEventListener('click', (e) => {
+      // Anything that has its own job — a link, the play button, a track row —
+      // must not also toggle the card. Matches the old site's behaviour.
+      if (e.target.closest('a, button, .piece-play')) return;
+      card.classList.toggle('expanded');
+    });
+
+    const playBtn = card.querySelector('.card-play');
+    if (playBtn) {
+      playBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openLightbox(card.getAttribute('data-id'));
+      });
+    }
+
+    // A track row inside an expanded album opens the player on that piece.
+    card.querySelectorAll('.piece-play').forEach((row) => {
+      row.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const id = row.getAttribute('data-play');
+        if (!items[id]) return;
+        openLightbox(card.getAttribute('data-id'));
+        playInMain(id);
+      });
+    });
+
+    // Clicking the poster itself plays, since that's where the play overlay is.
+    const poster = card.querySelector('.card-img');
+    if (poster) {
+      poster.addEventListener('click', (e) => {
+        const item = items[card.getAttribute('data-id')];
+        if (!item || !item.src) return; // details-only project: fall through to expand
+        e.stopPropagation();
+        openLightbox(card.getAttribute('data-id'));
+      });
+    }
   });
 })();

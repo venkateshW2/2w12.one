@@ -21,8 +21,11 @@
 
     <div>
       <label class="block text-xs text-muted mb-1">Cover image</label>
-      <% if (track.cover_image_url) { %><img src="<%= track.cover_image_url %>" class="w-24 h-14 object-cover rounded mb-1" alt=""><% } %>
+      <% if (track.cover_image_url) { %><img src="<%= track.cover_image_url %>" class="w-24 h-14 object-cover rounded mb-1.5 bg-bg" alt=""><% } %>
+      <input type="text" name="cover_image_url" value="<%= track.cover_image_url || '' %>" placeholder="/images/projects/GOW.png or https://..." class="w-full bg-surface border border-line rounded px-3 py-2 text-sm focus:outline-none focus:border-accent">
+      <label class="block text-xs text-muted mt-2 mb-1">Replace by uploading</label>
       <input type="file" name="cover_file" accept="image/*" class="text-xs">
+      <div class="text-[10px] text-muted mt-1">Clear the URL field to remove the cover (YouTube links fall back to their own thumbnail).</div>
     </div>
     <div>
       <label class="block text-xs text-muted mb-1">Role</label>

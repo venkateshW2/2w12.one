@@ -31,39 +31,105 @@
     </div>
   </aside>
 
-  <!-- Main: project mosaic -->
+  <!-- Main: project cards -->
   <main class="min-w-0 flex-1">
     <% sections.forEach(function(section) { %>
-      <div class="mb-10">
-        <div class="text-[11px] uppercase tracking-[0.14em] text-muted mb-3"><%= section.label %></div>
-        <div class="grid gap-[3px]" style="grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));">
+      <div class="mb-12">
+        <div class="text-[11px] uppercase tracking-[0.14em] text-muted mb-4 pb-2 border-b border-line"><%= section.label %></div>
+        <div class="grid gap-4" style="grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));">
           <% section.items.forEach(function(item) { %>
-            <div class="card group relative aspect-[16/10] bg-surface overflow-hidden cursor-pointer" data-id="<%= item.id %>">
-              <% if (item.cover) { %><img src="<%= item.cover %>" loading="lazy" alt="" class="w-full h-full object-cover"><% } %>
+            <article class="project-card group relative bg-surface border border-line rounded-md overflow-hidden cursor-pointer" data-id="<%= item.id %>">
 
-              <% if (item.roleShort) { %>
-                <div class="absolute top-1.5 left-1.5 text-[8.5px] font-medium uppercase tracking-wide text-bg bg-accent/90 px-1.5 py-0.5 rounded-sm">
-                  <%= item.roleShort %>
-                </div>
-              <% } %>
+              <!-- poster, YouTube thumbnail, or placeholder -->
+              <div class="relative aspect-[16/9] bg-bg overflow-hidden">
+                <% if (item.cover) { %>
+                  <img src="<%= item.cover %>" loading="lazy" alt="<%= item.title %>" class="card-img w-full h-full object-cover">
+                <% } else { %>
+                  <div class="w-full h-full flex items-center justify-center text-muted/40">
+                    <svg viewBox="0 0 24 24" class="w-8 h-8" fill="currentColor"><path d="M12 3v10.55A4 4 0 1014 17V7h4V3h-6z"/></svg>
+                  </div>
+                <% } %>
 
-              <% if (item.isAlbum) { %>
-                <div class="absolute top-1.5 right-1.5 text-[9px] text-ink bg-black/55 px-1.5 py-0.5 rounded-sm">
-                  <%= item.pieces.length %> pieces
-                </div>
-              <% } %>
-
-              <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100 transition-all duration-150">
-                <div class="w-9 h-9 rounded-full bg-black/50 border border-white/40 flex items-center justify-center">
-                  <svg viewBox="0 0 24 24" class="w-3 h-3"><polygon points="5,3 21,12 5,21" fill="#fff"/></svg>
-                </div>
+                <% if (item.roleShort) { %>
+                  <div class="absolute top-2 left-2 text-[8.5px] font-medium uppercase tracking-wider text-bg bg-accent/90 px-1.5 py-0.5 rounded-sm">
+                    <%= item.roleShort %>
+                  </div>
+                <% } %>
+                <% if (item.isAlbum) { %>
+                  <div class="absolute top-2 right-2 text-[9px] text-ink bg-black/60 px-1.5 py-0.5 rounded-sm"><%= item.pieces.length %> pieces</div>
+                <% } %>
+                <% if (item.playable !== false && item.src) { %>
+                  <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    <div class="w-11 h-11 rounded-full bg-black/55 border border-white/40 flex items-center justify-center backdrop-blur-sm">
+                      <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 ml-0.5"><polygon points="5,3 21,12 5,21" fill="#fff"/></svg>
+                    </div>
+                  </div>
+                <% } %>
               </div>
 
-              <div class="absolute left-0 right-0 bottom-0 px-2 py-1.5 text-[11px] leading-tight text-ink whitespace-nowrap overflow-hidden text-ellipsis"
-                   style="background: linear-gradient(to top, rgba(0,0,0,.78), rgba(0,0,0,0));">
-                <%= item.title %>
+              <!-- meta -->
+              <div class="p-4">
+                <div class="flex items-baseline justify-between gap-2 mb-1.5">
+                  <div class="text-[9.5px] uppercase tracking-[0.12em] text-muted truncate">
+                    <%= section.label %><% if (item.role) { %> &middot; <%= item.roleShort %><% } %>
+                  </div>
+                  <% if (item.year) { %><div class="text-[9.5px] text-muted flex-shrink-0"><%= item.year %></div><% } %>
+                </div>
+
+                <h3 class="project-title text-[15px] leading-snug font-medium transition-colors"><%= item.title %></h3>
+                <% if (item.role) { %><div class="text-[11.5px] italic text-muted mt-0.5"><%= item.role %></div><% } %>
+
+                <% if (item.description) { %>
+                  <p class="card-desc text-[12px] leading-relaxed text-ink/70 mt-2.5"><%= item.description %></p>
+                <% } %>
+
+                <!-- revealed on click -->
+                <div class="card-details">
+                  <div class="pt-3 mt-3 border-t border-line space-y-1.5">
+                    <% if (item.collaboration) { %>
+                      <div class="text-[11px]"><span class="text-muted">Collaboration:</span> <span class="text-ink/80"><%= item.collaboration %></span></div>
+                    <% } %>
+                    <% if (item.technical) { %>
+                      <div class="text-[11px]"><span class="text-muted">Technical:</span> <span class="text-ink/80"><%= item.technical %></span></div>
+                    <% } %>
+                    <% if (item.location) { %>
+                      <div class="text-[11px]"><span class="text-muted">Location:</span> <span class="text-ink/80"><%= item.location %></span></div>
+                    <% } %>
+                    <% if (item.context) { %>
+                      <div class="text-[11px]"><span class="text-muted">Context:</span> <span class="text-ink/80"><%= item.context %></span></div>
+                    <% } %>
+
+                    <% if (item.isAlbum) { %>
+                      <div class="pt-2">
+                        <div class="text-[10px] uppercase tracking-wider text-muted mb-1">Tracks</div>
+                        <% item.pieces.forEach(function(p) { %>
+                          <div class="piece-play flex items-baseline gap-1.5 py-0.5 text-[11.5px] text-muted hover:text-accent transition-colors" data-play="<%= p.id %>">
+                            <span class="text-accent/60">&#9656;</span>
+                            <span class="truncate"><%= p.title %></span>
+                            <% if (p.roleShort) { %><span class="text-[9px] text-muted/70 flex-shrink-0">&middot; <%= p.roleShort %></span><% } %>
+                          </div>
+                        <% }) %>
+                      </div>
+                    <% } %>
+
+                    <div class="flex items-center gap-2 pt-3">
+                      <% if (item.src) { %>
+                        <button type="button" class="card-play text-[10px] uppercase tracking-wider border border-accent/60 text-accent rounded px-2.5 py-1 hover:bg-accent hover:text-bg transition-colors">
+                          <%= item.isAlbum ? 'Play tracks' : 'Play' %>
+                        </button>
+                      <% } %>
+                      <% if (item.externalUrl) { %>
+                        <a href="<%= item.externalUrl %>" target="_blank" rel="noopener" class="card-link text-[10px] uppercase tracking-wider border border-line text-muted rounded px-2.5 py-1 hover:text-ink hover:border-muted transition-colors">
+                          View project
+                        </a>
+                      <% } %>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="expand-indicator absolute bottom-2 right-3 text-muted/60 text-sm leading-none select-none transition-transform">+</div>
               </div>
-            </div>
+            </article>
           <% }) %>
         </div>
       </div>

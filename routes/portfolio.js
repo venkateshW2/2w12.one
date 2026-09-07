@@ -15,6 +15,9 @@ module.exports = function (app) {
       year: t.year,
       collaboration: t.collaboration,
       location: t.location,
+      technical: t.technical,
+      context: t.context,
+      externalUrl: t.external_url,
       featured: !!t.featured,
       cover: t.cover_image_url || (kind === 'youtube' ? youtubeThumbnail(t.source_url) : null) || '',
       kind,
@@ -49,6 +52,10 @@ module.exports = function (app) {
       });
     });
 
+    Object.values(byTag).forEach((list) =>
+      list.sort((a, b) => (b.year || 0) - (a.year || 0) || a.title.localeCompare(b.title))
+    );
+
     const sections = [];
     TAG_ORDER.forEach((tag) => {
       if (byTag[tag]) sections.push({ tag, label: TAG_LABELS[tag] || tag, items: byTag[tag] });
@@ -66,6 +73,7 @@ module.exports = function (app) {
         title: it.title,
         cover: it.cover,
         isAlbum: !!it.isAlbum,
+        playable: !!it.src,
         pieceIds: (it.pieces || []).map((p) => p.id)
       };
       (it.pieces || []).forEach(addToLookup);

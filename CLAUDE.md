@@ -4,11 +4,108 @@ Audio community platform for Venkatesh Iyer (sound designer / music producer) an
 
 ## Current status
 
-**Phase 1 in progress**: converting the site from a static GitHub Pages site into a real Express/Postgres app with login, an admin CMS, and Backblaze B2 file storage — for the one current user first. Multi-user public signup is Phase 2, not started.
+**Phase 1 code is written and committed** (commit `fd7ed8f`, the only Phase 1 commit; working tree clean). Converting the site from a static GitHub Pages site into a real Express/Postgres app with login, an admin CMS, and Backblaze B2 file storage — for the one current user first. Multi-user public signup is Phase 2, not started.
+
+Verified working (app boots on `node server.js`, routes respond): `/` (static landing), `/portfolio` (dynamic, 200), `/login` (200), `/dashboard` (302 → login when signed out), `/tools/visualizer/` (static passthrough, 200), unknown path → 404 via `views/not-found.ejs`.
+
+Built and in place:
+
+- `migrations/20260907000001_init.js` — the single init migration: `users`, `profiles`, `tracks` (self-FK `parent_track_id`), `sessions`. Applied to the local SQLite DB (`data/2w12.sqlite3`, gitignored).
+- Auth: `routes/auth.js` (login/logout), `lib/auth.js` (`requireAuth` loads the owner's profile onto `req.profile`, so admin routes are scoped automatically), `scripts/create-user.js` (`npm run seed:user`).
+- Admin CMS: `routes/admin.js` + `views/dashboard.ejs` / `views/track-edit.ejs` — profile/bio editing, track create/edit/delete, paste-link *or* upload-file, parent-track ("album") selection, category checkboxes + role dropdown from `lib/taxonomy.js`.
+- Uploads: `lib/storage.js` — multer disk-temp → streamed to B2 → temp file unlinked. Never buffered in memory.
+- Public page: `routes/portfolio.js` + `views/portfolio.ejs` + `public/js/portfolio.js` — sectioned-by-tag mosaic, role badges, album piece counts, inline lightbox that swaps pieces without a page load. Also served at `/p/:token` for the legacy/Phase-2 token flow.
+- The ~24 purpose-made poster images are preserved at `public/images/projects/` (moved out of `docs/portfolio/`).
+
+Local DB state right now: 1 user (`rnd@frizzon.co`) with a fully populated profile, and **43 tracks** — 32 top-level projects plus 11 nested album pieces (6 Gangs of Wasseypur songs, 5 SoundTrippin segments). 21 have years, 22 have collaboration/technical/location metadata, 15 have an external project link, 15 are featured. All 8 taxonomy sections render.
+
+### Where the content came from (three sources, merged)
+
+**The Google Sheet is NOT dead.** The live site at `https://2w12.one/portfolio/` still renders from it, because the old static build is what's still deployed on GitHub Pages. Its published CSV endpoint is live and public:
+
+```
+https://docs.google.com/spreadsheets/d/e/2PACX-1vQOCH8WgkFC85dwlZZw_wkAW_IRUhzIa8859fJjgJ1YJi48fAEe3WMCHvqAE2fNkG_-hITUVvpL4f7J/pub?output=csv
+```
+
+(The URL is in git history at `git show fd7ed8f^:docs/portfolio/main.js`. `data.js`'s `loadFallbackData()` only ever held one project, so *that* is not a useful source — but the sheet behind it is.)
+
+Content was assembled from three places, in this order:
+
+1. **`npm run import:showreel`** — the showreel prototype's SQLite DB (`/Users/justmac/w2app/showreel/data/showreel.sqlite3`), 38 tracks. Best source for **roles** (already matching `lib/taxonomy.js`), **album nesting**, and playable YouTube links.
+2. **`npm run import:sheet`** — the live Google Sheet, 22 rows. Best source for **everything else**: `year`, `collaboration`, `location`, `technical`, `context`, `featured`, full prose `details`, and the separate IMDb/official project link. It merges onto existing rows rather than duplicating them, matching by **YouTube video id first**, then normalized title, then title prefix, then an explicit `ALIASES` map (the sheet and the showreel DB spell things differently: `Cntrl`/`CTRL`, `Bandits of gollak`/`The Bandits of Golak`, `Tata Safari Campaign` vs `#Untamed Kaziranga Range Edition` — same YouTube link). It also **created the 4 projects that existed only in the sheet**: The Umesh Chronicle (`TUC.png`), Hyundai Kona Electric (`Hyndai.png`), MTV Rush Ep1 (`RUSH.jpg`), Folk 2.0 Documentary (`Folk.png`) — which is what those 4 "orphan" posters belonged to.
+3. **Profile details** — recovered from `/Users/justmac/w2app/venkatesh-portfolio/index.html`'s About/Background panels.
+
+Both importers are **idempotent** and **one-off migrations, not live data paths** — don't wire either into the app. Once a project is edited in the CMS, the DB is the source of truth.
+
+### Images
+
+`npm run optimize:images` converts `public/images/projects/*.{png,jpg}` to WebP (via `cwebp`, `brew install webp`), resizes to 900px wide, and repoints every `cover_image_url` at the `.webp`. This took the poster set from **24.91 MB to 0.84 MB (-97%)** — the originals were 1-2 MB PNGs rendering into ~350px cards, which was by far the site's biggest performance problem. **Originals are kept as masters**; re-run after adding new posters.
+
+Cards with no stored cover fall back to `youtubeThumbnail()` at render time, so a project only needs a poster if it isn't a YouTube link.
+
+### Known content gaps
+
+- **22 rows still have no year** — but those are the nested album pieces plus a couple of projects the sheet didn't cover. All 4 formerly-orphan posters now have years. Dashboard has a "Missing year" filter chip.
+- 1 track has neither a cover nor a YouTube fallback.
+- `Passage.jpg` is a duplicate of `Passage.png` (the `.png` is the one in use).
+- 2 covers were hotlinked to `studio.camp`/`serendipityarts.org`; `npm run media:b2` rehosts them if/when B2 is set up.
+
+### Public page: card UI
+
+`views/portfolio.ejs` is a **card grid**, not the earlier dense mosaic — the old static site's card interaction was deliberately ported back, since it's the thing worth keeping:
+
+- Hover: card lifts 2px, an accent bar sweeps across the top edge, poster scales and brightens.
+- **Click anywhere neutral on a card toggles `.expanded`** — CSS `max-height` + opacity transition reveals Collaboration / Technical / Location / Context, the album track list, and the action buttons. The `+` indicator rotates 45° into an ×. `prefers-reduced-motion` disables all of it.
+- Clicks on a link, button, or track row **don't** toggle the card (`e.target.closest('a, button, .piece-play')`) — same guard the old `ui.js` used.
+- Playing is explicit: the poster's play overlay, or the "Play" button inside the expanded card. Album track rows open the lightbox on that specific piece. Details-only projects (no link at all, e.g. Folk 2.0) just expand.
+- `tracks.external_url` (migration `20260907000002`) holds the IMDb/official link behind the "View project" button, kept separate from `source_url`, which is the *playable* thing. The old sheet had both columns and the schema originally only covered one.
+
+### What's left in Phase 1
+
+1. **B2 not configured** — see below. Uploads fail until it is; pasting links works fine.
+2. **Not deployed.** No `render.yaml`/`Procfile`; nothing has run against Postgres yet. `trust proxy` and `engines.node` are in place; still to do: Render service + Postgres, env vars, migrations as **Pre-Deploy** Command, and repointing the domain off GitHub Pages (which is still serving the old static site — that's why the sheet still appears to "work").
+3. Tailwind still loads from `cdn.tailwindcss.com` — fine for now, not a production setup.
+
+## Backblaze B2 setup
+
+Nothing about B2 is guessable from the code, so the exact steps:
+
+1. **Create the bucket** — B2 dashboard → Buckets → Create a Bucket. Files in Bucket: **Public** (Phase 1 serves objects directly, no signed URLs). Name it something unique, e.g. `2w12-media`.
+   - Flipping a bucket from Private to Public asks for a card: *"A payment history is required, or pay a one-time fee ($1.00 + appl. taxes) that is credited to your account."* This is Backblaze's **anti-abuse gate**, not a storage charge — public buckets are what spammers use for free file hosting, so they want any prior payment on the account. The $1 is **credited back to the account balance**, and it is one-time. Storage itself stays free under 10 GB.
+   - The existing `w2MusicStuff` bucket (1.4 GB, 32 files, `s3.us-east-005.backblazeb2.com`) is Private. Either flip it to Public or make a separate public bucket for web media and keep that one private — a separate bucket is cleaner, since everything in a public bucket is world-readable by URL.
+2. **Create an application key** — App Keys → Add a New Application Key. Scope it to *just that bucket*, with Read and Write. You get `keyID` + `applicationKey`; **the key is shown once**.
+3. **Read the endpoint off the bucket** — the bucket page shows an S3 endpoint like `s3.us-west-004.backblazeb2.com`. The region is the middle segment of that host (`us-west-004`) and must match exactly.
+4. **Fill in `.env`** (copy `.env.example`):
+   ```
+   B2_KEY_ID=<keyID>
+   B2_APP_KEY=<applicationKey>
+   B2_BUCKET=2w12-media
+   B2_ENDPOINT=https://s3.us-west-004.backblazeb2.com
+   B2_REGION=us-west-004
+   ```
+   `B2_PUBLIC_BASE_URL` stays unset unless a CDN/custom domain fronts the bucket. Restart the server; the dashboard's amber banner disappears.
+5. **Migrate the existing media** — `npm run media:b2 -- --dry-run` first, then `npm run media:b2`.
+
+### Bucket layout
+
+`routes/admin.js`'s `folderFor()` and `scripts/media-to-b2.js` together produce:
+
+```
+audio/<uuid>.wav             CMS uploads, by mimetype
+video/<uuid>.mp4
+images/<uuid>.png            cover/headshot uploaded through the CMS
+files/<uuid>.<ext>
+images/projects/<Name>.png   posters migrated from public/images/projects/ (filename preserved)
+images/covers/<slug>.jpg     covers pulled down from third-party hosts, keyed by project slug
+```
+
+CMS uploads get a random UUID key (no collisions, no filename leakage). The migration script instead uses **stable keys derived from the filename or project slug**, which is what makes `npm run media:b2` safely re-runnable: a second pass overwrites the same object and leaves the DB URL unchanged, rather than orphaning the first upload. Every key keeps its original extension — `lib/sourceType.js`'s `classify()` reads the extension to decide how to play a file.
+
+Tracks and images stay decoupled: `tracks.source_url` is the playable thing (a pasted YouTube/Vimeo/SoundCloud link, or a B2 URL for an uploaded file) and `tracks.cover_image_url` is the still image. Either can be a B2 URL, an external URL, or a root-relative local path like `/images/projects/GOW.png` — all three work, and the cover can be left empty for YouTube sources since the thumbnail is derived at render time.
 
 ## Origin story (why this exists)
 
-The site used to be 100% static (`docs/` folder, served via GitHub Pages, custom domain via `docs/CNAME`). `docs/portfolio/data.js` tried to load project data from a Google Sheets CSV at runtime, falling back to a hardcoded JS array if that failed — an "Excel sheet as CMS" workflow that stopped being workable as the number of projects grew. `docs/portfolio/images/projects/` already has ~24 real, purpose-made poster images worth reusing (not YouTube auto-thumbnails).
+The site used to be 100% static (`docs/` folder, served via GitHub Pages, custom domain via `docs/CNAME`). `docs/portfolio/data.js` tried to load project data from a Google Sheets CSV at runtime, falling back to a hardcoded JS array if that failed — an "Excel sheet as CMS" workflow that stopped being workable as the number of projects grew. `docs/portfolio/images/projects/` already had ~24 real, purpose-made poster images worth reusing (not YouTube auto-thumbnails) — they now live at `public/images/projects/`.
 
 Separately, a throwaway prototype was built in a sibling repo (`showreel-builder`) this same session to work out the data model and UI before touching the real site: profiles/tracks schema with `role` + freeform `tags` + `parent_track_id` for nested "album" grouping (e.g. individual songs nested under a film), and a validated public catalog page (hover-play mosaic grid, role-annotation badges on every card, inline lightbox player that swaps tracks without leaving the page). That design is what's being ported in here, for real, with auth and file storage added.
 
@@ -30,7 +127,8 @@ Express + EJS + Knex — deliberately **not** a framework rewrite. Server-render
 
 ## Conventions / things not to redo
 
-- Don't reintroduce the Google Sheets CSV loading path — it's the exact workflow this rebuild exists to replace.
+- Don't reintroduce the Google Sheets CSV loading path — it's the exact workflow this rebuild exists to replace. (The sheet itself is gone; the project list now lives in `tracks`, seeded by `npm run import:showreel`.)
+- Don't re-run `import:showreel` expecting it to refresh content from the showreel repo as a live source — it's a one-off migration. Once a project is edited in the CMS, the DB is the source of truth.
 - Don't rebuild `docs/tools/*` or the landing page as part of this work — explicitly out of scope for Phase 1.
 - Don't buffer uploaded files fully in memory (`multer.memoryStorage()`) — use the disk-temp-then-stream pattern in `routes/admin.js`/`lib/storage.js`. These are real audio/video files, not small form uploads.
 - Category taxonomy and role-short-label mapping live in exactly one place (`lib/taxonomy.js`) — used by both the admin form and the public page. Don't duplicate the list.

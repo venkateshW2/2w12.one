@@ -11,11 +11,22 @@
     </div>
   <% } %>
 
-  <a href="/portfolio" target="_blank" class="text-xs text-accent hover:underline">View public profile &rarr;</a>
+  <div class="flex items-baseline justify-between gap-4 flex-wrap">
+    <div>
+      <h1 class="text-lg font-semibold">Projects</h1>
+      <div class="text-[11px] text-muted mt-1">
+        <%= stats.projects %> projects &middot; <%= stats.pieces %> nested pieces &middot; <%= stats.featured %> featured
+        <% if (stats.noCover) { %>&middot; <span class="text-amber-400"><%= stats.noCover %> without a cover</span><% } %>
+        <% if (stats.noYear) { %>&middot; <span class="text-amber-400"><%= stats.noYear %> without a year</span><% } %>
+      </div>
+    </div>
+    <a href="/portfolio" target="_blank" class="text-xs text-accent hover:underline">View public profile &rarr;</a>
+  </div>
 
   <!-- Profile / bio -->
-  <section class="bg-surface border border-line rounded-lg p-6">
-    <h2 class="text-sm font-semibold mb-4">About you</h2>
+  <details class="bg-surface border border-line rounded-lg">
+    <summary class="text-sm font-semibold px-6 py-4 cursor-pointer hover:text-accent transition-colors">About you</summary>
+    <div class="px-6 pb-6">
     <form method="POST" action="/dashboard/profile" enctype="multipart/form-data" class="grid md:grid-cols-2 gap-4">
       <div class="md:col-span-2 flex items-center gap-4">
         <% if (profile.avatar_url) { %><img src="<%= profile.avatar_url %>" class="w-16 h-16 rounded-full object-cover border border-line" alt=""><% } %>
@@ -56,11 +67,13 @@
         <button type="submit" class="bg-accent text-bg text-sm font-medium rounded px-4 py-2 hover:brightness-110 transition">Save profile</button>
       </div>
     </form>
-  </section>
+    </div>
+  </details>
 
   <!-- Add project -->
-  <section class="bg-surface border border-line rounded-lg p-6">
-    <h2 class="text-sm font-semibold mb-4">Add a project</h2>
+  <details class="bg-surface border border-line rounded-lg">
+    <summary class="text-sm font-semibold px-6 py-4 cursor-pointer hover:text-accent transition-colors">+ Add a project</summary>
+    <div class="px-6 pb-6">
     <form method="POST" action="/dashboard/tracks" enctype="multipart/form-data" class="grid md:grid-cols-2 gap-4">
       <div class="md:col-span-2">
         <label class="block text-xs text-muted mb-1">Title</label>
@@ -77,8 +90,11 @@
       </div>
 
       <div>
-        <label class="block text-xs text-muted mb-1">Cover image (optional)</label>
+        <label class="block text-xs text-muted mb-1">Cover image &mdash; upload</label>
         <input type="file" name="cover_file" accept="image/*" class="text-xs">
+        <label class="block text-xs text-muted mt-2 mb-1">&hellip;or paste an image URL</label>
+        <input type="text" name="cover_image_url" placeholder="/images/projects/GOW.png or https://..." class="w-full bg-bg border border-line rounded px-3 py-2 text-sm focus:outline-none focus:border-accent">
+        <div class="text-[10px] text-muted mt-1">Leave both empty and YouTube links use their own thumbnail.</div>
       </div>
       <div>
         <label class="block text-xs text-muted mb-1">Role</label>
@@ -137,37 +153,146 @@
         <button type="submit" class="bg-accent text-bg text-sm font-medium rounded px-4 py-2 hover:brightness-110 transition">Add project</button>
       </div>
     </form>
-  </section>
+    </div>
+  </details>
 
-  <!-- Existing projects -->
+  <!-- Existing projects: the CMS list -->
   <section>
-    <h2 class="text-sm font-semibold mb-4">Your projects (<%= tracks.length %>)</h2>
-    <div class="space-y-2">
+    <div class="flex items-center gap-2 flex-wrap mb-3">
+      <input id="q" type="search" placeholder="Search title, role, tag, year&hellip;" autocomplete="off"
+             class="flex-1 min-w-[200px] bg-surface border border-line rounded px-3 py-2 text-sm focus:outline-none focus:border-accent">
+      <select id="sort" class="bg-surface border border-line rounded px-2 py-2 text-xs text-muted focus:outline-none focus:border-accent">
+        <option value="recent" <%= sort === 'recent' ? 'selected' : '' %>>Newest first</option>
+        <option value="title" <%= sort === 'title' ? 'selected' : '' %>>Title A&ndash;Z</option>
+        <option value="year" <%= sort === 'year' ? 'selected' : '' %>>Year</option>
+        <option value="role" <%= sort === 'role' ? 'selected' : '' %>>Role</option>
+      </select>
+    </div>
+
+    <div class="flex items-center gap-1.5 flex-wrap mb-4 text-[11px]">
+      <button type="button" data-filter="" class="filter-chip active border border-line rounded-full px-2.5 py-1 text-muted hover:text-accent transition-colors">All</button>
+      <% tagOrder.forEach(function(tag) { %>
+        <button type="button" data-filter="<%= tag.toLowerCase() %>" class="filter-chip border border-line rounded-full px-2.5 py-1 text-muted hover:text-accent transition-colors"><%= tagLabels[tag] %></button>
+      <% }) %>
+      <button type="button" data-filter="__nocover" class="filter-chip border border-line rounded-full px-2.5 py-1 text-amber-400/80 hover:text-amber-300 transition-colors">Missing cover</button>
+      <button type="button" data-filter="__noyear" class="filter-chip border border-line rounded-full px-2.5 py-1 text-amber-400/80 hover:text-amber-300 transition-colors">Missing year</button>
+      <span id="shown" class="ml-auto text-muted"></span>
+    </div>
+
+    <div id="rows" class="space-y-1.5">
       <% tracks.forEach(function(t) { %>
-        <div class="bg-surface border border-line rounded-lg p-3 flex items-center gap-3">
-          <% if (t.thumb) { %><img src="<%= t.thumb %>" class="w-16 h-10 object-cover rounded flex-shrink-0" alt=""><% } else { %><div class="w-16 h-10 bg-bg rounded flex-shrink-0"></div><% } %>
-          <div class="min-w-0 flex-1">
-            <div class="text-sm truncate"><%= t.title %></div>
-            <div class="text-[11px] text-muted truncate"><%= t.role || '—' %> &middot; <%= t.tags || '—' %><% if (t.pieces && t.pieces.length) { %> &middot; <%= t.pieces.length %> pieces<% } %></div>
+        <div class="row bg-surface border border-line rounded-lg"
+             data-haystack="<%= t.haystack %>"
+             data-nocover="<%= (!t.cover_image_url && !t.thumb) ? '1' : '0' %>"
+             data-noyear="<%= !t.year ? '1' : '0' %>">
+          <div class="p-2.5 flex items-center gap-3">
+            <% if (t.thumb) { %>
+              <img src="<%= t.thumb %>" class="w-20 h-12 object-cover rounded flex-shrink-0 bg-bg" alt="" loading="lazy">
+            <% } else { %>
+              <div class="w-20 h-12 bg-bg border border-line/60 rounded flex-shrink-0 flex items-center justify-center text-[9px] text-muted">no cover</div>
+            <% } %>
+
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-2">
+                <span class="text-sm truncate"><%= t.title %></span>
+                <% if (t.featured) { %><span class="text-accent text-[10px] flex-shrink-0" title="Featured">&#9733;</span><% } %>
+              </div>
+              <div class="text-[11px] text-muted truncate mt-0.5">
+                <% if (t.role) { %><span class="text-ink/70"><%= t.role %></span><% } else { %><span class="text-amber-400/70">no role</span><% } %>
+                <% if (t.tags) { %> &middot; <%= t.tags %><% } %>
+                <% if (t.year) { %> &middot; <%= t.year %><% } %>
+                <% if (t.pieces.length) { %> &middot; <span class="text-accent/80"><%= t.pieces.length %> pieces</span><% } %>
+                <% if (t.type === 'upload') { %> &middot; uploaded file<% } %>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2.5 flex-shrink-0">
+              <a href="<%= t.source_url %>" target="_blank" rel="noopener" class="text-xs text-muted hover:text-accent transition-colors" title="Open source link">&#8599;</a>
+              <form method="POST" action="/dashboard/tracks/<%= t.id %>/featured" class="inline">
+                <input type="hidden" name="sort" value="<%= sort %>">
+                <button type="submit" class="text-xs <%= t.featured ? 'text-accent' : 'text-muted' %> hover:text-accent transition-colors" title="Toggle featured"><%= t.featured ? '&#9733;' : '&#9734;' %></button>
+              </form>
+              <a href="/dashboard/tracks/<%= t.id %>/edit" class="text-xs text-accent hover:underline">Edit</a>
+              <form method="POST" action="/dashboard/tracks/<%= t.id %>/delete" onsubmit="return confirm('Delete <%= t.title.replace(/'/g, "\\'") %> and all its nested pieces?')" class="inline">
+                <button type="submit" class="text-xs text-red-400/80 hover:text-red-400 transition-colors">Delete</button>
+              </form>
+            </div>
           </div>
-          <a href="/dashboard/tracks/<%= t.id %>/edit" class="text-xs text-accent hover:underline flex-shrink-0">Edit</a>
-          <form method="POST" action="/dashboard/tracks/<%= t.id %>/delete" onsubmit="return confirm('Delete this project?')" class="flex-shrink-0">
-            <button type="submit" class="text-xs text-red-400 hover:underline">Delete</button>
-          </form>
+
+          <% if (t.pieces.length) { %>
+            <details class="border-t border-line">
+              <summary class="text-[11px] text-muted px-3 py-1.5 cursor-pointer hover:text-accent transition-colors"><%= t.pieces.length %> nested pieces</summary>
+              <div class="px-3 pb-2 space-y-1">
+                <% t.pieces.forEach(function(p) { %>
+                  <div class="flex items-center gap-2 pl-3 border-l border-line">
+                    <span class="text-accent/70 text-[10px]">&#9656;</span>
+                    <div class="min-w-0 flex-1">
+                      <div class="text-xs truncate"><%= p.title %></div>
+                      <div class="text-[10px] text-muted truncate"><%= p.role || 'no role' %><% if (p.tags) { %> &middot; <%= p.tags %><% } %></div>
+                    </div>
+                    <a href="/dashboard/tracks/<%= p.id %>/edit" class="text-[11px] text-accent hover:underline flex-shrink-0">Edit</a>
+                    <form method="POST" action="/dashboard/tracks/<%= p.id %>/delete" onsubmit="return confirm('Delete this piece?')" class="flex-shrink-0">
+                      <button type="submit" class="text-[11px] text-red-400/80 hover:text-red-400 transition-colors">Delete</button>
+                    </form>
+                  </div>
+                <% }) %>
+              </div>
+            </details>
+          <% } %>
         </div>
-        <% (t.pieces || []).forEach(function(p) { %>
-          <div class="ml-8 bg-surface/60 border border-line rounded-lg p-2.5 flex items-center gap-3">
-            <span class="text-accent text-xs">&#9656;</span>
-            <div class="min-w-0 flex-1 text-xs text-muted truncate"><%= p.title %></div>
-            <a href="/dashboard/tracks/<%= p.id %>/edit" class="text-xs text-accent hover:underline flex-shrink-0">Edit</a>
-            <form method="POST" action="/dashboard/tracks/<%= p.id %>/delete" onsubmit="return confirm('Delete this piece?')" class="flex-shrink-0">
-              <button type="submit" class="text-xs text-red-400 hover:underline">Delete</button>
-            </form>
-          </div>
-        <% }) %>
       <% }) %>
     </div>
+
+    <% if (!tracks.length) { %>
+      <div class="text-sm text-muted">No projects yet &mdash; add one above, or run <code class="text-accent">npm run import:showreel</code>.</div>
+    <% } %>
   </section>
+
+  <script>
+    // Filtering stays client-side: 39 rows is nothing, and it keeps the list
+    // instant without a round trip per keystroke. Sorting is server-side because
+    // it has to survive the redirect after a featured-toggle.
+    (function () {
+      var q = document.getElementById('q');
+      var rows = Array.prototype.slice.call(document.querySelectorAll('.row'));
+      var chips = Array.prototype.slice.call(document.querySelectorAll('.filter-chip'));
+      var shown = document.getElementById('shown');
+      var filter = '';
+
+      function apply() {
+        var term = q.value.trim().toLowerCase();
+        var visible = 0;
+        rows.forEach(function (row) {
+          var hay = row.dataset.haystack;
+          var matchesTerm = !term || hay.indexOf(term) !== -1;
+          var matchesFilter =
+            !filter ||
+            (filter === '__nocover' ? row.dataset.nocover === '1'
+              : filter === '__noyear' ? row.dataset.noyear === '1'
+              : hay.indexOf(filter) !== -1);
+          var show = matchesTerm && matchesFilter;
+          row.style.display = show ? '' : 'none';
+          if (show) visible++;
+        });
+        shown.textContent = visible === rows.length ? '' : visible + ' of ' + rows.length;
+      }
+
+      q.addEventListener('input', apply);
+      chips.forEach(function (chip) {
+        chip.addEventListener('click', function () {
+          filter = chip.dataset.filter === filter ? '' : chip.dataset.filter;
+          chips.forEach(function (c) {
+            c.classList.toggle('active', c.dataset.filter === filter);
+          });
+          apply();
+        });
+      });
+
+      document.getElementById('sort').addEventListener('change', function () {
+        window.location.search = '?sort=' + this.value;
+      });
+    })();
+  </script>
 
 </div>
 </body>

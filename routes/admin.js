@@ -41,17 +41,37 @@ module.exports = function (app) {
   const gate = requireAuth(db);
 
   // ---------- Dashboard: this user's own projects ----------
+  const SORTS = {
+    recent: (a, b) => new Date(b.created_at) - new Date(a.created_at),
+    title: (a, b) => a.title.localeCompare(b.title),
+    year: (a, b) => (b.year || 0) - (a.year || 0) || a.title.localeCompare(b.title),
+    role: (a, b) => (a.role || '~').localeCompare(b.role || '~') || a.title.localeCompare(b.title)
+  };
+
   app.get('/dashboard', gate, async (req, res) => {
-    const allTracks = await db()('tracks').where({ profile_id: req.profile.id }).select('*').orderBy('created_at', 'desc');
+    const allTracks = await db()('tracks').where({ profile_id: req.profile.id }).select('*');
     allTracks.forEach(withThumb);
-    const tracks = allTracks.filter((t) => !t.parent_track_id);
+
+    const sort = SORTS[req.query.sort] ? req.query.sort : 'recent';
+    const tracks = allTracks.filter((t) => !t.parent_track_id).sort(SORTS[sort]);
     tracks.forEach((t) => {
       t.pieces = allTracks.filter((p) => p.parent_track_id === t.id);
+      // Everything the list filters/searches on, precomputed into one string so
+      // the client-side filter doesn't have to know the row's structure.
+      t.haystack = [t.title, t.role, t.tags, t.year, t.description].filter(Boolean).join(' ').toLowerCase();
     });
 
     res.render('dashboard', {
       profile: req.profile,
       tracks,
+      sort,
+      stats: {
+        projects: tracks.length,
+        pieces: allTracks.length - tracks.length,
+        noCover: allTracks.filter((t) => !t.cover_image_url && !t.thumb).length,
+        noYear: allTracks.filter((t) => !t.year).length,
+        featured: allTracks.filter((t) => t.featured).length
+      },
       roles: ROLES,
       tagOrder: TAG_ORDER,
       tagLabels: TAG_LABELS,
@@ -99,7 +119,9 @@ module.exports = function (app) {
       return res.redirect('/dashboard?error=' + encodeURIComponent('Title and either a link or a file are required.'));
     }
 
-    let coverUrl = null;
+    // An uploaded cover wins over a pasted one; either is optional, and with
+    // neither, the public page falls back to the YouTube thumbnail.
+    let coverUrl = (req.body.cover_image_url || '').trim() || null;
     const coverFile = req.files && req.files.cover_file && req.files.cover_file[0];
     if (coverFile) {
       try {
@@ -173,10 +195,24 @@ module.exports = function (app) {
     const coverFile = req.files && req.files.cover_file && req.files.cover_file[0];
     if (coverFile) {
       update.cover_image_url = await streamUploadAndCleanup(coverFile);
+    } else if (typeof req.body.cover_image_url === 'string') {
+      // Present but empty means "clear the cover", so this can't be a truthiness
+      // check — the imported covers are URLs and have to be removable from here.
+      update.cover_image_url = req.body.cover_image_url.trim() || null;
     }
 
     await db()('tracks').where({ id: track.id }).update(update);
     res.redirect('/dashboard');
+  });
+
+  // Toggled straight from the list — the one edit frequent enough to not be
+  // worth a round trip through the full edit form.
+  app.post('/dashboard/tracks/:id/featured', gate, async (req, res) => {
+    const track = await db()('tracks').where({ id: req.params.id, profile_id: req.profile.id }).first();
+    if (track) {
+      await db()('tracks').where({ id: track.id }).update({ featured: !track.featured });
+    }
+    res.redirect('/dashboard?sort=' + encodeURIComponent(req.body.sort || 'recent'));
   });
 
   app.post('/dashboard/tracks/:id/delete', gate, async (req, res) => {
