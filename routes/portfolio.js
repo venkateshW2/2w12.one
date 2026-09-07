@@ -18,6 +18,7 @@ module.exports = function (app) {
       technical: t.technical,
       context: t.context,
       externalUrl: t.external_url,
+      sortOrder: t.sort_order || 0,
       soloCredit: !!t.solo_credit,
       creditNote: t.credit_note,
       featured: !!t.featured,
@@ -55,7 +56,16 @@ module.exports = function (app) {
         if (item.kind === 'direct_audio') item.audioPieces = [item, ...item.audioPieces];
         return item;
       })
-      .sort((a, b) => (b.year || 0) - (a.year || 0) || a.title.localeCompare(b.title));
+      // Page order: explicitly pinned cards first, then featured work, then
+      // newest. Filtering only hides cards, so this ordering holds inside every
+      // category tab too, not just "All".
+      .sort(
+        (a, b) =>
+          (b.sortOrder || 0) - (a.sortOrder || 0) ||
+          (b.featured ? 1 : 0) - (a.featured ? 1 : 0) ||
+          (b.year || 0) - (a.year || 0) ||
+          a.title.localeCompare(b.title)
+      );
 
     // Tabs, in taxonomy order, with counts — only categories that have work.
     const counts = {};

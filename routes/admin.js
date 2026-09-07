@@ -42,6 +42,11 @@ module.exports = function (app) {
 
   // ---------- Dashboard: this user's own projects ----------
   const SORTS = {
+    page: (a, b) =>
+      (b.sort_order || 0) - (a.sort_order || 0) ||
+      (b.featured ? 1 : 0) - (a.featured ? 1 : 0) ||
+      (b.year || 0) - (a.year || 0) ||
+      a.title.localeCompare(b.title),
     recent: (a, b) => new Date(b.created_at) - new Date(a.created_at),
     title: (a, b) => a.title.localeCompare(b.title),
     year: (a, b) => (b.year || 0) - (a.year || 0) || a.title.localeCompare(b.title),
@@ -158,6 +163,7 @@ module.exports = function (app) {
       external_url: (req.body.external_url || '').trim() || null,
       solo_credit: soloCredit,
       credit_note: (req.body.credit_note || '').trim() || null,
+      sort_order: Number(req.body.sort_order) || 0,
       featured
     });
 
@@ -196,6 +202,7 @@ module.exports = function (app) {
       external_url: (req.body.external_url || '').trim() || null,
       solo_credit: req.body.solo_credit === 'on',
       credit_note: (req.body.credit_note || '').trim() || null,
+      sort_order: Number(req.body.sort_order) || 0,
       parent_track_id: parent_track_id ? Number(parent_track_id) : null
     };
 

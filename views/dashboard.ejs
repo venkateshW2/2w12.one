@@ -126,10 +126,14 @@
           <% tracks.forEach(function(t) { %><option value="<%= t.id %>"><%= t.title %></option><% }) %>
         </select>
       </div>
-      <div class="flex items-end">
+      <div class="flex items-end gap-4">
         <label class="flex items-center gap-1.5 text-xs text-muted mb-2">
           <input type="checkbox" name="featured"> Featured
         </label>
+        <div>
+          <label class="block text-xs text-muted mb-1">Pin (higher = further up)</label>
+          <input type="number" name="sort_order" value="0" class="w-24 bg-bg border border-line rounded px-3 py-2 text-sm focus:outline-none focus:border-accent">
+        </div>
       </div>
 
       <div>
@@ -176,6 +180,7 @@
       <input id="q" type="search" placeholder="Search title, role, tag, year&hellip;" autocomplete="off"
              class="flex-1 min-w-[200px] bg-surface border border-line rounded px-3 py-2 text-sm focus:outline-none focus:border-accent">
       <select id="sort" class="bg-surface border border-line rounded px-2 py-2 text-xs text-muted focus:outline-none focus:border-accent">
+        <option value="page" <%= sort === 'page' ? 'selected' : '' %>>Page order (as on site)</option>
         <option value="recent" <%= sort === 'recent' ? 'selected' : '' %>>Newest first</option>
         <option value="title" <%= sort === 'title' ? 'selected' : '' %>>Title A&ndash;Z</option>
         <option value="year" <%= sort === 'year' ? 'selected' : '' %>>Year</option>
@@ -221,6 +226,7 @@
                 <% if (t.tags) { %> &middot; <%= t.tags %><% } %>
                 <% if (t.year) { %> &middot; <%= t.year %><% } %>
                 <% if (t.pieces.length) { %> &middot; <span class="text-accent/80"><%= t.pieces.length %> pieces</span><% } %>
+                <% if (t.sort_order) { %> &middot; <span class="text-accent">pinned <%= t.sort_order %></span><% } %>
                 <% if (t.type === 'upload') { %> &middot; uploaded file<% } %>
               </div>
             </div>
