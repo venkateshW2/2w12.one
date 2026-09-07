@@ -61,7 +61,10 @@ const POSTERS = {
   CTRL: 'CTRL.png',
   'Jindal Steel': 'Jindal.png',
   'Xtreme 160R 4V 2024': 'HeroExtreme.png',
-  'Sierra.ev Vs Tal Moreeb': 'TaTa.png',
+  // TaTa.png is the "Untamed Kaziranga Edition" poster — it belongs to that
+  // campaign, not to Sierra.ev, which is a separate Tata TVC with no poster
+  // (it falls back to its YouTube thumbnail).
+  '#Untamed Kaziranga Range Edition': 'TaTa.png',
   'Hyundai CRETA N Line | Live Unleashed': 'HyndaiCretaNline.png',
   'Mind Quantize': 'Mind.png'
 };
