@@ -179,13 +179,10 @@
             <% if (item.isAlbum) { %>
               <div class="absolute top-2 right-2 text-[9px] font-mono text-ink bg-black/60 px-1.5 py-0.5 rounded-sm"><%= item.pieces.length %> pieces</div>
             <% } %>
-            <% if (item.src) { %>
-              <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                <div class="w-11 h-11 rounded-full bg-black/55 border border-white/40 flex items-center justify-center backdrop-blur-sm">
-                  <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 ml-0.5"><polygon points="5,3 21,12 5,21" fill="#fff"/></svg>
-                </div>
-              </div>
-            <% } %>
+            <%# No play overlay. It used to appear on any card with a URL, but 10
+                of 34 point at IMDb, GitHub or a gallery write-up and can't play
+                — the button promised something it couldn't do. Playback is
+                offered inside the expanded card, and only where it works. %>
           </div>
 
           <div class="card-body p-4">
@@ -227,10 +224,14 @@
                 <% } %>
 
                 <div class="flex items-center flex-wrap gap-2 pt-3">
-                  <% if (item.src) { %>
+                  <% if (item.embeddable) { %>
                     <button type="button" class="card-play text-[10px] font-mono uppercase tracking-wider border border-accent/60 text-accent rounded px-2.5 py-1 hover:bg-accent hover:text-bg transition-colors">
                       <%= item.isAlbum ? 'Play tracks' : 'Play' %>
                     </button>
+                  <% } else if (item.src) { %>
+                    <a href="<%= item.src %>" target="_blank" rel="noopener" class="text-[10px] font-mono uppercase tracking-wider border border-line text-muted rounded px-2.5 py-1 hover:text-ink hover:border-muted transition-colors">
+                      Open &nearr;
+                    </a>
                   <% } %>
                   <% if (item.audioPieces && item.audioPieces.length) { %>
                     <button type="button" class="card-queue text-[10px] font-mono uppercase tracking-wider border border-line text-muted rounded px-2.5 py-1 hover:text-accent hover:border-accent/60 transition-colors"

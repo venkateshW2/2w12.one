@@ -6,9 +6,15 @@ const { TAG_ORDER, TAG_LABELS } = require('../lib/taxonomy');
 module.exports = function (app) {
   const db = () => app.locals.db;
 
+  // The lightbox can only play these. Everything else — an IMDb page, a GitHub
+  // repo, a gallery write-up — opens in a new tab, so it must not be offered as
+  // playback.
+  const EMBEDDABLE = ['youtube', 'vimeo', 'direct_video', 'direct_audio', 'soundcloud'];
+
   function enrich(t) {
     const kind = classify(t.source_url);
     return {
+      embeddable: !!t.source_url && EMBEDDABLE.includes(kind),
       id: t.id,
       title: t.title,
       description: t.description || '',

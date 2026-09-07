@@ -328,14 +328,9 @@
       });
     });
 
-    const poster = card.querySelector('.card-img');
-    if (poster) {
-      poster.addEventListener('click', (e) => {
-        const item = items[card.getAttribute('data-id')];
-        if (!item || !item.src) return;
-        e.stopPropagation();
-        openLightbox(card.getAttribute('data-id'));
-      });
-    }
+    // The poster deliberately has no click handler: it falls through to the
+    // card's own toggle, so clicking anywhere neutral expands. Playback is an
+    // explicit button inside the expanded card, and only exists where the
+    // source can actually be embedded.
   });
 })();
