@@ -138,8 +138,14 @@ module.exports = function (app) {
 
     let shareImage = null;
     const cardRel = profile.slug ? `/images/og/${profile.slug}.jpg` : null;
-    if (cardRel && fs.existsSync(path.join(__dirname, '..', 'public', cardRel))) {
-      shareImage = origin + cardRel;
+    const cardAbs = cardRel && path.join(__dirname, '..', 'public', cardRel);
+    if (cardAbs && fs.existsSync(cardAbs)) {
+      // Version the image URL by the file's mtime. Scrapers cache aggressively,
+      // and several key their image cache on the URL — without this, a
+      // regenerated card can keep serving the previous picture even after the
+      // page itself is re-scraped.
+      const v = Math.floor(fs.statSync(cardAbs).mtimeMs / 1000);
+      shareImage = `${origin}${cardRel}?v=${v}`;
     } else if (profile.avatar_url) {
       // Fallback for a profile with no generated card yet. Still better than
       // nothing, even if a big portrait may be skipped.

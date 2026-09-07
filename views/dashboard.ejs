@@ -51,6 +51,22 @@
          class="text-[10.5px] font-mono uppercase tracking-wider border border-line text-muted rounded px-3.5 py-2.5 hover:text-ink hover:border-muted transition-colors flex-shrink-0">Preview</a>
     </div>
 
+    <details class="border-t border-line pt-3 mb-3">
+      <summary class="text-[11.5px] text-muted cursor-pointer hover:text-accent transition-colors">Preview showing an old image?</summary>
+      <div class="text-[11.5px] text-muted leading-relaxed mt-2.5 space-y-2">
+        <p>
+          WhatsApp, Slack and iMessage cache a link's preview against its exact URL and don't re-check.
+          Once they've seen your link, they keep showing whatever it looked like then.
+        </p>
+        <p>
+          To force a refresh, run the link through
+          <a href="https://developers.facebook.com/tools/debug/" target="_blank" rel="noopener" class="text-accent hover:underline">Facebook's Sharing Debugger</a>
+          and press <span class="text-ink">Scrape Again</span> &mdash; WhatsApp uses the same crawler cache.
+          Or just share <code class="text-accent">?v=2</code> on the end, which counts as a new link.
+        </p>
+      </div>
+    </details>
+
     <details class="border-t border-line pt-3">
       <summary class="text-[11.5px] text-muted cursor-pointer hover:text-accent transition-colors">Change the handle</summary>
       <form method="POST" action="/dashboard/handle" class="flex items-center gap-2 mt-3">
