@@ -1,12 +1,13 @@
-// Wave background — a propagating wave, low on the page, glitching.
+// Wave background — a small propagating wave packet in the bottom-left corner.
 //
 // Actual wave physics rather than a decorative squiggle:
 //   y(x,t) = SUM A_n e^(-a x) sin(k_n x - w_n t)
 // a harmonic series (k_n = n k1, A_n = A/n) sharing one phase velocity so the
 // packet propagates intact, plus a small k^3 dispersion term so the harmonics
 // creep out of step and the crest reforms instead of looping, and e^(-a x)
-// spatial attenuation. The slope is taken analytically so the stroke keeps a
-// constant width where the wave is steep.
+// spatial attenuation, and a smoothstep envelope confining the packet to one
+// corner (windowed, not cropped — it has ends). The slope is taken analytically
+// so the stroke keeps a constant width where the wave is steep.
 //
 // Faults land on discrete ticks and act ON the wave — phase steps, wavenumber
 // jumps, level jumps, hard clipping, decimation, dropouts. Nothing is painted
@@ -62,9 +63,16 @@
     vec3 col = vec3(0.0470);          // the page background, #0c0c0c
     vec3 accent = vec3(0.788, 0.541, 0.247); // #c98a3f
 
-    float baseline = -0.30;           // sits low, out of the type's way
-    float X = p.x * 6.0;              // world x — a few wavelengths across
+    // Confined to the bottom-left corner. A wave packet rather than a wave
+    // filling the screen: localised in space, which is also the physically
+    // honest way to make it small — window the amplitude, don't just crop it.
+    float baseline = -0.40;           // near the bottom edge
+    float X = p.x * 14.0;             // tighter wavelengths at this size
     float t = uTime;
+
+    // Envelope: fades in from the left edge and out again, so the packet has
+    // ends instead of being cut off by the viewport.
+    float win = smoothstep(0.010, 0.055, uv.x) * (1.0 - smoothstep(0.20, 0.30, uv.x));
 
     // ---- glitch clock -------------------------------------------------------
     // Faults land on discrete ticks. Continuous wobble reads as animation;
@@ -103,16 +111,16 @@
       float fn = float(n);
       float kn = k1 * fn;
       float wn = c * kn + 0.004 * kn * kn * kn;
-      float An = 0.040 / fn;
+      float An = 0.016 / fn;
       float ph = kn * Xs - wn * t + tear;
       y += An * sin(ph);
       dydX += An * kn * cos(ph);   // analytic slope, for constant line width
     }
-    y *= damp * mute * gain;
-    dydX *= damp * mute * gain;
+    y *= damp * mute * gain * win;
+    dydX *= damp * mute * gain * win;
 
     // Hard clipping — a fault flattens the crests, the way a signal clips.
-    float ceilY = mix(1.0, 0.055, fault);
+    float ceilY = mix(1.0, 0.022, fault);
     y = clamp(y, -ceilY, ceilY);
     // Slope goes to zero wherever the wave is sitting on the rail.
     dydX *= 1.0 - step(ceilY, abs(y));
@@ -124,14 +132,15 @@
     float slope = dydX * 6.0;
     float dist = abs(p.y - (baseline + y)) / sqrt(1.0 + slope * slope);
 
-    float core = smoothstep(0.0028, 0.0, dist);
-    float glow = smoothstep(0.052, 0.0, dist) * 0.15;
-    float trace = core * 0.55 + glow;
+    float core = smoothstep(0.0022, 0.0, dist);
+    float glow = smoothstep(0.030, 0.0, dist) * 0.14;
+    float trace = (core * 0.55 + glow) * win;
 
     col += trace * accent;
 
-    // Faint zero axis, so it reads as a wave about an equilibrium.
-    col += smoothstep(0.0016, 0.0, abs(p.y - baseline)) * accent * 0.10;
+    // Zero axis, windowed to the same corner — a short rule the packet sits on,
+    // which is what makes it read as a readout rather than a stray squiggle.
+    col += smoothstep(0.0014, 0.0, abs(p.y - baseline)) * win * accent * 0.14;
 
     // Vignette, folded in rather than run as a pass.
     col *= smoothstep(1.30, 0.22, length(p * vec2(0.72, 1.0)));
