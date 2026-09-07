@@ -215,7 +215,9 @@
                 <% if (t.solo_credit) { %><span class="text-[8.5px] uppercase tracking-wider text-accent border border-accent/60 rounded px-1 py-px flex-shrink-0" title="<%= t.credit_note || 'Solo — all departments' %>">Solo</span><% } %>
               </div>
               <div class="text-[11px] text-muted truncate mt-0.5">
-                <% if (t.role) { %><span class="text-ink/70"><%= t.role %></span><% } else { %><span class="text-amber-400/70">no role</span><% } %>
+                <% if (t.badge) { %>
+                  <span class="text-accent/85"><%= t.badge %></span><% if (t.badge !== t.role) { %><span class="text-muted/50"> (<%= t.role %>)</span><% } %>
+                <% } else { %><span class="text-amber-400/70">no role</span><% } %>
                 <% if (t.tags) { %> &middot; <%= t.tags %><% } %>
                 <% if (t.year) { %> &middot; <%= t.year %><% } %>
                 <% if (t.pieces.length) { %> &middot; <span class="text-accent/80"><%= t.pieces.length %> pieces</span><% } %>

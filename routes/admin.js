@@ -4,7 +4,7 @@ const os = require('os');
 const { requireAuth } = require('../lib/auth');
 const { classify, youtubeThumbnail } = require('../lib/sourceType');
 const { uploadToB2, configured: b2Configured } = require('../lib/storage');
-const { TAG_ORDER, TAG_LABELS, ROLES } = require('../lib/taxonomy');
+const { TAG_ORDER, TAG_LABELS, ROLES, ROLE_SHORT } = require('../lib/taxonomy');
 
 const upload = multer({ dest: os.tmpdir(), limits: { fileSize: 500 * 1024 * 1024 } });
 
@@ -58,7 +58,8 @@ module.exports = function (app) {
       t.pieces = allTracks.filter((p) => p.parent_track_id === t.id);
       // Everything the list filters/searches on, precomputed into one string so
       // the client-side filter doesn't have to know the row's structure.
-      t.haystack = [t.title, t.role, t.tags, t.year, t.description].filter(Boolean).join(' ').toLowerCase();
+      t.badge = ROLE_SHORT[t.role] || t.role || '';
+      t.haystack = [t.title, t.role, t.badge, t.tags, t.year, t.description].filter(Boolean).join(' ').toLowerCase();
     });
 
     res.render('dashboard', {
@@ -74,6 +75,7 @@ module.exports = function (app) {
         solo: allTracks.filter((t) => t.solo_credit).length
       },
       roles: ROLES,
+      roleShort: ROLE_SHORT,
       tagOrder: TAG_ORDER,
       tagLabels: TAG_LABELS,
       b2Ready: b2Configured(),
@@ -170,7 +172,7 @@ module.exports = function (app) {
       .whereNull('parent_track_id')
       .whereNot({ id: track.id })
       .select('id', 'title');
-    res.render('track-edit', { track, roles: ROLES, tagOrder: TAG_ORDER, tagLabels: TAG_LABELS, parentCandidates });
+    res.render('track-edit', { track, roles: ROLES, roleShort: ROLE_SHORT, tagOrder: TAG_ORDER, tagLabels: TAG_LABELS, parentCandidates });
   });
 
   app.post('/dashboard/tracks/:id/edit', gate, upload.fields([{ name: 'media_file', maxCount: 1 }, { name: 'cover_file', maxCount: 1 }]), async (req, res) => {
