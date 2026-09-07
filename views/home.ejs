@@ -20,47 +20,40 @@
       All Things Sound
     </div>
 
-    <%# A terminal, typed out by /js/home.js. The text sits in the DOM so it
-        survives no-JS and reduced-motion; the script empties and retypes it. %>
-    <div class="mx-auto max-w-[640px] mt-12 text-left">
-      <div class="term-window rounded-md overflow-hidden border border-line bg-[#0a0a0a]">
+    <%# Not a fake window — just typed lines sitting on the page. The window
+        chrome read as a gimmick. Typed by /js/home.js; the text is in the DOM
+        so no-JS and reduced-motion get it immediately. %>
+    <div class="mx-auto max-w-[620px] mt-14 text-left">
 
-        <div class="term-bar flex items-center gap-2 px-3 py-2 border-b border-line bg-surface/70">
-          <span class="w-2 h-2 rounded-full bg-[#3a3a3a]"></span>
-          <span class="w-2 h-2 rounded-full bg-[#3a3a3a]"></span>
-          <span class="w-2 h-2 rounded-full bg-[#3a3a3a]"></span>
-          <span class="ml-1.5 font-mono text-[10px] uppercase tracking-[0.14em] text-muted/70">2w12 — status</span>
-          <span class="ml-auto flex items-center gap-1.5">
-            <span class="term-led w-1.5 h-1.5 rounded-full bg-accent"></span>
-            <span class="font-mono text-[9px] uppercase tracking-[0.14em] text-muted/50">live</span>
-          </span>
+      <div class="flex items-center gap-1.5 mb-4">
+        <span class="term-led w-1.5 h-1.5 rounded-full bg-accent"></span>
+        <span class="font-mono text-[9.5px] uppercase tracking-[0.2em] text-muted/60">live</span>
+      </div>
+
+      <div id="term" class="font-mono leading-[1.8]" style="font-size:clamp(.78rem,1.2vw,.92rem)">
+        <div class="term-line flex gap-2.5 mb-2">
+          <span class="text-accent flex-shrink-0">$</span>
+          <span class="min-w-0"><span class="term-body text-ink/90">cat status</span></span>
         </div>
 
-        <div id="term" class="px-4 py-3.5 font-mono leading-[1.75]" style="font-size:clamp(.78rem,1.2vw,.9rem)">
-          <div class="term-line flex gap-2 mb-2">
-            <span class="text-accent flex-shrink-0">$</span>
-            <span class="min-w-0"><span class="term-body text-ink/90">cat status</span></span>
+        <% statusLines.forEach(function (l) { %>
+          <div class="term-line flex gap-2.5 mb-1">
+            <span class="text-muted/40 flex-shrink-0">&gt;</span>
+            <span class="min-w-0">
+              <span class="term-label text-accent"><%= l.label %>:</span>
+              <span class="term-body text-ink/70"><%= l.body %></span><% if (l.note) { %>
+              <span class="term-note text-muted/50"><%= l.note %></span><% } %>
+            </span>
           </div>
+        <% }) %>
 
-          <% statusLines.forEach(function (l) { %>
-            <div class="term-line flex gap-2 mb-1">
-              <span class="text-muted/50 flex-shrink-0">&gt;</span>
-              <span class="min-w-0">
-                <span class="term-label text-accent"><%= l.label %>:</span>
-                <span class="term-body text-ink/70"><%= l.body %></span><% if (l.note) { %>
-                <span class="term-note text-muted/50"><%= l.note %></span><% } %>
-              </span>
-            </div>
-          <% }) %>
+        <% if (!statusLines.length) { %>
+          <div class="text-muted/60">status: empty</div>
+        <% } %>
 
-          <% if (!statusLines.length) { %>
-            <div class="text-muted/60">status: empty</div>
-          <% } %>
-
-          <div class="term-line flex gap-2 mt-2.5">
-            <span class="term-prompt text-accent flex-shrink-0">$</span>
-            <span id="term-idle" class="min-w-0"></span>
-          </div>
+        <div class="term-line flex gap-2.5 mt-3">
+          <span class="term-prompt text-accent flex-shrink-0">$</span>
+          <span id="term-idle" class="min-w-0"></span>
         </div>
       </div>
     </div>

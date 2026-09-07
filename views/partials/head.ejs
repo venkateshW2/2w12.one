@@ -195,21 +195,6 @@
     #shader-bg.ready { opacity: 1; }
     #shader-bg canvas { display: block; width: 100%; height: 100%; }
 
-    /* CLI panel — faint scanlines and an inner glow so it reads as a screen
-       rather than a bordered div. */
-    .term-window { position: relative; box-shadow: inset 0 0 60px rgba(0,0,0,.55), 0 10px 40px rgba(0,0,0,.45); }
-    .term-window::after {
-      content: ''; position: absolute; inset: 0; pointer-events: none;
-      background: repeating-linear-gradient(
-        to bottom,
-        rgba(255,255,255,.014) 0px,
-        rgba(255,255,255,.014) 1px,
-        transparent 1px,
-        transparent 3px
-      );
-    }
-    .term-bar { user-select: none; }
-
     /* Terminal typing. The block cursor and the prompt keep blinking once the
        lines have finished, so the panel reads as waiting for input rather than
        as a finished screenshot. */
