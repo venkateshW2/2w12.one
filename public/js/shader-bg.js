@@ -70,7 +70,10 @@
     // any viewport width instead of drifting as a uv fraction would.
     float pad = 56.0;                                       // container padding
     float left = max(0.0, (uRes.x - 1500.0) * 0.5) + pad;   // wordmark's left edge
-    float topY = uRes.y - 82.0;                             // just below the 56px header
+    // 82px was too close: the crests reach up roughly 35px from the axis, which
+    // put them back inside the 56px header. Clearing the header means the
+    // baseline has to sit below header height + peak amplitude.
+    float topY = uRes.y - 132.0;
 
     // baseline in the same centred space as p
     float baseline = (topY - 0.5 * uRes.y) / uRes.y;
@@ -81,7 +84,7 @@
     // edge and out again about its width later, so it has ends rather than
     // being cut off by anything.
     float px = gl_FragCoord.x;
-    float win = smoothstep(left, left + 34.0, px) * (1.0 - smoothstep(left + 240.0, left + 330.0, px));
+    float win = smoothstep(left, left + 28.0, px) * (1.0 - smoothstep(left + 190.0, left + 268.0, px));
 
     // ---- travelling wave ----------------------------------------------------
     // y(x,t) = SUM A_n e^(-a x) sin(k_n x - w_n t)
@@ -103,7 +106,7 @@
       float fn = float(n);
       float kn = k1 * fn;
       float wn = c * kn + 0.004 * kn * kn * kn;
-      float An = 0.016 / fn;
+      float An = 0.0095 / fn;
       float ph = kn * X - wn * t;
       y += An * sin(ph);
       dydX += An * kn * cos(ph);   // analytic slope, for constant line width
@@ -123,9 +126,9 @@
     float dist = abs(p.y - (baseline + y)) / sqrt(1.0 + slope * slope);
 
     // No glow — a bare stroke. The halo was reading as a smudge at this size.
-    float trace = smoothstep(0.0026, 0.0, dist) * win;
+    float trace = smoothstep(0.0022, 0.0, dist) * win;
 
-    col += trace * accent * 0.62;
+    col += trace * accent * 0.58;
 
     // Zero axis, windowed to the same span — a short rule the packet sits on,
     // which is what makes it read as a readout rather than a stray squiggle.
