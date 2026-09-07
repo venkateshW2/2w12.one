@@ -1,0 +1,68 @@
+<%- include('partials/head', { pageTitle: 'Gallery — ' + profile.name, loggedIn: loggedIn }) %>
+
+<div class="max-w-7xl mx-auto px-5 py-7">
+
+  <div class="flex items-baseline justify-between gap-4 flex-wrap mb-6">
+    <div>
+      <h1 class="text-lg font-semibold tracking-tight">Gallery</h1>
+      <div class="text-[11px] text-muted mt-1 font-mono uppercase tracking-[0.1em]">
+        Tests &middot; experiments &middot; work in progress
+        <% if (items.length) { %>&middot; <%= items.length %> item<%= items.length === 1 ? '' : 's' %><% } %>
+      </div>
+    </div>
+    <a href="/portfolio" class="text-[10.5px] font-mono uppercase tracking-wider border border-line text-muted rounded px-3 py-1.5 hover:text-accent hover:border-accent/60 transition-colors">
+      &larr; Back to portfolio
+    </a>
+  </div>
+
+  <% if (!items.length) { %>
+    <div class="border border-line border-dashed rounded-lg p-10 text-center">
+      <div class="text-sm text-muted">Nothing here yet.</div>
+      <p class="text-[12px] text-muted/70 mt-2 max-w-md mx-auto leading-relaxed">
+        Anything added under <span class="text-accent">Gallery</span> in the dashboard lands here &mdash; loose images and
+        video from tests and experiments, with no project metadata to fill in.
+      </p>
+      <% if (loggedIn) { %>
+        <a href="/dashboard#gallery" class="inline-block mt-4 text-[10.5px] font-mono uppercase tracking-wider border border-accent/60 text-accent rounded px-3 py-1.5 hover:bg-accent hover:text-bg transition-colors">Add something</a>
+      <% } %>
+    </div>
+  <% } else { %>
+    <%# Masonry via CSS columns — mixed aspect ratios tile without cropping,
+        which is the point for screenshots and phone video. %>
+    <div class="gallery-masonry">
+      <% items.forEach(function(it) { %>
+        <figure class="gal-item group relative mb-3 break-inside-avoid rounded-md overflow-hidden bg-surface border border-line" data-id="<%= it.id %>">
+          <% if (it.kind === 'video') { %>
+            <video src="<%= it.url %>" class="w-full block" preload="metadata" muted playsinline loop></video>
+            <div class="absolute top-2 right-2 text-[8.5px] font-mono uppercase tracking-wider text-ink bg-black/60 px-1.5 py-0.5 rounded-sm">video</div>
+          <% } else { %>
+            <img src="<%= it.url %>" loading="lazy" alt="<%= it.caption || '' %>" class="w-full block">
+          <% } %>
+
+          <% if (it.caption) { %>
+            <figcaption class="absolute inset-x-0 bottom-0 px-2.5 py-2 text-[11px] text-ink opacity-0 group-hover:opacity-100 transition-opacity"
+                        style="background:linear-gradient(to top,rgba(0,0,0,.82),transparent)">
+              <%= it.caption %>
+            </figcaption>
+          <% } %>
+        </figure>
+      <% }) %>
+    </div>
+  <% } %>
+</div>
+
+<!-- Fullscreen viewer -->
+<div id="gal-view" class="fixed inset-0 bg-black/94 z-50 hidden items-center justify-center p-6">
+  <button id="gal-close" type="button" class="absolute top-5 right-6 text-2xl text-ink hover:text-accent transition-colors">&#10005;</button>
+  <button id="gal-prev" type="button" class="absolute left-4 text-3xl text-muted hover:text-accent transition-colors">&lsaquo;</button>
+  <button id="gal-next" type="button" class="absolute right-4 text-3xl text-muted hover:text-accent transition-colors">&rsaquo;</button>
+  <div id="gal-stage" class="max-w-[92vw] max-h-[88vh] flex items-center justify-center"></div>
+  <div id="gal-caption" class="absolute bottom-5 left-0 right-0 text-center text-[11.5px] text-muted px-6"></div>
+</div>
+
+<script>
+  window.GALLERY = <%- JSON.stringify(items) %>;
+</script>
+<script src="/js/gallery.js"></script>
+</body>
+</html>

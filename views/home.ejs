@@ -1,0 +1,111 @@
+<%- include('partials/head', { pageTitle: '2w12.one — Sound Things', loggedIn: loggedIn }) %>
+
+<div class="max-w-7xl mx-auto px-5 py-8 flex flex-col md:flex-row gap-8">
+
+  <!-- Left rail: team, tools, labs -->
+  <aside class="md:w-[190px] flex-shrink-0">
+    <div class="md:sticky md:top-[52px] space-y-7">
+
+      <div>
+        <div class="text-[9.5px] font-mono uppercase tracking-[0.16em] text-muted/70 mb-2.5">Team</div>
+        <div class="space-y-1">
+          <% team.forEach(function(m) { %>
+            <a href="<%= m.url %>" class="group flex items-center gap-2.5 py-1 -mx-1 px-1 rounded hover:bg-surface transition-colors">
+              <% if (m.avatar_url) { %>
+                <img src="<%= m.avatar_url %>" alt="" class="w-7 h-7 rounded-full object-cover object-top border border-line flex-shrink-0">
+              <% } else { %>
+                <span class="w-7 h-7 rounded-full border border-line bg-surface flex items-center justify-center text-[9px] font-medium text-accent flex-shrink-0"><%= m.initials %></span>
+              <% } %>
+              <span class="min-w-0">
+                <span class="block text-[11.5px] leading-tight truncate group-hover:text-accent transition-colors"><%= m.name %></span>
+                <% if (m.tagline) { %><span class="block text-[9.5px] text-muted truncate"><%= m.tagline %></span><% } %>
+              </span>
+            </a>
+          <% }) %>
+          <% if (team.length < 2) { %>
+            <div class="text-[9.5px] text-muted/50 leading-relaxed pt-1">More of the team lands here as accounts are added.</div>
+          <% } %>
+        </div>
+      </div>
+
+      <div>
+        <div class="text-[9.5px] font-mono uppercase tracking-[0.16em] text-muted/70 mb-2.5">Tools</div>
+        <div class="space-y-0.5">
+          <a href="/tools/visualizer/" class="rail-link">Visualizer</a>
+          <a href="/tools/keyfinder/" class="rail-link">Key Finder</a>
+          <a href="/tools/youtube/" class="rail-link">YouTube</a>
+        </div>
+      </div>
+
+      <div>
+        <div class="text-[9.5px] font-mono uppercase tracking-[0.16em] text-muted/70 mb-2.5">Labs</div>
+        <div class="space-y-0.5">
+          <a href="https://github.com/venkateshW2/sonifyv.1" target="_blank" rel="noopener" class="rail-link">SonifyV1 &nearr;</a>
+          <a href="https://github.com/venkateshW2/2w12-backend" target="_blank" rel="noopener" class="rail-link">Audio Analysis &nearr;</a>
+          <a href="/portfolio?cat=SOFTWARE" class="rail-link">All software</a>
+        </div>
+      </div>
+
+      <div>
+        <div class="text-[9.5px] font-mono uppercase tracking-[0.16em] text-muted/70 mb-2.5">Work</div>
+        <div class="space-y-0.5">
+          <a href="/portfolio" class="rail-link">Portfolio</a>
+          <a href="/gallery" class="rail-link">Gallery</a>
+        </div>
+      </div>
+
+    </div>
+  </aside>
+
+  <!-- Hero -->
+  <main class="min-w-0 flex-1">
+    <h1 class="glitch text-[clamp(2.4rem,7vw,4.75rem)] font-bold leading-[0.95] tracking-tight" data-text="SOUND THINGS">SOUND THINGS</h1>
+
+    <div class="text-[11px] font-mono uppercase tracking-[0.14em] text-accent mt-4">
+      Audio Services &middot; Tool Development &middot; Sound Research
+    </div>
+
+    <p class="text-[13.5px] leading-[1.7] text-ink/70 mt-6 max-w-xl">
+      An audio-first studio &mdash; sound design, mixing and music production for film and series, alongside the tools
+      and research that come out of doing the work.
+    </p>
+
+    <div class="mt-9 space-y-2.5 max-w-xl font-mono text-[11.5px] leading-relaxed">
+      <div class="flex gap-2.5">
+        <span class="text-accent flex-shrink-0">&gt;</span>
+        <span class="text-muted"><span class="text-ink/80">Current:</span> Film mixing, AI music workflows, spatial audio, workshops</span>
+      </div>
+      <div class="flex gap-2.5">
+        <span class="text-accent flex-shrink-0">&gt;</span>
+        <span class="text-muted"><span class="text-ink/80">Released:</span> SonifyV1 &mdash; CV to MIDI/OSC (80 object classes, 60fps)</span>
+      </div>
+      <div class="flex gap-2.5">
+        <span class="text-accent flex-shrink-0">&gt;</span>
+        <span class="text-muted"><span class="text-ink/80">Labs:</span> Audio classification &amp; analysis tools <span class="text-muted/60">[experimental]</span></span>
+      </div>
+    </div>
+
+    <div class="mt-10 grid grid-cols-2 sm:grid-cols-4 gap-px bg-line border border-line rounded overflow-hidden max-w-xl">
+      <% stats.forEach(function(s) { %>
+        <div class="bg-surface px-3.5 py-3">
+          <div class="text-[17px] font-semibold text-accent leading-none"><%= s.value %></div>
+          <div class="text-[9px] font-mono uppercase tracking-[0.12em] text-muted mt-1.5"><%= s.label %></div>
+        </div>
+      <% }) %>
+    </div>
+
+    <div class="mt-8 flex flex-wrap items-center gap-3">
+      <a href="/portfolio" class="text-[10.5px] font-mono uppercase tracking-wider bg-accent text-bg rounded px-3.5 py-2 hover:brightness-110 transition">View the work</a>
+      <a href="/gallery" class="text-[10.5px] font-mono uppercase tracking-wider border border-line text-muted rounded px-3.5 py-2 hover:text-ink hover:border-muted transition-colors">Gallery</a>
+      <% if (!loggedIn) { %>
+        <a href="/login" class="text-[10.5px] font-mono uppercase tracking-wider border border-line text-muted rounded px-3.5 py-2 hover:text-accent hover:border-accent/60 transition-colors">Login</a>
+      <% } else { %>
+        <a href="/dashboard" class="text-[10.5px] font-mono uppercase tracking-wider border border-accent/60 text-accent rounded px-3.5 py-2 hover:bg-accent hover:text-bg transition-colors">Dashboard</a>
+      <% } %>
+    </div>
+
+    <div class="mt-12 text-[9.5px] font-mono uppercase tracking-[0.16em] text-muted/60">Mumbai, India &middot; est. 2004</div>
+  </main>
+</div>
+</body>
+</html>

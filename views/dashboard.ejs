@@ -175,6 +175,139 @@
     </div>
   </details>
 
+  <!-- Audio & samples: what feeds the sidebar stream player -->
+  <details id="audio" class="bg-surface border border-line rounded-lg" <%= audioTracks.length ? '' : 'open' %>>
+    <summary class="text-sm font-semibold px-6 py-4 cursor-pointer hover:text-accent transition-colors">
+      Audio &amp; samples
+      <span class="text-[11px] font-normal text-muted ml-1">
+        &mdash; <%= audioTracks.length %> streamable
+      </span>
+    </summary>
+    <div class="px-6 pb-6">
+
+      <div class="text-[11.5px] leading-relaxed text-muted border border-line rounded p-3 mb-4">
+        These are the songs and samples that show up in the <span class="text-accent">player on the portfolio sidebar</span>.
+        Nest one under a project and its card gets a &ldquo;Send to player&rdquo; button.
+        <div class="mt-2">
+          The player uses an <code class="text-accent">&lt;audio&gt;</code> element, so it needs a <strong>direct audio file</strong>
+          &mdash; a URL ending <code>.mp3 .wav .ogg .m4a .flac</code>. A YouTube or Spotify link can&rsquo;t stream here
+          (those still work as a project&rsquo;s main link and open in the lightbox).
+        </div>
+        <% if (!b2Ready) { %>
+          <div class="mt-2 text-amber-300/90">
+            Uploading needs B2, which isn&rsquo;t reachable yet &mdash; but a <strong>public URL works right now</strong>.
+            Your CNTRL and Schirkoa files are in a private bucket, so they&rsquo;ll 401 until that bucket is public.
+          </div>
+        <% } %>
+      </div>
+
+      <form method="POST" action="/dashboard/audio" enctype="multipart/form-data" class="grid md:grid-cols-2 gap-4">
+        <div class="md:col-span-2">
+          <label class="block text-xs text-muted mb-1">Track name</label>
+          <input type="text" name="title" required placeholder="e.g. Kaala Rey (stem mix)" class="w-full bg-bg border border-line rounded px-3 py-2 text-sm focus:outline-none focus:border-accent">
+        </div>
+        <div>
+          <label class="block text-xs text-muted mb-1">Direct audio URL</label>
+          <input type="text" name="source_url" placeholder="https://.../track.wav" class="w-full bg-bg border border-line rounded px-3 py-2 text-sm focus:outline-none focus:border-accent">
+        </div>
+        <div>
+          <label class="block text-xs text-muted mb-1">&hellip;or upload a file<%= b2Ready ? '' : ' (needs B2)' %></label>
+          <input type="file" name="audio_file" accept="audio/*" class="text-xs">
+        </div>
+        <div>
+          <label class="block text-xs text-muted mb-1">Belongs to project</label>
+          <select name="parent_track_id" class="w-full bg-bg border border-line rounded px-3 py-2 text-sm focus:outline-none focus:border-accent">
+            <option value="">— standalone —</option>
+            <% tracks.forEach(function(t) { %><option value="<%= t.id %>"><%= t.title %></option><% }) %>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs text-muted mb-1">Badge (optional)</label>
+          <input type="text" name="role" list="badge-options" autocomplete="off" class="w-full bg-bg border border-line rounded px-3 py-2 text-sm focus:outline-none focus:border-accent">
+        </div>
+        <div class="md:col-span-2">
+          <button type="submit" class="bg-accent text-bg text-sm font-medium rounded px-4 py-2 hover:brightness-110 transition">Add audio track</button>
+        </div>
+      </form>
+
+      <% if (audioTracks.length) { %>
+        <div class="mt-5 space-y-1">
+          <% audioTracks.forEach(function(a) { %>
+            <div class="flex items-center gap-3 bg-bg border border-line rounded px-3 py-2">
+              <span class="text-accent/70 text-[10px]">&#9834;</span>
+              <div class="min-w-0 flex-1">
+                <div class="text-xs truncate"><%= a.title %></div>
+                <div class="text-[10px] text-muted truncate"><%= a.source_url %></div>
+              </div>
+              <a href="/dashboard/tracks/<%= a.id %>/edit" class="text-[11px] text-accent hover:underline flex-shrink-0">Edit</a>
+            </div>
+          <% }) %>
+        </div>
+      <% } %>
+    </div>
+  </details>
+
+  <!-- Gallery -->
+  <details id="gallery" class="bg-surface border border-line rounded-lg">
+    <summary class="text-sm font-semibold px-6 py-4 cursor-pointer hover:text-accent transition-colors">
+      Gallery
+      <span class="text-[11px] font-normal text-muted ml-1">&mdash; <%= galleryItems.length %> item<%= galleryItems.length === 1 ? '' : 's' %></span>
+    </summary>
+    <div class="px-6 pb-6">
+
+      <div class="text-[11.5px] leading-relaxed text-muted border border-line rounded p-3 mb-4">
+        Loose images and video from tests and experiments &mdash; no role, no category, no metadata.
+        Everything dropped here shows up at <a href="/gallery" target="_blank" class="text-accent hover:underline">/gallery</a>.
+        <% if (!b2Ready) { %>
+          <span class="text-amber-300/90">Uploading needs B2; a URL, or a file placed in <code>public/images/</code> and referenced as <code>/images/name.jpg</code>, works today.</span>
+        <% } %>
+      </div>
+
+      <form method="POST" action="/dashboard/gallery" enctype="multipart/form-data" class="grid md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs text-muted mb-1">Image or video URL / path</label>
+          <input type="text" name="url" placeholder="/images/test-01.jpg" class="w-full bg-bg border border-line rounded px-3 py-2 text-sm focus:outline-none focus:border-accent">
+        </div>
+        <div>
+          <label class="block text-xs text-muted mb-1">&hellip;or upload<%= b2Ready ? '' : ' (needs B2)' %></label>
+          <input type="file" name="gallery_file" accept="image/*,video/*" class="text-xs">
+        </div>
+        <div>
+          <label class="block text-xs text-muted mb-1">Caption (optional)</label>
+          <input type="text" name="caption" class="w-full bg-bg border border-line rounded px-3 py-2 text-sm focus:outline-none focus:border-accent">
+        </div>
+        <div class="flex items-end gap-4">
+          <div>
+            <label class="block text-xs text-muted mb-1">Kind</label>
+            <div class="flex items-center gap-3 text-xs text-muted">
+              <label class="flex items-center gap-1.5"><input type="radio" name="kind" value="image" checked> Image</label>
+              <label class="flex items-center gap-1.5"><input type="radio" name="kind" value="video"> Video</label>
+            </div>
+          </div>
+          <button type="submit" class="bg-accent text-bg text-sm font-medium rounded px-4 py-2 hover:brightness-110 transition">Add</button>
+        </div>
+      </form>
+
+      <% if (galleryItems.length) { %>
+        <div class="mt-5 grid grid-cols-3 sm:grid-cols-5 gap-2">
+          <% galleryItems.forEach(function(g) { %>
+            <div class="relative group rounded overflow-hidden border border-line bg-bg aspect-square">
+              <% if (g.kind === 'video') { %>
+                <video src="<%= g.url %>" class="w-full h-full object-cover" preload="metadata" muted></video>
+              <% } else { %>
+                <img src="<%= g.url %>" class="w-full h-full object-cover" alt="" loading="lazy">
+              <% } %>
+              <form method="POST" action="/dashboard/gallery/<%= g.id %>/delete" onsubmit="return confirm('Remove this item?')"
+                    class="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button type="submit" class="text-[10px] bg-black/70 text-red-400 rounded px-1.5 py-0.5 hover:text-red-300">&#10005;</button>
+              </form>
+            </div>
+          <% }) %>
+        </div>
+      <% } %>
+    </div>
+  </details>
+
   <!-- Existing projects: the CMS list -->
   <section>
     <div class="flex items-center gap-2 flex-wrap mb-3">

@@ -246,9 +246,41 @@
     });
   }
 
+  // Tab strip overflow: arrows and edge fades, so tabs clipped by a narrow
+  // viewport are discoverable rather than just cut off.
+  const strip = document.getElementById('tab-strip');
+  const arrowL = document.getElementById('tab-left');
+  const arrowR = document.getElementById('tab-right');
+  const fadeL = document.getElementById('tab-fade-l');
+  const fadeR = document.getElementById('tab-fade-r');
+
+  function syncStrip() {
+    const max = strip.scrollWidth - strip.clientWidth;
+    const overflowing = max > 2;
+    const atStart = strip.scrollLeft <= 1;
+    const atEnd = strip.scrollLeft >= max - 1;
+
+    [arrowL, arrowR].forEach((a) => a.classList.toggle('hidden', !overflowing));
+    arrowL.disabled = atStart;
+    arrowR.disabled = atEnd;
+    fadeL.classList.toggle('on', overflowing && !atStart);
+    fadeR.classList.toggle('on', overflowing && !atEnd);
+  }
+
+  function nudge(dir) {
+    strip.scrollBy({ left: dir * Math.max(140, strip.clientWidth * 0.6), behavior: reduceMotion ? 'auto' : 'smooth' });
+  }
+
+  arrowL.addEventListener('click', () => nudge(-1));
+  arrowR.addEventListener('click', () => nudge(1));
+  strip.addEventListener('scroll', syncStrip, { passive: true });
+  window.addEventListener('resize', syncStrip);
+  syncStrip();
+
   tabs.forEach((tab) => {
     tab.addEventListener('click', () => {
       tabs.forEach((t) => t.classList.toggle('active', t === tab));
+      tab.scrollIntoView({ inline: 'nearest', block: 'nearest', behavior: reduceMotion ? 'auto' : 'smooth' });
       filterTo(tab.getAttribute('data-cat'));
       // Keep the grid's top in view so a filtered category needs no scrolling.
       const top = grid.getBoundingClientRect().top + window.scrollY - 110;

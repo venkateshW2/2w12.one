@@ -21,10 +21,6 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Static passthrough for the parts of the old static site that don't need
-// a backend: the landing page and the self-contained client-side tools.
-app.use(express.static(path.join(__dirname, 'docs')));
-
 app.use(
   session({
     store: new KnexSessionStore({ knex, tablename: 'sessions', createtable: false }),
@@ -37,9 +33,20 @@ app.use(
 
 app.locals.db = knex;
 
+// The landing page route must come before the docs/ static mount, or
+// express.static answers "/" with the old static index.html instead.
+require('./routes/home')(app);
+
+// Static passthrough for the parts of the old static site that don't need a
+// backend: the self-contained client-side tools under docs/tools/.
+// index files stay enabled so docs/tools/<tool>/index.html resolves; "/" never
+// reaches here because routes/home.js above already answered it.
+app.use(express.static(path.join(__dirname, 'docs')));
+
 require('./routes/auth')(app);
 require('./routes/admin')(app);
 require('./routes/portfolio')(app);
+require('./routes/gallery')(app);
 
 app.use((req, res) => {
   res.status(404).render('not-found');

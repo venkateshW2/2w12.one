@@ -93,6 +93,30 @@ Cards with no poster and no YouTube fallback show a section-appropriate glyph �
 3. **Not deployed.** No `render.yaml`/`Procfile`; nothing has run against Postgres yet. `trust proxy` and `engines.node` are in place; still to do: Render service + Postgres, env vars, migrations as **Pre-Deploy** Command, and repointing the domain off GitHub Pages (which is still serving the old static site — that's why the sheet still appears to "work").
 4. Tailwind still loads from `cdn.tailwindcss.com` — fine for now, not a production setup.
 
+## Pages and navigation
+
+- **`/`** — `routes/home.js` + `views/home.ejs`. Dynamic, dark, and **registered before the `docs/` static mount in `server.js`** — otherwise `express.static` answers `/` with the old static `docs/index.html`. Keep that ordering. (`index: false` on that mount is *not* the fix — it breaks `docs/tools/<tool>/index.html`.) Ports the old landing's content (SOUND THINGS, the `>` status lines, Mumbai/est. 2004) inverted to the dark palette, with a left rail for **Team**, Tools, Labs and Work. 2w12 is a 3–4 person audio-first studio, so the team rail reads the `profiles` table: the owner's profile links to `/portfolio`, anyone else to their `/p/:token` URL until Phase 2 gives profiles real slugs.
+- **`/portfolio`** — the work. Category tabs, cards, sidebar with the stream player.
+- **`/gallery`** — `routes/gallery.js` + `views/gallery.ejs` + `gallery_items` table (migration `20260907000004`). Loose images and video from tests and experiments, deliberately **not** in `tracks` — no role, no category, nothing to fill in. CSS-columns masonry so mixed aspect ratios tile uncropped, hover-preview on video, fullscreen viewer with arrow-key nav. Linked from the top nav, the landing rail and the portfolio sidebar; has a "Back to portfolio" control.
+- **`/login` → `/dashboard`** — the CMS.
+- **`docs/tools/*`** — still static, untouched.
+
+### Glitch motif
+
+The old landing page used a `--glitch-color: #ff0080` text-shadow glitch. That's carried forward in `views/partials/head.ejs` as `.logo-glitch` (the nav wordmark) and `.glitch` (the landing headline), retuned for dark with magenta/cyan layers on `steps(1)` keyframes. The animation sits **at rest ~90% of the time** and slips briefly — a constant shimmer reads as a broken page rather than a deliberate effect. Disabled under `prefers-reduced-motion`.
+
+### Tab overflow
+
+The category strip clips on narrow viewports, so `public/js/portfolio.js` adds chevrons and edge fades that appear only when the strip actually overflows, disable at each end, and re-evaluate on scroll and resize. Clicking a tab also scrolls it into view.
+
+## Adding audio (the sidebar player)
+
+`Dashboard → Audio & samples` is a dedicated form, separate from "Add a project" because these are pieces *of* a project and need none of that metadata: name, file or URL, parent project, optional badge.
+
+The player uses an `<audio>` element, so it needs a **direct audio file** — a URL ending `.mp3 .wav .ogg .m4a .flac`. The route rejects anything `classify()` doesn't call `direct_audio` with an explicit message rather than silently storing something that won't stream. YouTube/Spotify links remain fine as a project's main link; they open in the lightbox instead.
+
+Nesting an audio track under a project gives that project's card a **"Send to player"** button which scopes the queue to just those tracks.
+
 ## Backblaze B2 setup
 
 Nothing about B2 is guessable from the code, so the exact steps:

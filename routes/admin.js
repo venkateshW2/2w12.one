@@ -67,9 +67,19 @@ module.exports = function (app) {
       t.haystack = [t.title, t.role, t.badge, t.tags, t.year, t.description].filter(Boolean).join(' ').toLowerCase();
     });
 
+    const galleryItems = await db()('gallery_items')
+      .where({ profile_id: req.profile.id })
+      .orderBy('sort_order', 'desc')
+      .orderBy('created_at', 'desc');
+
+    // Everything the sidebar player can actually stream.
+    const audioTracks = allTracks.filter((t) => classify(t.source_url || '') === 'direct_audio');
+
     res.render('dashboard', {
       profile: req.profile,
       tracks,
+      galleryItems,
+      audioTracks,
       sort,
       stats: {
         projects: tracks.length,
@@ -225,6 +235,86 @@ module.exports = function (app) {
 
     await db()('tracks').where({ id: track.id }).update(update);
     res.redirect('/dashboard');
+  });
+
+  // ---------- Gallery: loose images/video from tests and experiments ----------
+  app.post('/dashboard/gallery', gate, upload.single('gallery_file'), async (req, res) => {
+    let url = (req.body.url || '').trim();
+    let kind = req.body.kind === 'video' ? 'video' : 'image';
+
+    if (req.file) {
+      try {
+        url = await streamUploadAndCleanup(req.file);
+        kind = req.file.mimetype.startsWith('video/') ? 'video' : 'image';
+      } catch (err) {
+        return res.redirect('/dashboard?error=' + encodeURIComponent('Gallery upload failed: ' + err.message));
+      }
+    }
+
+    if (!url) {
+      return res.redirect('/dashboard?error=' + encodeURIComponent('Give the gallery item a file or a URL.'));
+    }
+
+    // A pasted link can be classified rather than trusting the radio button.
+    const detected = classify(url);
+    if (detected === 'direct_video') kind = 'video';
+
+    await db()('gallery_items').insert({
+      profile_id: req.profile.id,
+      url,
+      kind,
+      caption: (req.body.caption || '').trim() || null,
+      sort_order: Number(req.body.sort_order) || 0
+    });
+    res.redirect('/dashboard#gallery');
+  });
+
+  app.post('/dashboard/gallery/:id/delete', gate, async (req, res) => {
+    await db()('gallery_items').where({ id: req.params.id, profile_id: req.profile.id }).del();
+    res.redirect('/dashboard#gallery');
+  });
+
+  // ---------- Audio: the songs/samples that feed the sidebar player ----------
+  // Separate from "Add a project" because these are pieces *of* a project and
+  // need almost none of that form — just a file/URL, a name and a parent.
+  app.post('/dashboard/audio', gate, upload.single('audio_file'), async (req, res) => {
+    let url = (req.body.source_url || '').trim();
+
+    if (req.file) {
+      try {
+        url = await streamUploadAndCleanup(req.file);
+      } catch (err) {
+        return res.redirect('/dashboard?error=' + encodeURIComponent('Audio upload failed: ' + err.message));
+      }
+    }
+
+    const title = (req.body.title || '').trim();
+    if (!url || !title) {
+      return res.redirect('/dashboard?error=' + encodeURIComponent('Audio needs a title and either a file or a URL.'));
+    }
+
+    // The sidebar player only picks up tracks classify() calls direct_audio, so
+    // say so plainly rather than silently adding something that won't stream.
+    if (classify(url) !== 'direct_audio') {
+      return res.redirect(
+        '/dashboard?error=' +
+          encodeURIComponent(
+            'That URL is not a direct audio file (needs to end .mp3/.wav/.ogg/.m4a/.flac), so the player cannot stream it. Added nothing.'
+          )
+      );
+    }
+
+    await db()('tracks').insert({
+      profile_id: req.profile.id,
+      parent_track_id: req.body.parent_track_id ? Number(req.body.parent_track_id) : null,
+      type: req.file ? 'upload' : 'link',
+      source_url: url,
+      title,
+      role: (req.body.role || '').trim() || null,
+      tags: '',
+      description: (req.body.description || '').trim() || null
+    });
+    res.redirect('/dashboard#audio');
   });
 
   // Toggled straight from the list — the one edit frequent enough to not be
