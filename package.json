@@ -20,7 +20,9 @@
     "normalize:roles": "node scripts/normalize-roles.js",
     "seed:status": "node scripts/seed-status.js",
     "setup:fresh": "npm run migrate && npm run import:showreel && npm run import:sheet && npm run seed:software && npm run seed:status && npm run normalize:roles && npm run optimize:images",
-    "make:og": "node scripts/make-og-card.js"
+    "make:og": "node scripts/make-og-card.js",
+    "export:content": "node scripts/export-content.js",
+    "apply:content": "node scripts/apply-content.js"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.658.1",

@@ -6,6 +6,10 @@
 // Before: role "Sound Design"  ->  ROLE_SHORT  ->  badge "Sound Design + Mix"
 // After:  role "Sound Design + Mix"            ->  badge "Sound Design + Mix"
 //
+// NOTE: this maps only the nine legacy imported spellings listed in
+// lib/taxonomy.js's ROLE_SHORT. Badges typed by hand in the CMS are free text
+// and are left exactly as written — running this again will not overwrite them.
+//
 // Usage: npm run normalize:roles [-- --dry-run]
 require('dotenv').config();
 const knexConfig = require('../knexfile');

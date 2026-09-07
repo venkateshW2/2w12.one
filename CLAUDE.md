@@ -93,6 +93,19 @@ Cards with no poster and no YouTube fallback show a section-appropriate glyph �
 3. **Not deployed.** No `render.yaml`/`Procfile`; nothing has run against Postgres yet. `trust proxy` and `engines.node` are in place; still to do: Render service + Postgres, env vars, migrations as **Pre-Deploy** Command, and repointing the domain off GitHub Pages (which is still serving the old static site — that's why the sheet still appears to "work").
 4. Tailwind still loads from `cdn.tailwindcss.com` — fine for now, not a production setup.
 
+## Curation lives in data/content.json
+
+The importers (`import:showreel`, `import:sheet`, `seed:software`) build a **baseline** from the showreel DB and the Google Sheet. Everything done *after* that — pinning cards, featuring, hiding, retyped badges, corrected tags, edited copy — exists only in whichever database it was typed into. That is why the first production deploy came up looking nothing like local despite running every script.
+
+So curation is exported, not re-derived:
+
+- **`npm run export:content`** → `data/content.json` (committed). Profile fields, every track keyed by **title** (ids differ between databases) with its parent's title for album nesting, status lines, gallery items.
+- **`npm run apply:content`** → applies that file to whatever `DATABASE_URL` points at, matching on title. Idempotent, prints a per-field diff of what it changes, and takes `--dry-run`.
+
+**Workflow:** curate wherever you like → `export:content` → commit → `apply:content` against the other database. Verified round-trip: a scratch database seeded only with an account, then `apply:content`, ends up with all 46 tracks, 17 featured, 18 pinned, 1 hidden, 11 nested, the handle and the status lines.
+
+This is the fourth and last form of the same recurring mistake: **state typed into a database by hand does not survive a deploy unless something exports it.**
+
 ## Editable content vs. code
 
 The landing page's `> Label: text` status lines live in the **`status_lines` table** (migration `20260907000007`) and are edited at **`/admin` → Landing page status lines** — label, text, an optional dimmed aside, and a sort order. They change whenever a project ships, so they must not be a code edit. Clearing a line's label or text deletes it; the always-present blank row adds one.
