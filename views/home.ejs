@@ -18,8 +18,11 @@
     </p>
 
     <div class="mt-10 flex flex-wrap justify-center gap-3">
-      <a href="/portfolio" class="font-mono uppercase tracking-wider font-medium bg-accent text-bg rounded px-6 py-3.5 hover:brightness-110 transition" style="font-size:clamp(.75rem,1.15vw,.88rem)">View the work</a>
-      <a href="/work" class="font-mono uppercase tracking-wider border border-line text-muted rounded px-6 py-3.5 hover:text-ink hover:border-muted transition-colors" style="font-size:clamp(.75rem,1.15vw,.88rem)">Studio work</a>
+      <a href="/work" class="font-mono uppercase tracking-wider font-medium bg-accent text-bg rounded px-6 py-3.5 hover:brightness-110 transition" style="font-size:clamp(.75rem,1.15vw,.88rem)">
+        View the work
+        <span class="ml-1.5 text-[9px] tracking-[0.14em] opacity-70">soon</span>
+      </a>
+      <a href="#portfolios" class="font-mono uppercase tracking-wider border border-line text-muted rounded px-6 py-3.5 hover:text-ink hover:border-muted transition-colors" style="font-size:clamp(.75rem,1.15vw,.88rem)">Portfolios</a>
     </div>
   </section>
 
@@ -54,8 +57,8 @@
   </section>
 
   <!-- Portfolios: the people, since the menu only lists their names -->
-  <section class="pb-20 border-t border-line pt-12">
-    <div class="side-label mb-6">Portfolios</div>
+  <section id="portfolios" class="pb-20 border-t border-line pt-12 scroll-mt-20">
+    <div class="side-label mb-6">Portfolios &mdash; individual work</div>
     <div class="mx-auto max-w-2xl grid gap-3 <%= portfolios.length > 1 ? 'sm:grid-cols-2' : '' %>">
       <% portfolios.forEach(function(p) { %>
         <a href="<%= p.url %>" class="group flex items-center gap-3.5 text-left border border-line rounded-md px-4 py-3.5 hover:border-accent/50 transition-colors">
