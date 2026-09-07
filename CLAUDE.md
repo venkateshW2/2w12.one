@@ -136,6 +136,17 @@ Verified end to end: invite → signup creates user + profile → invite marked 
 
 Two intensities: `.glitch` (landing wordmark) slips several times per cycle and twitches the whole word on the same frames; `.logo-glitch` (nav) uses the identical technique but fires roughly once every 7–9s. Don't make the nav heavier — a permanently glitching header reads as a broken page.
 
+### WebGL background
+
+`public/js/shader-bg.js` — an **oscilloscope**: three slow signal traces drifting behind the landing content, with film grain and a vignette folded into the same fragment shader, plus half-LSB dithering to kill banding. Chosen over the usual animated-gradient blob because it *means something here* — it's a signal, on a site about audio.
+
+Rules it follows, from the research (see [award-grade webgl-shader-fx](https://github.com/praveentewatia26/award-grade/blob/main/skills/webgl-shader-fx/SKILL.md)):
+
+- **"If you can immediately name the effect, halve it."** The traces are deliberately near-invisible. Resist brightening them.
+- **One post effect.** Grain and vignette are folded into the material shader rather than run as passes; there is no bloom (multiple downsampled blurs — the expensive one).
+- **Three-tier progressive enhancement:** no WebGL2 / low-memory device / ≤2 cores / failed compile → nothing mounts and the flat background stands, indistinguishable to the visitor; `prefers-reduced-motion` → one static frame, no loop; otherwise animate, and **pause on `visibilitychange`**.
+- **DPR capped at 1.5** — a full-screen fragment shader at DPR 3 is 4× the work for no visible gain at this faintness. One full-screen triangle, no libraries.
+
 ### The CLI keeps blinking
 
 Once the lines finish typing, the block cursor parks on a trailing `$` prompt and both keep blinking on the same 1.05s beat (the prompt dips to 28% rather than 0 so the two read as one caret). A `live` LED in the title bar pulses on a slower, softer 1.9s cycle. The panel should never look like a finished screenshot. All of it stops under `prefers-reduced-motion`.
