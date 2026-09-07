@@ -9,10 +9,10 @@
 // corner (windowed, not cropped — it has ends). The slope is taken analytically
 // so the stroke keeps a constant width where the wave is steep.
 //
-// Faults land on discrete ticks and act ON the wave — phase steps, wavenumber
-// jumps, level jumps, hard clipping, decimation, dropouts. Nothing is painted
-// over the top: an additive colour split reads as an overlay sitting on the
-// image rather than as the signal itself breaking.
+// No glitching here. Faults were tried on the wave — phase steps, wavenumber
+// jumps, clipping, decimation — and at this size they read as noise rather
+// than as a signal breaking. The glitch stays on the wordmark, where there's
+// enough mass for it to register.
 //
 // Chosen over the usual animated-gradient blob because it means something here:
 // this is a signal, on a site about audio. Still restrained — the rule worth
@@ -74,23 +74,6 @@
     // ends instead of being cut off by the viewport.
     float win = smoothstep(0.010, 0.055, uv.x) * (1.0 - smoothstep(0.20, 0.30, uv.x));
 
-    // ---- glitch clock -------------------------------------------------------
-    // Faults land on discrete ticks. Continuous wobble reads as animation;
-    // discrete events read as something going wrong.
-    float tick = floor(uTime * 1.05);
-    float blockId = floor(uv.x * 11.0);
-    float gr = hash(vec2(blockId, tick));
-    float fault = step(0.90, gr);
-
-    // Every fault below changes the wave itself — its phase, its wavenumber,
-    // its gain, its sample rate. Nothing is painted over the top.
-    float tear = fault * (hash(vec2(blockId, tick + 3.0)) - 0.5) * 2.2;  // phase step
-    float bend = 1.0 + fault * (hash(vec2(blockId, tick + 11.0)) - 0.5) * 0.9; // wavenumber jump
-    float gain = 1.0 + fault * (hash(vec2(blockId, tick + 19.0)) - 0.35) * 1.4; // level jump
-    float hold = step(0.93, gr);       // decimation -> stair steps
-    float mute = 1.0 - step(0.965, gr);
-    float Xs = mix(X, floor(X * 16.0) / 16.0, hold);
-
     // ---- travelling wave ----------------------------------------------------
     // y(x,t) = SUM A_n e^(-a x) sin(k_n x - w_n t)
     //
@@ -99,11 +82,11 @@
     // velocity common (the shape propagates intact); the small +k^3 term is
     // dispersion, so harmonics creep out of step and the crest slowly reforms
     // instead of looping. e^(-a x) is spatial attenuation left to right.
-    float k1 = 2.2 * bend; // fundamental wavenumber, jumps on a fault
-    float c = 0.42;        // phase velocity — slow propagation
-    float a = 0.055;       // attenuation
+    float k1 = 2.2;      // fundamental wavenumber
+    float c = 0.42;      // phase velocity — slow propagation
+    float a = 0.055;     // attenuation
 
-    float damp = exp(-a * (Xs + 3.0));
+    float damp = exp(-a * (X + 3.0));
     float y = 0.0;
     float dydX = 0.0;
 
@@ -112,18 +95,12 @@
       float kn = k1 * fn;
       float wn = c * kn + 0.004 * kn * kn * kn;
       float An = 0.016 / fn;
-      float ph = kn * Xs - wn * t + tear;
+      float ph = kn * X - wn * t;
       y += An * sin(ph);
       dydX += An * kn * cos(ph);   // analytic slope, for constant line width
     }
-    y *= damp * mute * gain * win;
-    dydX *= damp * mute * gain * win;
-
-    // Hard clipping — a fault flattens the crests, the way a signal clips.
-    float ceilY = mix(1.0, 0.022, fault);
-    y = clamp(y, -ceilY, ceilY);
-    // Slope goes to zero wherever the wave is sitting on the rail.
-    dydX *= 1.0 - step(ceilY, abs(y));
+    y *= damp * win;
+    dydX *= damp * win;
 
     // ---- draw ---------------------------------------------------------------
     // Dividing by sqrt(1 + slope^2) is the perpendicular distance to the curve,

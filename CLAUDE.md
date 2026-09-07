@@ -152,9 +152,9 @@ y(x,t) = Σ Aₙ · e^(−ax) · sin(kₙx − ωₙt)
 
 A harmonic series (`kₙ = n·k₁`, `Aₙ = A/n`) sharing one phase velocity, so the packet propagates intact; a small `+k³` dispersion term so harmonics creep out of step and the crest reforms instead of visibly looping; `e^(−ax)` spatial attenuation left to right. The slope is taken **analytically** and the distance divided by `√(1+slope²)`, so the stroke keeps constant width where the wave is steep instead of thinning.
 
-Faults land on **discrete ticks** (~1/s) because continuous wobble reads as animation while discrete events read as something going wrong. Critically, every fault **acts on the wave itself** — phase step, wavenumber jump, level jump, hard clipping that flattens the crests, decimation into stair steps, dropouts. An earlier version added a chromatic colour split on top, which read as an overlay sitting on the image rather than as the signal breaking. **Don't paint faults over the wave; break the wave.**
+**No glitching on the wave.** Faults were built and removed: first a chromatic colour split, which read as an overlay sitting on the image rather than the signal breaking; then faults acting on the wave itself (phase steps, wavenumber jumps, clipping, decimation, dropouts), which at this size read as noise rather than as a signal failing. The glitch belongs on the **wordmark**, where there's enough mass for it to register. Don't re-add it here.
 
-It's deliberately slow (phase velocity 0.42) and small (amplitude 0.040/n).
+Deliberately slow (phase velocity 0.42) and small (amplitude 0.016/n), confined to the **bottom-left corner** by a smoothstep envelope — windowed rather than cropped, so the packet has ends instead of being sliced by the viewport, with the zero axis windowed to the same span so it reads as a readout rather than a stray squiggle.
 
 It went from three flat traces → a DAW-style bar waveform → this. **Validate shader edits** with `glslangValidator -S frag` (installable via `brew install glslang`): a compile error mounts nothing and looks identical to a working page with the effect disabled, so it fails silently. Chosen over the usual animated-gradient blob because it *means something here* — it's a signal, on a site about audio.
 
