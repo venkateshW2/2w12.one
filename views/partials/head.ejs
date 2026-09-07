@@ -65,15 +65,24 @@
     .gal-item { cursor: pointer; transition: transform .25s ease, border-color .25s ease; }
     .gal-item:hover { transform: translateY(-2px); border-color: #2e2e2e; }
 
-    /* Header menu */
+    /* Header menu — same padding as before, larger and heavier text. */
     .menu { position: relative; }
     .menu-btn {
+      position: relative;
       display: inline-flex; align-items: center; gap: .3rem;
       padding: .45rem .7rem; border-radius: 4px; background: none; border: 0;
-      color: #86837c; text-decoration: none; font-size: 12.5px; cursor: pointer;
+      color: #9a968e; text-decoration: none;
+      font-size: 14.5px; font-weight: 600; letter-spacing: -.008em; cursor: pointer;
       transition: color .18s ease, background .18s ease;
     }
     .menu-btn:hover { color: #e8e6e1; background: #141414; }
+
+    /* Where you are: an accent rule pinned to the header's bottom edge. */
+    .menu-btn.here { color: #e8e6e1; }
+    .menu-btn.here::after {
+      content: ''; position: absolute; left: .7rem; right: .7rem; bottom: -1.05rem;
+      height: 2px; background: #c98a3f; border-radius: 2px 2px 0 0;
+    }
     .menu-caret { transition: transform .2s ease; }
     .menu.open .menu-btn { color: #c98a3f; background: #141414; }
     .menu.open .menu-caret { transform: rotate(180deg); }
@@ -86,8 +95,8 @@
     }
     .menu.open .menu-panel { opacity: 1; visibility: visible; transform: none; }
     .menu-item {
-      display: block; padding: .45rem .6rem; border-radius: 4px;
-      color: #b8b5ae; text-decoration: none; font-size: 12.5px; white-space: nowrap;
+      display: block; padding: .5rem .65rem; border-radius: 4px;
+      color: #b8b5ae; text-decoration: none; font-size: 13.5px; font-weight: 500; white-space: nowrap;
       transition: color .15s ease, background .15s ease;
     }
     .menu-item:hover { color: #c98a3f; background: #1b1b1b; }

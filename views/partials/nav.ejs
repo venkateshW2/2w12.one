@@ -3,16 +3,24 @@
   // /p/:token until Phase 2 gives profiles real slugs.
   var navList = typeof navProfiles !== 'undefined' && navProfiles ? navProfiles : [];
   var navPrimary = navList.filter(function (p) { return p.user_id; })[0];
+  var here = typeof currentPath !== 'undefined' ? currentPath : '';
+  // Marks the section you're in. Portfolios covers a person's page and their
+  // gallery; Gallery is the studio one only.
+  function on(match) {
+    if (match === '/portfolio') return here.indexOf('/portfolio') === 0 || here.indexOf('/p/') === 0;
+    if (match === '/gallery') return here === '/gallery';
+    return here.indexOf(match) === 0;
+  }
 %>
 <nav class="sticky top-0 z-40 bg-bg/95 backdrop-blur border-b border-line">
   <div class="max-w-[1500px] mx-auto px-6 md:px-10 lg:px-14 h-14 flex items-center justify-between gap-6">
 
-    <a href="/" class="logo-glitch text-[17px] font-bold tracking-[-0.02em] flex-shrink-0" data-text="2w12.one">2w12.one</a>
+    <a href="/" class="logo-glitch text-[21px] font-extrabold tracking-[-0.03em] flex-shrink-0" data-text="2w12.one">2w12.one</a>
 
     <!-- Desktop menu -->
     <div class="hidden md:flex items-center gap-1 text-[12.5px]">
       <div class="menu" data-menu>
-        <button type="button" class="menu-btn" data-menu-btn aria-expanded="false">
+        <button type="button" class="menu-btn <%= on('/portfolio') ? 'here' : '' %>" data-menu-btn aria-expanded="false">
           Portfolios
           <svg viewBox="0 0 24 24" class="w-3 h-3 menu-caret" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6,9 12,15 18,9"/></svg>
         </button>
@@ -26,8 +34,8 @@
         </div>
       </div>
 
-      <a href="/work" class="menu-btn">Work <span class="text-accent/70 font-mono text-[9px] uppercase tracking-wider ml-0.5">soon</span></a>
-      <a href="/gallery" class="menu-btn">Gallery</a>
+      <a href="/work" class="menu-btn <%= on('/work') ? 'here' : '' %>">Work <span class="text-accent/70 font-mono text-[10px] uppercase tracking-wider ml-0.5">soon</span></a>
+      <a href="/gallery" class="menu-btn <%= on('/gallery') ? 'here' : '' %>">Gallery</a>
 
       <div class="menu" data-menu>
         <button type="button" class="menu-btn" data-menu-btn aria-expanded="false">
@@ -49,12 +57,12 @@
 
       <% if (typeof loggedIn !== 'undefined' && loggedIn) { %>
         <% if (typeof navIsAdmin !== 'undefined' && navIsAdmin) { %>
-          <a href="/admin" class="menu-btn">Admin</a>
+          <a href="/admin" class="menu-btn <%= on('/admin') ? 'here' : '' %>">Admin</a>
         <% } %>
-        <a href="/dashboard" class="menu-btn text-accent">Dashboard</a>
+        <a href="/dashboard" class="menu-btn text-accent <%= on('/dashboard') ? 'here' : '' %>">Dashboard</a>
         <form method="POST" action="/logout" class="inline"><button type="submit" class="menu-btn">Logout</button></form>
       <% } else { %>
-        <a href="/login" class="menu-btn">Login</a>
+        <a href="/login" class="menu-btn <%= on('/login') ? 'here' : '' %>">Login</a>
       <% } %>
     </div>
 

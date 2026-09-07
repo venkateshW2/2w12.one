@@ -39,6 +39,7 @@ app.use(async (req, res, next) => {
   try {
     res.locals.navProfiles = await knex('profiles').select('id', 'name', 'token', 'user_id').orderBy('id');
     // The header's Admin link needs to know, on every page, not just admin ones.
+    res.locals.currentPath = req.path;
     res.locals.navIsAdmin = false;
     if (req.session && req.session.userId) {
       const u = await knex('users').where({ id: req.session.userId }).first();
@@ -47,6 +48,7 @@ app.use(async (req, res, next) => {
   } catch {
     res.locals.navProfiles = []; // never let the menu break a page
     res.locals.navIsAdmin = false;
+    res.locals.currentPath = req.path;
   }
   next();
 });
