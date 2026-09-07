@@ -77,11 +77,14 @@
     }
     .menu-btn:hover { color: #e8e6e1; background: #141414; }
 
-    /* Where you are: an accent rule pinned to the header's bottom edge. */
+    /* Where you are. The rule has to stay INSIDE the 56px header: the button is
+       ~32px tall and centred, so its bottom edge sits ~12px above the header
+       border. -1.05rem put the rule 4.7px past that border, where it painted
+       over the page content below (the portfolio's tab strip). */
     .menu-btn.here { color: #e8e6e1; }
     .menu-btn.here::after {
-      content: ''; position: absolute; left: .7rem; right: .7rem; bottom: -1.05rem;
-      height: 2px; background: #c98a3f; border-radius: 2px 2px 0 0;
+      content: ''; position: absolute; left: .7rem; right: .7rem; bottom: -.55rem;
+      height: 2px; background: #c98a3f; border-radius: 2px;
     }
     .menu-caret { transition: transform .2s ease; }
     .menu.open .menu-btn { color: #c98a3f; background: #141414; }
