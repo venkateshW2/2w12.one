@@ -1,9 +1,21 @@
-// Oscilloscope background — three slow signal traces, drifting.
+// Wave background — a propagating wave, low on the page, glitching.
+//
+// Actual wave physics rather than a decorative squiggle:
+//   y(x,t) = SUM A_n e^(-a x) sin(k_n x - w_n t)
+// a harmonic series (k_n = n k1, A_n = A/n) sharing one phase velocity so the
+// packet propagates intact, plus a small k^3 dispersion term so the harmonics
+// creep out of step and the crest reforms instead of looping, and e^(-a x)
+// spatial attenuation. The slope is taken analytically so the stroke keeps a
+// constant width where the wave is steep.
+//
+// Faults land on discrete ticks — phase tears, zero-order hold, dropouts,
+// chromatic split — because continuous wobble reads as animation while
+// discrete events read as something going wrong.
 //
 // Chosen over the usual animated-gradient blob because it means something here:
-// this is a signal, on a site about audio. Deliberately near-invisible — the
-// rule worth keeping is that if you can immediately name the effect, it's twice
-// as strong as it should be.
+// this is a signal, on a site about audio. Still restrained — the rule worth
+// keeping is that if you can immediately name the effect, it's twice as strong
+// as it should be.
 //
 // Progressive enhancement, in this order:
 //   1. no WebGL2, low-memory device, or a failed compile -> nothing mounts and
@@ -43,24 +55,76 @@
 
   void main() {
     vec2 uv = gl_FragCoord.xy / uRes;
-    // Aspect-correct and centred, so the traces don't stretch on wide screens.
+    // Aspect-correct and centred, so wavelengths don't stretch on wide screens.
     vec2 p = (gl_FragCoord.xy - 0.5 * uRes) / uRes.y;
 
     vec3 col = vec3(0.0470);          // the page background, #0c0c0c
     vec3 accent = vec3(0.788, 0.541, 0.247); // #c98a3f
 
-    // One trace, sitting low. Three read as clutter behind text; a single line
-    // near the bottom edge is enough to say "signal" and stays out of the way.
-    float amp = 0.045;
-    float y = -0.33
-            + amp * sin(p.x * 2.1 + uTime * 0.055 * 6.2831)
-            + amp * 0.42 * sin(p.x * 4.8 - uTime * 0.055 * 4.1)
-            + 0.018 * (vnoise(vec2(p.x * 2.6, uTime * 0.07)) - 0.5);
+    float baseline = -0.30;           // sits low, out of the type's way
+    float X = p.x * 6.0;              // world x — a few wavelengths across
+    float t = uTime;
 
-    float d = abs(p.y - y);
-    float core = smoothstep(0.0030, 0.0, d);
-    float glow = smoothstep(0.060, 0.0, d) * 0.16;
-    col += (core * 0.42 + glow) * accent;
+    // ---- glitch clock -------------------------------------------------------
+    // Faults land on discrete ticks. Continuous wobble reads as animation;
+    // discrete events read as something going wrong.
+    float tick = floor(uTime * 2.7);
+    float blockId = floor(uv.x * 11.0);
+    float gr = hash(vec2(blockId, tick));
+
+    float tear = step(0.90, gr) * (hash(vec2(blockId, tick + 3.0)) - 0.5) * 2.2; // phase jump
+    float hold = step(0.93, gr);   // zero-order hold -> stair steps
+    float mute = 1.0 - step(0.965, gr);
+    float Xs = mix(X, floor(X * 16.0) / 16.0, hold);
+
+    // ---- travelling wave ----------------------------------------------------
+    // y(x,t) = SUM A_n e^(-a x) sin(k_n x - w_n t)
+    //
+    // Harmonic series k_n = n k1 with A_n = A/n, so the packet has the shape of
+    // a real signal rather than a bare sine. w_n = c k_n keeps the phase
+    // velocity common (the shape propagates intact); the small +k^3 term is
+    // dispersion, so harmonics creep out of step and the crest slowly reforms
+    // instead of looping. e^(-a x) is spatial attenuation left to right.
+    float k1 = 2.2;      // fundamental wavenumber
+    float c = 1.15;      // phase velocity
+    float a = 0.055;     // attenuation
+
+    float damp = exp(-a * (Xs + 3.0));
+    float y = 0.0;
+    float dydX = 0.0;
+
+    for (int n = 1; n <= 4; n++) {
+      float fn = float(n);
+      float kn = k1 * fn;
+      float wn = c * kn + 0.012 * kn * kn * kn;
+      float An = 0.075 / fn;
+      float ph = kn * Xs - wn * t + tear;
+      y += An * sin(ph);
+      dydX += An * kn * cos(ph);   // analytic slope, for constant line width
+    }
+    y *= damp * mute;
+    dydX *= damp * mute;
+
+    // ---- draw ---------------------------------------------------------------
+    // Dividing by sqrt(1 + slope^2) is the perpendicular distance to the curve,
+    // so the stroke stays the same width where the wave is steep instead of
+    // thinning out.
+    float slope = dydX * 6.0;
+    float dist = abs(p.y - (baseline + y)) / sqrt(1.0 + slope * slope);
+
+    float core = smoothstep(0.0028, 0.0, dist);
+    float glow = smoothstep(0.052, 0.0, dist) * 0.15;
+    float trace = core * 0.55 + glow;
+
+    col += trace * accent;
+
+    // Chromatic split only on blocks that tore — never at rest.
+    float split = step(0.90, gr);
+    col.r += trace * split * 0.16;
+    col.b += trace * split * 0.09;
+
+    // Faint zero axis, so it reads as a wave about an equilibrium.
+    col += smoothstep(0.0016, 0.0, abs(p.y - baseline)) * accent * 0.10;
 
     // Vignette, folded in rather than run as a pass.
     col *= smoothstep(1.30, 0.22, length(p * vec2(0.72, 1.0)));

@@ -140,7 +140,19 @@ Two intensities: `.glitch` (landing wordmark) slips several times per cycle and 
 
 ### WebGL background
 
-`public/js/shader-bg.js` — an **oscilloscope**: a single slow signal trace drifting low on the landing page, with film grain and a vignette folded into the same fragment shader, plus half-LSB dithering to kill banding. It started as three traces, which read as clutter behind text — one near the bottom edge is enough to say "signal" and stays out of the way. Chosen over the usual animated-gradient blob because it *means something here* — it's a signal, on a site about audio.
+`public/js/shader-bg.js` — a **propagating wave** low on the landing page, with film grain and a vignette folded into the same fragment shader plus half-LSB dithering to kill banding.
+
+Real wave physics rather than a decorative squiggle:
+
+```
+y(x,t) = Σ Aₙ · e^(−ax) · sin(kₙx − ωₙt)
+```
+
+A harmonic series (`kₙ = n·k₁`, `Aₙ = A/n`) sharing one phase velocity, so the packet propagates intact; a small `+k³` dispersion term so harmonics creep out of step and the crest reforms instead of visibly looping; `e^(−ax)` spatial attenuation left to right. The slope is taken **analytically** and the distance divided by `√(1+slope²)`, so the stroke keeps constant width where the wave is steep instead of thinning.
+
+Faults land on **discrete ticks** — phase tears, zero-order hold (stair steps), dropouts, chromatic split — because continuous wobble reads as animation while discrete events read as something going wrong. Chromatic offsets appear only on torn blocks, never at rest.
+
+It went from three flat traces → a DAW-style bar waveform → this. **Validate shader edits** with `glslangValidator -S frag` (installable via `brew install glslang`): a compile error mounts nothing and looks identical to a working page with the effect disabled, so it fails silently. Chosen over the usual animated-gradient blob because it *means something here* — it's a signal, on a site about audio.
 
 Rules it follows, from the research (see [award-grade webgl-shader-fx](https://github.com/praveentewatia26/award-grade/blob/main/skills/webgl-shader-fx/SKILL.md)):
 
