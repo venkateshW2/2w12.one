@@ -115,7 +115,11 @@
     // Dividing by sqrt(1 + slope^2) is the perpendicular distance to the curve,
     // so the stroke stays the same width where the wave is steep instead of
     // thinning out.
-    float slope = dydX * 6.0;
+    // Chain rule: X = p.x * 14.0, so dY/d(p.x) is dydX scaled by that same
+    // factor. This was left at 6.0 when the wavelength was retuned, which made
+    // the stroke thin out on the steep parts — the exact artefact the
+    // perpendicular-distance division exists to prevent.
+    float slope = dydX * 14.0;
     float dist = abs(p.y - (baseline + y)) / sqrt(1.0 + slope * slope);
 
     // No glow — a bare stroke. The halo was reading as a smudge at this size.
