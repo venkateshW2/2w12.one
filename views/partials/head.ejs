@@ -122,10 +122,15 @@
 
     .logo-glitch::before { animation: glitch-a 2.6s infinite steps(1); }
     .logo-glitch::after { animation: glitch-b 3.1s infinite steps(1); }
-    .glitch::before { animation: glitch-a 4s infinite steps(1); }
-    .glitch::after { animation: glitch-b 4.7s infinite steps(1); }
 
-    /* Mostly at rest, with brief slips — a constant shimmer reads as broken. */
+    /* The landing wordmark runs the heavier version: the RGB layers slip far
+       more often, and the element itself skews and jumps on its own cycle. */
+    .glitch { animation: glitch-body 5.5s infinite steps(1); }
+    .glitch::before { animation: glitch-hard-a 2.1s infinite steps(1); }
+    .glitch::after { animation: glitch-hard-b 2.7s infinite steps(1); }
+
+    /* Nav wordmark: mostly at rest, brief slips. A constant shimmer there would
+       read as a broken page rather than an effect. */
     @keyframes glitch-a {
       0%, 92%, 100% { transform: none; clip-path: none; }
       93% { transform: translate(-2px, 1px); clip-path: inset(20% 0 55% 0); }
@@ -139,8 +144,63 @@
       96% { transform: translate(1px, 1px); clip-path: inset(45% 0 35% 0); }
     }
 
+    /* Heavy variant — slices land through most of the cycle. */
+    @keyframes glitch-hard-a {
+      0%, 8%, 18%, 30%, 44%, 58%, 72%, 88%, 100% { transform: none; clip-path: inset(0 0 100% 0); }
+      10% { transform: translate(-4px, 2px);  clip-path: inset(12% 0 62% 0); }
+      12% { transform: translate(3px, -2px);  clip-path: inset(48% 0 30% 0); }
+      20% { transform: translate(-6px, 0);    clip-path: inset(70% 0 12% 0); }
+      32% { transform: translate(5px, 1px);   clip-path: inset(28% 0 52% 0); }
+      46% { transform: translate(-3px, -2px); clip-path: inset(58% 0 26% 0); }
+      60% { transform: translate(7px, 1px);   clip-path: inset(8% 0 78% 0); }
+      74% { transform: translate(-5px, 2px);  clip-path: inset(40% 0 40% 0); }
+      90% { transform: translate(2px, -1px);  clip-path: inset(80% 0 6% 0); }
+    }
+    @keyframes glitch-hard-b {
+      0%, 6%, 16%, 28%, 40%, 56%, 70%, 86%, 100% { transform: none; clip-path: inset(0 0 100% 0); }
+      8%  { transform: translate(5px, -2px);  clip-path: inset(64% 0 20% 0); }
+      18% { transform: translate(-4px, 1px);  clip-path: inset(22% 0 60% 0); }
+      30% { transform: translate(6px, 2px);   clip-path: inset(44% 0 38% 0); }
+      42% { transform: translate(-7px, -1px); clip-path: inset(74% 0 10% 0); }
+      58% { transform: translate(4px, 2px);   clip-path: inset(16% 0 70% 0); }
+      72% { transform: translate(-6px, 1px);  clip-path: inset(52% 0 32% 0); }
+      88% { transform: translate(3px, -2px);  clip-path: inset(34% 0 48% 0); }
+    }
+    /* The whole wordmark twitches too, not just the colour layers. */
+    @keyframes glitch-body {
+      0%, 20%, 42%, 61%, 83%, 100% { transform: none; }
+      21% { transform: translate(2px, -1px) skewX(-3deg); }
+      22% { transform: translate(-2px, 1px) skewX(2deg); }
+      43% { transform: translate(-3px, 0) skewX(4deg); }
+      44% { transform: translate(1px, 1px); }
+      62% { transform: translate(3px, -2px) skewX(-5deg); }
+      63% { transform: none; }
+      84% { transform: translate(-1px, 2px) skewX(2deg); }
+    }
+
+    /* CLI panel — faint scanlines and an inner glow so it reads as a screen
+       rather than a bordered div. */
+    .term-window { position: relative; box-shadow: inset 0 0 60px rgba(0,0,0,.55), 0 10px 40px rgba(0,0,0,.45); }
+    .term-window::after {
+      content: ''; position: absolute; inset: 0; pointer-events: none;
+      background: repeating-linear-gradient(
+        to bottom,
+        rgba(255,255,255,.014) 0px,
+        rgba(255,255,255,.014) 1px,
+        transparent 1px,
+        transparent 3px
+      );
+    }
+    .term-bar { user-select: none; }
+
+    /* Terminal typing */
+    .term-cursor { display: inline-block; color: #c98a3f; animation: term-blink .9s steps(1) infinite; }
+    @keyframes term-blink { 0%, 55% { opacity: 1; } 56%, 100% { opacity: 0; } }
+
     @media (prefers-reduced-motion: reduce) {
       .logo-glitch::before, .logo-glitch::after, .glitch::before, .glitch::after { animation: none; display: none; }
+      .glitch { animation: none; }
+      .term-cursor { animation: none; }
     }
     .filter-chip.active { border-color: #c98a3f; color: #c98a3f; }
 

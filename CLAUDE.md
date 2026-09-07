@@ -122,9 +122,13 @@ Verified end to end: invite → signup creates user + profile → invite marked 
 
 - **`/`** — `routes/home.js` + `views/home.ejs`. **Registered before the `docs/` static mount in `server.js`** — otherwise `express.static` answers `/` with the old static `docs/index.html`. Keep that ordering. (`index: false` on that mount is *not* the fix — it breaks `docs/tools/<tool>/index.html`.)
 
-  **Centered, header-nav only, no sidebar.** `2w12.one` is the headline — big, bold, **white**, glitched — and **"SOUND THINGS" is its tagline** beneath it, in letterspaced mono. Two competing display lines was the problem with the previous pass; one headline plus a tagline is one voice. Then: intro, `>` status lines, the numbers row, and a Portfolios block listing the people. Type scales with the viewport via `clamp()`.
+  **Three elements, nothing else:** the `2w12.one` wordmark (moderate size, heavy glitch), the tagline **"The Sound Thing"** below it, and a **CLI panel whose status lines type themselves**. No paragraph of copy, no buttons, no stats row, no portfolios block, no dividers, no location line — all of that was deliberately stripped. Navigation is entirely in the header.
 
-  Landing layout went through three passes worth recording, so they don't get re-tried: **(1)** 1152px column + narrow rail + 11px type — cramped, read as an app screen. **(2)** Full-width numbered accordion (Portfolios/Work/Tools/Labs/Gallery) — read as a stock template, and it dropped SOUND THINGS. **(3)** Sidebar restored at larger scale — but duplicated the header nav. **Current:** centered hero, all navigation in the header.
+  The terminal (`public/js/home.js`) types `$ cat status`, then each status line character by character with scrambled characters at the head of the cursor so lines look like they're *resolving*; the cadence is uneven (fixed intervals read as a progress bar) with brief catches at punctuation. When it finishes, the cursor parks on a trailing `$` prompt so it reads as live. The panel has a title bar, faint scanlines and an inner glow so it reads as a screen. Line text is rendered **in the HTML** and the script empties and retypes it, so no-JS and `prefers-reduced-motion` both get the full content immediately.
+
+  Landing layout went through five passes worth recording, so they don't get re-tried: **(1)** 1152px column + narrow rail + 11px type — cramped, read as an app screen. **(2)** Full-width numbered accordion — read as a stock template. **(3)** Sidebar restored at larger scale — duplicated the header nav. **(4)** Centered hero with a copy paragraph, CTA buttons, stats and a portfolios list — too much, and the copy was placeholder-grade. **(5) Current:** wordmark + tagline + self-typing CLI.
+
+  The glitch has **two intensities**: `.logo-glitch` (nav) rests ~90% of the time, while `.glitch` (the landing wordmark) runs the heavy variant — RGB layers slipping through most of the cycle plus the element itself skewing on its own timer. Don't apply the heavy one to the nav; a permanently shimmering header reads as a broken page.
 
 ### Header menu
 

@@ -1,87 +1,60 @@
-<%- include('partials/head', { pageTitle: '2w12.one — Audio-first studio', loggedIn: loggedIn }) %>
+<%- include('partials/head', { pageTitle: '2w12.one — the sound thing', loggedIn: loggedIn }) %>
 
 <div class="max-w-[1100px] mx-auto px-6 text-center">
 
-  <!-- Hero: the company name is the headline; SOUND THINGS is its tagline. -->
-  <section class="pt-20 md:pt-28 pb-16">
-    <h1 class="glitch inline-block font-bold leading-[0.85] tracking-[-0.04em] text-white"
-        style="font-size:clamp(3.6rem,13vw,10rem)" data-text="2w12.one">2w12.one</h1>
+  <!-- Hero: the wordmark and a terminal that types itself. Nothing else. -->
+  <section class="pt-20 md:pt-24 pb-14">
+    <h1 class="glitch inline-block font-extrabold leading-[0.9] tracking-[-0.035em] text-white"
+        style="font-size:clamp(2.3rem,5.6vw,4.4rem)" data-text="2w12.one">2w12.one</h1>
 
-    <div class="mt-6 font-mono font-medium uppercase tracking-[0.3em] text-accent"
-         style="font-size:clamp(.78rem,2vw,1.4rem)">
-      Anything With Audio
+    <div class="mt-3.5 font-mono font-medium uppercase tracking-[0.3em] text-accent text-[10.5px] md:text-[12px]">
+      The Sound Thing
     </div>
 
-    <p class="mt-9 mx-auto max-w-2xl text-ink/80 leading-[1.55] font-light" style="font-size:clamp(1.05rem,1.9vw,1.4rem)">
-      A group of individuals who work on sound together, and on each other's work. We build what a project
-      needs &mdash; custom instruments, software for artists, scores, mixes &mdash; and we&rsquo;re most
-      interested in whatever hasn&rsquo;t been done before.
-    </p>
+    <%# A terminal, typed out by /js/home.js. The text sits in the DOM so it
+        survives no-JS and reduced-motion; the script empties and retypes it. %>
+    <div class="mx-auto max-w-[640px] mt-12 text-left">
+      <div class="term-window rounded-md overflow-hidden border border-line bg-[#0a0a0a]">
 
-    <div class="mt-6 side-label">Open to commissions and collaborations</div>
-
-    <div class="mt-10 flex flex-wrap justify-center gap-3">
-      <a href="/work" class="font-mono uppercase tracking-wider font-medium bg-accent text-bg rounded px-6 py-3.5 hover:brightness-110 transition" style="font-size:clamp(.75rem,1.15vw,.88rem)">
-        View the work
-        <span class="ml-1.5 text-[9px] tracking-[0.14em] opacity-70">soon</span>
-      </a>
-      <a href="#portfolios" class="font-mono uppercase tracking-wider border border-line text-muted rounded px-6 py-3.5 hover:text-ink hover:border-muted transition-colors" style="font-size:clamp(.75rem,1.15vw,.88rem)">Portfolios</a>
-    </div>
-  </section>
-
-  <!-- What's happening -->
-  <section class="pb-16 border-t border-line pt-12">
-    <div class="mx-auto max-w-2xl space-y-3.5 text-left font-mono leading-relaxed" style="font-size:clamp(.82rem,1.3vw,1rem)">
-      <%# Edited from the admin panel, not here — these change whenever
-          something ships. %>
-      <% statusLines.forEach(function (l) { %>
-        <div class="flex gap-3">
-          <span class="text-accent flex-shrink-0">&gt;</span>
-          <span class="text-muted">
-            <span class="text-ink font-medium"><%= l.label %>:</span> <%= l.body %><% if (l.note) { %> <span class="text-muted/60"><%= l.note %></span><% } %>
-          </span>
+        <div class="term-bar flex items-center gap-2 px-3 py-2 border-b border-line bg-surface/70">
+          <span class="w-2 h-2 rounded-full bg-[#3a3a3a]"></span>
+          <span class="w-2 h-2 rounded-full bg-[#3a3a3a]"></span>
+          <span class="w-2 h-2 rounded-full bg-[#3a3a3a]"></span>
+          <span class="ml-1.5 font-mono text-[10px] uppercase tracking-[0.14em] text-muted/70">2w12 — status</span>
         </div>
-      <% }) %>
-      <% if (!statusLines.length) { %>
-        <div class="text-muted/60">No status lines yet &mdash; add them in the admin panel.</div>
-      <% } %>
-    </div>
-  </section>
 
-  <!-- Numbers -->
-  <section class="pb-16 border-t border-line pt-12">
-    <div class="flex flex-wrap justify-center gap-x-16 gap-y-8">
-      <% stats.forEach(function(s) { %>
-        <div>
-          <div class="font-bold text-accent leading-none tracking-tight" style="font-size:clamp(1.8rem,3.4vw,2.7rem)"><%= s.value %></div>
-          <div class="side-label mt-2"><%= s.label %></div>
-        </div>
-      <% }) %>
-    </div>
-  </section>
+        <div id="term" class="px-4 py-3.5 font-mono leading-[1.75]" style="font-size:clamp(.78rem,1.2vw,.9rem)">
+          <div class="term-line flex gap-2 mb-2">
+            <span class="text-accent flex-shrink-0">$</span>
+            <span class="min-w-0"><span class="term-body text-ink/90">cat status</span></span>
+          </div>
 
-  <!-- Portfolios: the people, since the menu only lists their names -->
-  <section id="portfolios" class="pb-20 border-t border-line pt-12 scroll-mt-20">
-    <div class="side-label mb-6">Portfolios &mdash; individual work</div>
-    <div class="mx-auto max-w-2xl grid gap-3 <%= portfolios.length > 1 ? 'sm:grid-cols-2' : '' %>">
-      <% portfolios.forEach(function(p) { %>
-        <a href="<%= p.url %>" class="group flex items-center gap-3.5 text-left border border-line rounded-md px-4 py-3.5 hover:border-accent/50 transition-colors">
-          <% if (p.avatar_url) { %>
-            <img src="<%= p.avatar_url %>" alt="" class="w-11 h-11 rounded-full object-cover object-top border border-line flex-shrink-0">
-          <% } else { %>
-            <span class="w-11 h-11 rounded-full border border-line bg-surface flex items-center justify-center text-[12px] font-semibold text-accent flex-shrink-0"><%= p.initials %></span>
+          <% statusLines.forEach(function (l) { %>
+            <div class="term-line flex gap-2 mb-1">
+              <span class="text-muted/50 flex-shrink-0">&gt;</span>
+              <span class="min-w-0">
+                <span class="term-label text-accent"><%= l.label %>:</span>
+                <span class="term-body text-ink/70"><%= l.body %></span><% if (l.note) { %>
+                <span class="term-note text-muted/50"><%= l.note %></span><% } %>
+              </span>
+            </div>
+          <% }) %>
+
+          <% if (!statusLines.length) { %>
+            <div class="text-muted/60">status: empty</div>
           <% } %>
-          <span class="min-w-0 flex-1">
-            <span class="block text-[15.5px] font-semibold leading-tight truncate group-hover:text-accent transition-colors"><%= p.name %></span>
-            <span class="block text-[11px] font-mono uppercase tracking-[0.08em] text-muted/80 truncate mt-1"><%= [p.tagline, p.projectCount + ' projects'].filter(Boolean).join(' · ') %></span>
-          </span>
-          <span class="font-mono text-[10px] uppercase tracking-wider text-muted group-hover:text-accent transition-colors flex-shrink-0">Open &rarr;</span>
-        </a>
-      <% }) %>
+
+          <div class="term-line flex gap-2 mt-2.5">
+            <span class="text-accent flex-shrink-0">$</span>
+            <span id="term-idle" class="min-w-0"></span>
+          </div>
+        </div>
+      </div>
     </div>
+
   </section>
 
-  <div class="pb-14 side-label">Mumbai, India &middot; est. 2004</div>
 </div>
+<script src="/js/home.js"></script>
 </body>
 </html>
