@@ -46,6 +46,8 @@
   precision highp float;
   uniform vec2 uRes;
   uniform float uTime;
+  // x0, x1, y of the wordmark, in device pixels, measured from the DOM.
+  uniform vec3 uAnchor;
   out vec4 frag;
 
   float hash(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
@@ -65,26 +67,24 @@
     vec3 col = vec3(0.0470);          // the page background, #0c0c0c
     vec3 accent = vec3(0.788, 0.541, 0.247); // #c98a3f
 
-    // Pinned directly under the header wordmark. Worked out in pixels from the
-    // left edge of the centred 1500px container, so it stays under the mark at
-    // any viewport width instead of drifting as a uv fraction would.
-    float pad = 56.0;                                       // container padding
-    float left = max(0.0, (uRes.x - 1500.0) * 0.5) + pad;   // wordmark's left edge
-    // 82px was too close: the crests reach up roughly 35px from the axis, which
-    // put them back inside the 56px header. Clearing the header means the
-    // baseline has to sit below header height + peak amplitude.
-    float topY = uRes.y - 132.0;
+    // Geometry comes from the DOM, not from assumptions: uAnchor carries the
+    // wordmark's measured left edge, right edge and baseline y. Hardcoding the
+    // container padding was wrong the moment the padding turned responsive
+    // (24 / 40 / 56px), which is what threw the alignment off.
+    float x0 = uAnchor.x;
+    float x1 = uAnchor.y;
+    float baseline = (uAnchor.z - 0.5 * uRes.y) / uRes.y; // into p's centred space
+    float span = max(x1 - x0, 1.0);
 
-    // baseline in the same centred space as p
-    float baseline = (topY - 0.5 * uRes.y) / uRes.y;
-    float X = p.x * 14.0;             // tighter wavelengths at this size
+    // Wavelength scales with the packet so its shape holds at any text size.
+    float X = ((gl_FragCoord.x - x0) / span) * 9.0;
     float t = uTime;
 
-    // Envelope in pixels: the packet fades in just after the wordmark's left
-    // edge and out again about its width later, so it has ends rather than
-    // being cut off by anything.
+    // Envelope across exactly the wordmark's width, feathered at both ends by a
+    // tenth of the span so the packet has ends.
+    float fade = span * 0.10;
     float px = gl_FragCoord.x;
-    float win = smoothstep(left, left + 28.0, px) * (1.0 - smoothstep(left + 190.0, left + 268.0, px));
+    float win = smoothstep(x0, x0 + fade, px) * (1.0 - smoothstep(x1 - fade, x1, px));
 
     // ---- travelling wave ----------------------------------------------------
     // y(x,t) = SUM A_n e^(-a x) sin(k_n x - w_n t)
@@ -98,7 +98,7 @@
     float c = 0.42;      // phase velocity — slow propagation
     float a = 0.055;     // attenuation
 
-    float damp = exp(-a * (X + 3.0));
+    float damp = exp(-a * X);
     float y = 0.0;
     float dydX = 0.0;
 
@@ -118,11 +118,11 @@
     // Dividing by sqrt(1 + slope^2) is the perpendicular distance to the curve,
     // so the stroke stays the same width where the wave is steep instead of
     // thinning out.
-    // Chain rule: X = p.x * 14.0, so dY/d(p.x) is dydX scaled by that same
-    // factor. This was left at 6.0 when the wavelength was retuned, which made
-    // the stroke thin out on the steep parts — the exact artefact the
-    // perpendicular-distance division exists to prevent.
-    float slope = dydX * 14.0;
+    // Chain rule. X runs 0..9 across span device pixels, and p.y is in units
+    // of uRes.y, so dY/d(p.y-space x) picks up both factors. Getting this wrong
+    // makes the stroke thin out on the steep parts, which is the exact artefact
+    // the perpendicular-distance division exists to prevent.
+    float slope = dydX * (9.0 / span) * uRes.y;
     float dist = abs(p.y - (baseline + y)) / sqrt(1.0 + slope * slope);
 
     // No glow — a bare stroke. The halo was reading as a smudge at this size.
@@ -181,6 +181,21 @@
 
   const uRes = gl.getUniformLocation(prog, 'uRes');
   const uTime = gl.getUniformLocation(prog, 'uTime');
+  const uAnchor = gl.getUniformLocation(prog, 'uAnchor');
+
+  // The wave sits under the header wordmark, so its geometry is measured from
+  // that element rather than assumed. Anything hardcoded here breaks as soon as
+  // the padding, font size or viewport changes.
+  const mark = document.querySelector('.logo-glitch');
+
+  function anchor(dpr) {
+    if (!mark) return [0, 0, 0];
+    const r = mark.getBoundingClientRect();
+    const gap = 26; // CSS px between the wordmark's baseline and the wave's axis
+    // gl_FragCoord.y counts up from the bottom, hence the flip.
+    const yFromTop = r.bottom + gap;
+    return [r.left * dpr, r.right * dpr, (window.innerHeight - yFromTop) * dpr];
+  }
 
   // DPR capped at 1.5: a full-screen fragment shader at DPR 3 is four times the
   // work for no visible gain on an effect this faint.
@@ -188,11 +203,15 @@
     const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
     const w = Math.floor(window.innerWidth * dpr);
     const h = Math.floor(window.innerHeight * dpr);
-    if (canvas.width === w && canvas.height === h) return;
-    canvas.width = w;
-    canvas.height = h;
-    gl.viewport(0, 0, w, h);
-    gl.uniform2f(uRes, w, h);
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width = w;
+      canvas.height = h;
+      gl.viewport(0, 0, w, h);
+      gl.uniform2f(uRes, w, h);
+    }
+    // Re-measured every time, since the wordmark moves with the padding.
+    const a = anchor(dpr);
+    gl.uniform3f(uAnchor, a[0], a[1], a[2]);
   }
 
   function draw(t) {
@@ -203,6 +222,8 @@
   host.appendChild(canvas);
   resize();
   window.addEventListener('resize', resize);
+  // The wordmark's box changes once the webfont swaps in, so measure again.
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(resize);
   requestAnimationFrame(() => host.classList.add('ready')); // fade in
 
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
