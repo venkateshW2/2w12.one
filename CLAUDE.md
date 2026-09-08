@@ -271,10 +271,10 @@ re-ordering (the mosaic follows pin/feature/hidden order) and
 ## Conventions
 
 - **Don't reintroduce the Google Sheets CSV loading path** — the sheet-as-CMS workflow is what this rebuild exists to replace.
-- **Don't re-run the importers** expecting fresh content. They were one-off migrations; `data/content.json` is the source of truth.
+- **Don't re-run the importers** expecting fresh content. They were one-off migrations; the `data/` folder is the source of truth.
 - **Don't rebuild `docs/tools/*`** — self-contained and out of scope.
 - **Category taxonomy lives in exactly one place** and is used by both the CMS config and the pages. Don't duplicate the list.
-- **Anything editable must be data, not code.** The status lines, badges, tags, copy and ordering all live in `content.json` precisely so a change doesn't need a developer. The recurring mistake through this project was state existing only where someone typed it — four separate times. If it's content, it goes in the file.
+- **Anything editable must be data, not code.** The status lines, badges, tags, copy and ordering all live in `data/` precisely so a change doesn't need a developer. The recurring mistake through this project was state existing only where someone typed it — four separate times. If it's content, it goes in the file.
 - **Validate generated assets.** A broken shader mounts nothing and looks identical to a disabled effect; an oversized OG image renders no preview and reports no error. Both were found only by checking output, not by the code running without throwing.
 
 ## Still to do
