@@ -55,15 +55,9 @@
 
       <span class="w-px h-4 bg-line mx-2"></span>
 
-      <% if (typeof loggedIn !== 'undefined' && loggedIn) { %>
-        <% if (typeof navIsAdmin !== 'undefined' && navIsAdmin) { %>
-          <a href="/admin" class="menu-btn <%= on('/admin') ? 'here' : '' %>">Admin</a>
-        <% } %>
-        <a href="/dashboard" class="menu-btn text-accent <%= on('/dashboard') ? 'here' : '' %>">Dashboard</a>
-        <form method="POST" action="/logout" class="inline"><button type="submit" class="menu-btn">Logout</button></form>
-      <% } else { %>
-        <a href="/login" class="menu-btn <%= on('/login') ? 'here' : '' %>">Login</a>
-      <% } %>
+      <%# There is no session on a static site. The only account surface is the
+          CMS, which authenticates against GitHub itself. %>
+      <a href="/admin/" class="menu-btn <%= on('/admin') ? 'here' : '' %>">Edit</a>
     </div>
 
     <!-- Mobile -->
@@ -86,12 +80,7 @@
       <a href="/tools/keyfinder/" class="block py-1.5 text-muted hover:text-accent transition-colors">Key Finder</a>
       <a href="/tools/youtube/" class="block py-1.5 text-muted hover:text-accent transition-colors">YouTube</a>
       <div class="pt-3 border-t border-line mt-3">
-        <% if (typeof loggedIn !== 'undefined' && loggedIn) { %>
-          <a href="/dashboard" class="block py-1.5 text-accent">Dashboard</a>
-          <form method="POST" action="/logout"><button type="submit" class="block py-1.5 text-muted hover:text-accent transition-colors">Logout</button></form>
-        <% } else { %>
-          <a href="/login" class="block py-1.5 text-muted hover:text-accent transition-colors">Login</a>
-        <% } %>
+        <a href="/admin/" class="block py-1.5 text-muted hover:text-accent transition-colors">Edit</a>
       </div>
     </div>
   </div>
