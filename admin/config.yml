@@ -18,7 +18,6 @@ backend:
 media_folder: public/images/projects
 public_folder: /images/projects
 
-publish_mode: simple
 site_url: https://2w12.one
 display_url: https://2w12.one
 logo_url: /images/og/venkatesh.jpg
@@ -32,7 +31,7 @@ collections:
     extension: json
     format: json
     create: true
-    slug: '{{fields.title | slugify}}'
+    slug: '{{title}}'
     identifier_field: title
     summary: '{{title}}  ·  {{year}}  ·  {{role}}'
     sortable_fields: [title, year, sort_order]
@@ -74,7 +73,6 @@ collections:
         hint: Leave empty and a YouTube link uses its own thumbnail.
         widget: image
         required: false
-        allow_multiple: false
 
       - name: source_url
         label: Link (the playable thing)
