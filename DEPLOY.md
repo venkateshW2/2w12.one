@@ -19,18 +19,20 @@ Sveltia CMS runs entirely in the browser, and a browser can't complete GitHub's
 OAuth secret exchange on its own. It needs a tiny relay — one Cloudflare Worker,
 free tier, deployed once and then forgotten.
 
-**a. Deploy the Worker**
+**a. Deploy the Worker** — done.
 
-- Fork <https://github.com/sveltia/sveltia-cms-auth>
-- Cloudflare dashboard → **Workers & Pages** → **Create** → **Import a repository**
-- Pick the fork, deploy, and copy the Worker URL
-  (something like `https://sveltia-cms-auth.<your-subdomain>.workers.dev`)
+`https://sveltia-cms-auth.w2-dc4.workers.dev`
+
+Useful check: opening `<worker-url>/auth` returns a small script containing
+`trustedPatterns` and `hasToken`. Empty patterns means `ALLOWED_DOMAINS` isn't
+set; `hasToken = false` means the client credentials aren't. Both should change
+once step c is done.
 
 **b. Register a GitHub OAuth app**
 
 - GitHub → Settings → Developer settings → **OAuth Apps** → **New OAuth App**
 - Homepage URL: `https://2w12.one`
-- Authorization callback URL: `<worker-url>/callback`
+- Authorization callback URL: `https://sveltia-cms-auth.w2-dc4.workers.dev/callback`
 - Create it, then **Generate a new client secret**
 
 **c. Give the Worker the credentials**
@@ -41,18 +43,13 @@ In the Worker's **Settings → Variables**, add:
 |---|---|
 | `GITHUB_CLIENT_ID` | from the OAuth app |
 | `GITHUB_CLIENT_SECRET` | from the OAuth app (encrypt this one) |
-| `ALLOWED_DOMAINS` | `2w12.one` |
+| `ALLOWED_DOMAINS` | `2w12.one,*.pages.dev` |
 
-**d. Point the CMS at it**
+The `*.pages.dev` entry matters while testing: the CMS will be served from the
+Cloudflare preview URL before the domain is switched, and the Worker refuses
+any origin not on this list. Trim it to just `2w12.one` once the domain is live.
 
-In `admin/config.yml`, replace the placeholder:
-
-```yaml
-backend:
-  base_url: https://sveltia-cms-auth.<your-subdomain>.workers.dev
-```
-
-Commit that change.
+**d. Point the CMS at it** — done, `admin/config.yml` already has the Worker URL.
 
 ---
 

@@ -11,7 +11,7 @@ backend:
   name: github
   repo: venkateshW2/2w12.one
   branch: main
-  base_url: https://REPLACE-ME.workers.dev
+  base_url: https://sveltia-cms-auth.w2-dc4.workers.dev
 
 # Uploads land next to the posters and are referenced by root-relative path,
 # which is what the templates expect.
