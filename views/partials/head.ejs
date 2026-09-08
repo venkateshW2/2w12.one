@@ -321,6 +321,28 @@
       .project-card:hover { transform: none; }
     }
 
+    /* The sidebar stacks ABOVE the grid below md (flex-col), which put the
+       player on top of 34 cards and made every card tap scroll back up and
+       away from the card just opened. Below md it becomes a bar pinned to the
+       bottom instead, and only once something is actually loaded — the card's
+       audio badge is what advertises audio at that width. */
+    @media (max-width: 767px) {
+      #player { display: none; }
+      #player.player-live {
+        display: block;
+        position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
+        border-radius: 12px 12px 0 0;
+        border-left: 0; border-right: 0; border-bottom: 0;
+        box-shadow: 0 -10px 30px rgba(0, 0, 0, .55);
+      }
+      /* Folded by default: it is a transport, not a panel, until asked. */
+      #player.player-live #pl-list { max-height: 0; transition: max-height .3s cubic-bezier(.32,.72,0,1); }
+      #player.player-live.bar-open #pl-list { max-height: 45vh; }
+      #player.player-live.bar-open #pl-chevron { transform: rotate(180deg); }
+      #pl-chevron { display: inline-block; transition: transform .3s ease; }
+      body.player-live-pad { padding-bottom: 132px; }
+    }
+
     /* Cards animate their own height, so the browser shouldn't also be trying
        to reflow the whole grid on every frame. */
     .project-card { contain: layout paint; }

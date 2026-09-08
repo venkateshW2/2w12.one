@@ -14,7 +14,7 @@
 const fs = require('fs');
 const path = require('path');
 const ejs = require('ejs');
-const { classify, youtubeId, vimeoId, youtubeThumbnail, youtubeEmbedUrl, vimeoEmbedUrl } = require('../lib/sourceType');
+const { classify, soundcloudWidgetUrl, youtubeId, vimeoId, youtubeThumbnail, youtubeEmbedUrl, vimeoEmbedUrl } = require('../lib/sourceType');
 const { TAG_ORDER, TAG_LABELS } = require('../lib/taxonomy');
 const { slugify } = require('../lib/slug');
 
@@ -108,7 +108,15 @@ function enrich(t) {
     cover: t.cover_image_url || (kind === 'youtube' ? youtubeThumbnail(src) : null) || '',
     kind,
     src,
-    embedUrl: kind === 'youtube' ? youtubeEmbedUrl(src) : kind === 'vimeo' ? vimeoEmbedUrl(src) : null,
+    widgetUrl: soundcloudWidgetUrl(t.audio_url || (kind === 'soundcloud' ? src : '')),
+    embedUrl:
+      kind === 'youtube'
+        ? youtubeEmbedUrl(src)
+        : kind === 'vimeo'
+          ? vimeoEmbedUrl(src)
+          : kind === 'soundcloud'
+            ? soundcloudWidgetUrl(src)
+            : null,
     youtubeId: kind === 'youtube' ? youtubeId(src) : null,
     vimeoId: kind === 'vimeo' ? vimeoId(src) : null
   };
@@ -135,8 +143,8 @@ function profileView(content) {
       if (!item.tags.length) item.tags = ['MORE'];
       item.pieces = pieces.filter((p) => p.parent_title === t.title).map(enrich);
       item.isAlbum = item.pieces.length > 0;
-      item.audioPieces = item.pieces.filter((p) => p.kind === 'direct_audio');
-      if (item.kind === 'direct_audio') item.audioPieces = [item, ...item.audioPieces];
+      item.audioPieces = item.pieces.filter((p) => p.kind === 'direct_audio' || p.widgetUrl);
+      if (item.kind === 'direct_audio' || item.widgetUrl) item.audioPieces = [item, ...item.audioPieces];
       return item;
     })
     .sort(
@@ -161,7 +169,15 @@ function profileView(content) {
   const playlist = [];
   items.forEach((it) =>
     it.audioPieces.forEach((a) =>
-      playlist.push({ id: a.id, title: a.title, src: a.src, cover: it.cover, project: it.title, role: a.roleShort || '' })
+      playlist.push({
+        id: a.id,
+        title: a.title,
+        src: a.src,
+        widgetUrl: a.widgetUrl || null,
+        cover: it.cover,
+        project: it.title,
+        role: a.roleShort || ''
+      })
     )
   );
 

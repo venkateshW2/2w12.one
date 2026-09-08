@@ -20,7 +20,7 @@ Static build (renders every page to HTML)
      ▼
 Cloudflare Pages  (global CDN, $0)
 
-R2 — only if/when audio or video needs hosting
+SoundCloud — private sets stream the audio; nothing large lives in the repo
 ```
 
 | Concern | How it's handled | Cost |
@@ -30,7 +30,8 @@ R2 — only if/when audio or video needs hosting
 | Editing UI | Sveltia CMS at `/admin` | $0 |
 | Logins | GitHub repo collaborators + a `sveltia-cms-auth` Worker | $0 |
 | Images | committed to `public/images/` | $0 |
-| Large media (later) | Cloudflare R2 — Sveltia integrates with it directly | ~$0 |
+| Audio | private SoundCloud sets, played through their widget | $0 (3h upload cap) |
+| Large video (later) | Cloudflare R2 — Sveltia integrates with it directly | ~$0 |
 
 **There is no user table, no session store, no invite flow and no password anywhere.** Sveltia has no auth of its own by design — it "relies on the Git backend for user authentication and access control". A login *is* write access to this repo. Add a collaborator in GitHub → they can edit. Remove them → they can't. That is the whole access model; don't rebuild one.
 
@@ -124,6 +125,7 @@ Field notes:
 
 - **`parent_title`** nests album pieces under a parent by title, not id. Titles are the keys throughout, because ids are meaningless in a file.
 - **`source_url`** is the *playable* thing; **`external_url`** is the IMDb/official/GitHub page behind "View project". Keep them separate.
+- **`audio_url`** is the SoundCloud set or track that feeds the sidebar player — a **third** concern, not a replacement for `source_url`. Schirkoa has a YouTube trailer in `source_url` *and* a private set in `audio_url`: **Play** opens the trailer, the card opening loads the album. Paste the whole `src="…"` from SoundCloud's Share ▸ Embed box; the build pulls the resource back out of it, so nothing has to be hand-assembled and the secret token survives.
 - **`role` is the badge text, verbatim.** Free text, no lookup table — what's typed is what the card shows. Empty means no badge. The five in use: Sound Design + Mix, Score + Stem Mix, Stem Mix + Supervision, Music Production + Management, Developed — plus hand-typed ones like "MultiChannel Mix", "Sound Design + Atmos Mix".
 - **`tags`** is a **list** in the files (so the CMS offers checkboxes) and joined to a comma string for the templates. It drives the section tabs and their order.
 - **`hidden`** takes a project off the site without deleting it. **A hidden parent hides its nested pieces too**, or an album loses its card but keeps feeding the lightbox.
@@ -234,6 +236,69 @@ multi-category card. Use the actual `·` character, not an HTML entity, inside
 - **No play overlay.** It used to appear on any card with a URL, but 10 of 34 point at IMDb or GitHub and can't play. Playback is an explicit button inside the expanded card, shown **only** for genuinely embeddable sources (YouTube, Vimeo, direct audio/video, SoundCloud); external links get "Open ↗"; a card with no source just expands.
 - Category tabs filter **in place** so a category never needs scrolling, animated with **FLIP** — measure every visible card, apply the filter, measure again, animate each from its old rect to its new one (420ms). Newly revealed cards fade and scale in. Skipped under reduced-motion. The tab strip gains chevrons and edge fades only when it actually overflows.
 
+## The sidebar player and SoundCloud
+
+Audio streams from **private SoundCloud sets**, played through SoundCloud's own
+widget in a hidden iframe that the sidebar UI drives via the **Widget API**. The
+visitor never sees a SoundCloud player.
+
+**Why not a direct file.** SoundCloud's real audio URL is signed and expiring
+and needs an API `client_id`; registration has been closed for years. So it can
+never be fed to `<audio>` — the widget is the only route. Google Drive is the
+same story for a different reason: the share link is an HTML page, and the
+`uc?export=download` form sends no CORS header and no `Range` support, so
+seeking is impossible even when playback starts. Drive would need a credentialed
+proxy doing Range passthrough; `api.2w12.one` (still missing from DNS after the
+nameserver move) was the candidate host.
+
+**"Private" here means unlisted.** The secret token has to be in the published
+HTML for the widget to play it, so anyone who views source can listen. No
+download button, not searchable, but not secret. Fine for showreel material;
+not for unreleased client stems.
+
+Four things that each broke this, none of which threw an error:
+
+- **`SC.Widget()` cannot bind to an `about:blank` iframe.** It talks to the
+  player over `postMessage`, so the iframe must *already be* a SoundCloud player
+  before it is wrapped. The boot is therefore two steps: set `frame.src` to the
+  player URL, wait for `load`, *then* wrap and bind.
+- **`widget.load()` takes the resource URL, not the player URL** — the playlist
+  URL from inside the player URL's own `url=` param. Handing it the player URL
+  loads nothing at all, silently. This only showed up on the *second* album,
+  because the first one arrives via the iframe's `src`, which does want the
+  player URL.
+- **`getSounds()` is lazy.** It returns title-less placeholder objects for
+  sounds SoundCloud has not hydrated yet, so an empty answer usually means "not
+  yet". It retries 6× at 400ms. Without that, the one-row fallback disguised the
+  `load()` bug above as a data problem.
+- **The hidden iframe must not be `display:none`** — that can stop the widget
+  initialising, the same trap as the landing terminal's rows. It is positioned
+  off-screen instead.
+
+### The player's shape, and why
+
+- **The sidebar is a library, not one album's transport.** Every album's header
+  is always listed and expands into its tracks. It only holds *one album's*
+  tracks at a time because the widget holds one resource at a time — clicking
+  the album that is already playing therefore just folds the list away rather
+  than reloading it, so collapsing never interrupts playback.
+- **Track names come from SoundCloud at runtime**, so the build cannot know
+  them or count them. That is why the card badge reads `♪ AUDIO` rather than
+  `6 TRACKS`, and why the count only appears on an album header once opened. If
+  the raw upload names ever need overriding, they have to move into `data/`.
+- **No player inside the card.** It was tried in discussion and rejected:
+  collapsing a card animates `grid-template-rows` to `0fr` but leaves the iframe
+  in the DOM, and `filterTo()` strips `.expanded` from *every* card on a
+  category change — so switching tabs would leave audio playing from a player
+  nobody can see or stop. The transport staying outside the card is also what
+  lets playback survive browsing, which is the whole point of having one.
+- **Below `md` the player is a bar pinned to the bottom**, appearing only once
+  something is loaded. The sidebar stacks *above* the grid at that width, so the
+  player used to sit on top of 34 cards and every card tap scrolled the page
+  back up and away from the card just opened. The player's `scrollIntoView` was
+  deleted outright: it is sticky on desktop and pinned on mobile, so there is
+  nothing to scroll to.
+
 ## Images
 
 `npm run optimize:images` converts `public/images/**.{png,jpg}` to WebP via `cwebp` (`brew install webp`), resizes to 900px wide, and rewrites the paths it finds. This took the poster set from **24.91 MB to 0.84 MB (−97%)** — the originals were 1–2 MB PNGs rendering into ~350px cards, by far the biggest performance problem the site had. **Originals are kept as masters.** Re-run after adding posters.
@@ -339,6 +404,6 @@ were all removed at cutover — the site needs none of it.
 3. **Drive Audio Analyzer has no artwork** and is `hidden` because of it.
 4. **The fingerprint is still synthetic** — see above for what would make it real.
 5. **`/work` is a coming-soon page.**
-6. **Audio hosting.** The sidebar player has nothing to stream: it only accepts direct audio files and there are none. The CNTRL and Schirkoa material sits in a private Backblaze bucket whose public-bucket payment gate failed with "error code 2". R2 is the intended home either way.
+6. **Audio is on SoundCloud, and its ceiling is 3 hours.** B2 and R2 were both blocked by card payments failing, so private SoundCloud sets host the audio instead — see the player section. Schirkoa and CTRL are up. Past 3 hours of total uploads it becomes SoundCloud Pro (~$12/mo) and stops being $0, which is the point to revisit R2.
 7. **`ALLOWED_DOMAINS` on the Worker still includes `*.pages.dev`** from testing. Trim to just `2w12.one`.
 8. **A DMARC record** would complete the email setup — SPF and DKIM are in place, `_dmarc` was never set.

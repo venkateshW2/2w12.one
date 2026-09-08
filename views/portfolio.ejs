@@ -66,18 +66,23 @@
 
       <!-- Stream player -->
       <div id="player" class="bg-surface border border-line rounded-lg overflow-hidden">
-        <div class="flex items-center justify-between px-4 pt-3.5 pb-2">
+        <div id="pl-header" class="flex items-center justify-between px-4 pt-3.5 pb-2 md:cursor-default cursor-pointer">
           <div class="text-[9.5px] font-mono uppercase tracking-[0.14em] text-muted/80">Player</div>
-          <div id="pl-count" class="text-[9.5px] font-mono text-muted/60"></div>
+          <div class="flex items-center gap-2">
+            <div id="pl-count" class="text-[9.5px] font-mono text-muted/60"></div>
+            <%# Only meaningful in the mobile bottom bar, where the list is
+                folded away by default. %>
+            <span id="pl-chevron" class="md:hidden font-mono text-[9px] text-muted/60">&#9652;</span>
+          </div>
         </div>
 
         <div id="pl-empty" class="px-4 pb-4 text-[11.5px] leading-relaxed text-muted">
-          No streamable audio yet. Tracks added as direct audio links &mdash; or uploaded once B2 is reachable &mdash; show up here as a playlist.
+          No streamable audio yet. Projects with a SoundCloud set &mdash; or a direct audio link &mdash; show up here as a playlist.
         </div>
 
         <div id="pl-body" class="hidden">
           <div class="px-4 pb-3 flex items-center gap-3">
-            <img id="pl-cover" src="" alt="" class="w-11 h-11 rounded object-cover bg-bg flex-shrink-0">
+            <img id="pl-cover" src="" alt="" class="hidden w-11 h-11 rounded object-cover bg-bg flex-shrink-0">
             <div class="min-w-0 flex-1">
               <div id="pl-title" class="text-[12.5px] truncate leading-tight"></div>
               <div id="pl-project" class="text-[10.5px] text-muted truncate mt-0.5"></div>
@@ -149,7 +154,8 @@
     <div id="grid" class="grid gap-4 pt-4 items-start" style="grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));">
       <% items.forEach(function(item) { %>
         <article class="project-card group relative bg-surface border border-line rounded-md overflow-hidden cursor-pointer<%= item.soloCredit ? ' solo-credit' : '' %>"
-                 data-id="<%= item.id %>" data-tags="<%= item.tags.join(',') %>">
+                 data-id="<%= item.id %>" data-tags="<%= item.tags.join(',') %>"
+                 data-queue="<%= item.audioPieces.map(function(a){return a.id;}).join(',') %>">
 
           <div class="relative aspect-[16/9] bg-bg overflow-hidden">
             <% if (item.cover) { %>
@@ -196,7 +202,16 @@
                     output printed "&middot;" verbatim on the card. %>
                 <%= item.tags.map(function(t){ return t === 'MORE' ? 'Other' : t; }).join(' · ') %>
               </div>
-              <% if (item.year) { %><div class="text-[9.5px] font-mono text-muted flex-shrink-0"><%= item.year %></div><% } %>
+              <div class="flex items-baseline gap-1.5 flex-shrink-0">
+                <%# Says a card has audio without expanding it. The track count
+                    is not knowable at build time — a SoundCloud set resolves
+                    its sounds in the browser — so the badge states the fact,
+                    not the number. %>
+                <% if (item.audioPieces && item.audioPieces.length) { %>
+                  <span class="audio-badge text-[8.5px] font-mono uppercase tracking-wider text-accent border border-accent/50 rounded-sm px-1 leading-[1.4]">&#9834; Audio</span>
+                <% } %>
+                <% if (item.year) { %><div class="text-[9.5px] font-mono text-muted"><%= item.year %></div><% } %>
+              </div>
             </div>
 
             <h3 class="project-title card-title text-[15px] leading-snug font-medium tracking-tight transition-colors"><%= item.title %></h3>
@@ -241,12 +256,6 @@
                       Open &nearr;
                     </a>
                   <% } %>
-                  <% if (item.audioPieces && item.audioPieces.length) { %>
-                    <button type="button" class="card-queue text-[10px] font-mono uppercase tracking-wider border border-line text-muted rounded px-2.5 py-1 hover:text-accent hover:border-accent/60 transition-colors"
-                            data-queue="<%= item.audioPieces.map(function(a){return a.id;}).join(',') %>">
-                      Send to player
-                    </button>
-                  <% } %>
                   <% if (item.externalUrl) { %>
                     <a href="<%= item.externalUrl %>" target="_blank" rel="noopener" class="card-link text-[10px] font-mono uppercase tracking-wider border border-line text-muted rounded px-2.5 py-1 hover:text-ink hover:border-muted transition-colors">
                       View project
@@ -285,6 +294,16 @@
   window.ITEMS = <%- itemsJson %>;
   window.PLAYLIST = <%- playlistJson %>;
 </script>
+<!--
+  The SoundCloud widget that actually streams private sets. Kept off-screen
+  rather than display:none — display:none can stop the widget initialising, the
+  same trap as the landing terminal's rows. The visitor only ever sees the
+  sidebar player driving it.
+-->
+<iframe id="pl-sc" title="SoundCloud audio" allow="autoplay"
+        style="position:absolute;left:-9999px;top:0;width:1px;height:1px;border:0;"
+        aria-hidden="true" tabindex="-1"></iframe>
+<script src="https://w.soundcloud.com/player/api.js"></script>
 <script src="/js/portfolio.js"></script>
 </body>
 </html>

@@ -80,6 +80,15 @@ collections:
         widget: string
         required: false
 
+      - name: audio_url
+        label: Audio (SoundCloud)
+        hint: >-
+          Paste the whole src="..." from SoundCloud's Share > Embed box. Private
+          tracks and sets work — the secret link carries its own token. This
+          feeds the sidebar player; use the Link field above for video.
+        widget: string
+        required: false
+
       - name: external_url
         label: Project page
         hint: IMDb, official site, GitHub — sits behind "View project".
