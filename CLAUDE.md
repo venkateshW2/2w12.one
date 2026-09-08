@@ -4,13 +4,13 @@ Audio community platform for Venkatesh Iyer and the other audio people in the gr
 
 ## What this is, in one line
 
-**A static site whose content is a file in this repo, edited through a browser CMS that commits to GitHub.** No server, no database, no monthly bill.
+**A static site whose content is a folder of files in this repo, edited through a browser CMS that commits to GitHub.** No server, no database, no monthly bill.
 
 ## Architecture
 
 ```
 Sveltia CMS  (browser, at /admin — logs in with GitHub)
-     │  edits data/content.json + commits images
+     │  edits data/ (profile, one file per project) + commits images
      ▼
 GitHub repo  (the content IS the repo)
      │  push triggers a build
@@ -26,7 +26,7 @@ R2 — only if/when audio or video needs hosting
 | Concern | How it's handled | Cost |
 |---|---|---|
 | Hosting | Cloudflare Pages | $0 |
-| Content store | `data/content.json` in this repo | $0 |
+| Content store | the `data/` folder in this repo | $0 |
 | Editing UI | Sveltia CMS at `/admin` | $0 |
 | Logins | GitHub repo collaborators + a `sveltia-cms-auth` Worker | $0 |
 | Images | committed to `public/images/` | $0 |
@@ -79,48 +79,34 @@ would give the CMS one enormous form with a 46-item list widget; a folder gives
 a searchable list with per-project edit pages — the shape a CMS is for.
 `data/content.json` is the pre-split original, kept only as a record.
 
-Filenames are the slugified title. Project shape:
+Filenames are the slugified title. A project file:
 
 ```json
 {
-  "profile": {
-    "name": "Venkatesh Iyer",
-    "slug": "venkatesh",
-    "tagline": "Sound Artist — Mumbai",
-    "bio_long": "...",
-    "education": "line\nline",
-    "avatar_url": "/images/venkateshheadhsot.webp",
-    "email": "...", "phone": "...", "location": "...",
-    "website_url": "...", "linkedin_url": "...", "instagram_url": "...",
-    "twitter_url": "...", "substack_url": "...", "soundcloud_url": "...",
-    "spotify_url": "...", "imdb_url": "..."
-  },
-  "tracks": [
-    {
-      "title": "Schirkoa: In Lies We Trust",
-      "year": 2023,
-      "role": "Music Production + Score",
-      "tags": "FILM,RECORDING",
-      "cover_image_url": "/images/projects/Schirkoa.webp",
-      "source_url": "https://www.youtube.com/watch?v=pTHbdXAZcPU",
-      "external_url": "https://schirkoamovie.com/",
-      "description": "...",
-      "collaboration": "Dissidenz, Red Cigarette Media",
-      "location": "Mumbai",
-      "technical": "Instrument Design,Sampling,VocalDesign,Score Edit",
-      "context": "Dystopian",
-      "featured": true,
-      "hidden": false,
-      "solo_credit": false,
-      "credit_note": null,
-      "sort_order": 100,
-      "parent_title": null
-    }
-  ],
-  "status_lines": [{ "label": "Built", "body": "...", "note": null, "sort_order": 40 }],
-  "gallery_items": [{ "url": "...", "kind": "image", "caption": null, "sort_order": 0, "scope": "mine" }]
+  "title": "Schirkoa: In Lies We Trust",
+  "year": 2023,
+  "role": "Music Production + Score",
+  "tags": ["FILM", "RECORDING"],
+  "cover_image_url": "/images/projects/Schirkoa.webp",
+  "source_url": "https://www.youtube.com/watch?v=pTHbdXAZcPU",
+  "external_url": "https://schirkoamovie.com/",
+  "description": "...",
+  "collaboration": "Dissidenz, Red Cigarette Media",
+  "location": "Mumbai",
+  "technical": "Instrument Design,Sampling,VocalDesign,Score Edit",
+  "context": "",
+  "featured": true,
+  "hidden": false,
+  "solo_credit": false,
+  "credit_note": "",
+  "sort_order": 100,
+  "parent_title": ""
 }
 ```
+
+`profile.json` is a flat object of the fields listed in the CMS config.
+`status.json` is `{ "lines": [{ label, body, note, sort_order }] }` and
+`gallery.json` is `{ "items": [{ url, kind, caption, scope, sort_order }] }`.
 
 Current contents: **46 tracks** — 35 top-level projects plus 11 nested album pieces (6 Gangs of Wasseypur songs, 5 SoundTrippin segments) — 17 featured, 18 pinned, 1 hidden, 3 solo credits, 4 status lines.
 
