@@ -8,7 +8,8 @@
     "LABS"
   ],
   "cover_image_url": "/images/projects/Mind.webp",
-  "source_url": "https://2w12.one/",
+  "source_url": "https://youtu.be/ijkLoBDh6gE",
+  "audio_url": "",
   "external_url": "",
   "description": "Interactive installation interpreting brainwaves into sonic structures. Audio-visual installation at Serendipity Art Festival based on interpreting brainwaves into sonic structures.",
   "collaboration": "Serendipity Art Festival",
@@ -17,7 +18,7 @@
   "context": "",
   "featured": true,
   "hidden": false,
-  "solo_credit": false,
+  "solo_credit": true,
   "credit_note": "",
   "sort_order": 50,
   "parent_title": ""
