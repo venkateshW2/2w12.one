@@ -15,12 +15,9 @@
 // production never runs this.
 //
 // Usage: npm run make:og
-require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
-const knexConfig = require('../knexfile');
-const knex = require('knex')(knexConfig);
 
 const W = 1200;
 const H = 630;
@@ -64,10 +61,20 @@ const ROWS = 4;
 const TW = 200;
 const TH = 158;
 
-async function coversFor(knexRef, profile) {
-  const rows = await knexRef('tracks').where({ profile_id: profile.id }).whereNull('parent_track_id');
-  const ordered = rows
-    .filter((t) => !t.hidden)
+function readProjects() {
+  const dir = path.join(__dirname, '..', 'data', 'projects');
+  if (!fs.existsSync(dir)) return [];
+  return fs
+    .readdirSync(dir)
+    .filter((f) => f.endsWith('.json'))
+    .map((f) => JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8')));
+}
+
+// Page order, so the mosaic matches what a visitor sees: pinned, then
+// featured, then newest. Hidden projects and album pieces are excluded.
+function coversFor(projects) {
+  const ordered = projects
+    .filter((t) => !t.hidden && !t.parent_title)
     .sort(
       (a, b) =>
         (b.sort_order || 0) - (a.sort_order || 0) ||
@@ -75,12 +82,11 @@ async function coversFor(knexRef, profile) {
         (b.year || 0) - (a.year || 0)
     );
 
-  // Resolve to a file ImageMagick will definitely read — webp support depends
-  // on how the local build was compiled, and the png/jpg masters are all here.
   const files = [];
   for (const t of ordered) {
     if (!t.cover_image_url || !t.cover_image_url.startsWith('/images/')) continue;
     const rel = t.cover_image_url.replace(/^\//, '');
+    // Prefer a png/jpg master — ImageMagick's webp support depends on the build.
     for (const candidate of [rel.replace(/\.webp$/i, '.png'), rel.replace(/\.webp$/i, '.jpg'), rel]) {
       const abs = path.join(__dirname, '..', 'public', candidate);
       if (fs.existsSync(abs)) {
@@ -109,10 +115,10 @@ function buildMosaic(files) {
   return mosaic;
 }
 
-async function buildCard(knexRef, profile) {
+function buildCard(profile, projects) {
   const slug = profile.slug;
   const out = path.join(OUT_DIR, `${slug}.jpg`);
-  const files = await coversFor(knexRef, profile);
+  const files = coversFor(projects);
 
   const args = [];
 
@@ -150,7 +156,7 @@ async function buildCard(knexRef, profile) {
   args.push('-fill', ACCENT, '-draw', `rectangle ${textX},396 ${textX + 90},399`);
   args.push('-font', 'Helvetica', '-pointsize', '26', '-fill', MUTED, '-annotate', `+${textX}+456`, `2w12.one/@${slug}`);
 
-  const count = (await knexRef('tracks').where({ profile_id: profile.id }).whereNull('parent_track_id').where({ hidden: false }).count({ c: '*' }).first()).c;
+  const count = projects.filter((t) => !t.hidden && !t.parent_title).length;
   args.push('-font', 'Helvetica', '-pointsize', '22', '-fill', MUTED, '-annotate', `+${textX}+512`, `${count} projects`);
 
   args.push('-quality', '80', '-strip', out);
@@ -158,32 +164,30 @@ async function buildCard(knexRef, profile) {
   return out;
 }
 
-async function main() {
+function main() {
   if (!have('magick')) {
     console.error('ImageMagick not found. Install it with:  brew install imagemagick');
     process.exit(1);
   }
   fs.mkdirSync(OUT_DIR, { recursive: true });
 
-  const profiles = await knex('profiles').whereNotNull('slug');
-  if (!profiles.length) {
-    console.log('No profiles with a slug yet — nothing to build.');
-    return;
+  const profile = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'profile.json'), 'utf8'));
+  if (!profile.slug) {
+    console.error('data/profile.json has no slug — the card is named after it.');
+    process.exit(1);
   }
 
-  for (const p of profiles) {
-    const out = await buildCard(knex, p);
-    const kb = Math.round(fs.statSync(out).size / 1024);
-    console.log(`  ${p.name.padEnd(20)} -> /images/og/${p.slug}.jpg  (${kb} KB)`);
-    if (kb > 300) console.log('    ! over 300 KB — some scrapers skip images this large');
-  }
-  console.log(`\n${profiles.length} card(s) built at ${W}x${H}.`);
+  const projects = readProjects();
+  const out = buildCard(profile, projects);
+  const kb = Math.round(fs.statSync(out).size / 1024);
+  console.log(`  ${profile.name.padEnd(20)} -> /images/og/${profile.slug}.jpg  (${kb} KB)`);
+  if (kb > 300) console.log('    ! over 300 KB — some scrapers skip images this large');
+  console.log(`\n1 card built at ${W}x${H}.`);
 }
 
-main()
-  .then(() => knex.destroy())
-  .catch(async (err) => {
-    console.error('\nFailed:', err.message);
-    await knex.destroy();
-    process.exit(1);
-  });
+try {
+  main();
+} catch (err) {
+  console.error('\nFailed:', err.message);
+  process.exit(1);
+}

@@ -12,12 +12,9 @@
 //   npm run optimize:images -- --dry-run
 //   npm run optimize:images
 //   npm run optimize:images -- --quality=80 --width=900
-require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
-const knexConfig = require('../knexfile');
-const knex = require('knex')(knexConfig);
 
 const arg = (name, fallback) => {
   const hit = process.argv.find((a) => a.startsWith(`--${name}=`));
@@ -90,29 +87,40 @@ async function main() {
     console.log('');
   }
 
-  // Repoint every track (and the headshot) that referenced an original.
+  // Rewrite the data files that referenced an original. The JSON is the source
+  // of truth, so this is where paths have to be updated.
   let repointed = 0;
-  const tracks = await knex('tracks').whereNotNull('cover_image_url').select('id', 'cover_image_url');
-  for (const t of tracks) {
-    const next = remap[t.cover_image_url];
-    if (!next) continue;
-    if (!DRY_RUN) await knex('tracks').where({ id: t.id }).update({ cover_image_url: next });
-    repointed++;
+  const dataDir = path.join(__dirname, '..', 'data');
+
+  const rewrite = (file, mutate) => {
+    const abs = path.join(dataDir, file);
+    if (!fs.existsSync(abs)) return;
+    const json = JSON.parse(fs.readFileSync(abs, 'utf8'));
+    const before = JSON.stringify(json);
+    mutate(json);
+    const after = JSON.stringify(json);
+    if (before !== after && !DRY_RUN) fs.writeFileSync(abs, JSON.stringify(json, null, 2) + '\n');
+    if (before !== after) repointed++;
+  };
+
+  const projectsDir = path.join(dataDir, 'projects');
+  if (fs.existsSync(projectsDir)) {
+    for (const f of fs.readdirSync(projectsDir).filter((x) => x.endsWith('.json'))) {
+      rewrite(path.join('projects', f), (t) => {
+        if (remap[t.cover_image_url]) t.cover_image_url = remap[t.cover_image_url];
+      });
+    }
   }
 
-  const gallery = await knex('gallery_items').select('id', 'url');
-  for (const g of gallery) {
-    const next = remap[g.url];
-    if (!next) continue;
-    if (!DRY_RUN) await knex('gallery_items').where({ id: g.id }).update({ url: next });
-    repointed++;
-  }
+  rewrite('profile.json', (p) => {
+    if (remap[p.avatar_url]) p.avatar_url = remap[p.avatar_url];
+  });
 
-  const profile = await knex('profiles').whereNotNull('user_id').first();
-  if (profile && profile.avatar_url && remap[profile.avatar_url]) {
-    if (!DRY_RUN) await knex('profiles').where({ id: profile.id }).update({ avatar_url: remap[profile.avatar_url] });
-    console.log('  (headshot repointed too)');
-  }
+  rewrite('gallery.json', (g) => {
+    (g.items || []).forEach((item) => {
+      if (remap[item.url]) item.url = remap[item.url];
+    });
+  });
 
   console.log(`${repointed} references repointed to .webp`);
   if (!DRY_RUN) {
@@ -124,10 +132,7 @@ async function main() {
   }
 }
 
-main()
-  .then(() => knex.destroy())
-  .catch(async (err) => {
-    console.error('\nFailed:', err.message);
-    await knex.destroy();
-    process.exit(1);
-  });
+main().catch((err) => {
+  console.error('\nFailed:', err.message);
+  process.exit(1);
+});

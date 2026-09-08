@@ -3,13 +3,15 @@
 Static site on Cloudflare Pages, edited through Sveltia CMS, authenticated by
 GitHub repo access. Total cost: **$0**.
 
-Three things need your accounts, so they can't be scripted:
+**Done — the site is live on `2w12.one`.** This is kept as the record of how it
+was set up, and what to repeat for another domain or another person's page.
 
-1. A GitHub OAuth app + the auth Worker — so the CMS can log you in
-2. The Cloudflare Pages project — so the site builds and serves
-3. The DNS change — so `2w12.one` points at it
-
-Do them in that order. Nothing on Render is touched until step 4.
+One hard-won warning, at the top because it takes a domain and its email
+offline: **if DNSSEC is enabled, disable it at the registrar before moving
+nameservers.** A `DS` record signed by the old provider's keys makes every
+validating resolver reject the domain entirely — website and MX alike. Check
+for it with `dig DS <domain>` first; it is not visible in a normal record
+listing.
 
 ---
 
@@ -89,20 +91,6 @@ TLS is issued automatically. Propagation is usually minutes.
 
 **Then turn off GitHub Pages** for this repo (Settings → Pages → source: None),
 so the old static site can't serve anything.
-
----
-
-## 4. Retire Render — last
-
-Only after the domain serves from Cloudflare and the CMS can save an edit:
-
-- Delete the **web service**
-- Delete the **Postgres database**
-- Then strip the server from this repo: `server.js`, `knexfile.js`, `routes/`,
-  `migrations/`, `lib/auth.js`, `lib/storage.js`, the dashboard/admin/login/signup
-  views, and the `express`, `knex`, `pg`, `better-sqlite3`, `express-session`,
-  `connect-session-knex`, `bcryptjs`, `multer`, `@aws-sdk/*` dependencies
-- Delete the cutover section from `CLAUDE.md` and this file's step 4
 
 ---
 

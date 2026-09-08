@@ -2,43 +2,17 @@
   "name": "2w12-one",
   "version": "1.0.0",
   "private": true,
-  "description": "2w12.one — audio community platform: profiles, portfolio CMS, and tools",
-  "main": "server.js",
+  "description": "2w12.one \u2014 static site built from data/, edited with Sveltia CMS, hosted on Cloudflare Pages",
   "engines": {
     "node": "24.x"
   },
   "scripts": {
-    "start": "node server.js",
-    "migrate": "knex migrate:latest",
-    "migrate:rollback": "knex migrate:rollback",
-    "seed:user": "node scripts/create-user.js",
-    "import:showreel": "node scripts/import-showreel.js",
-    "media:b2": "node scripts/media-to-b2.js",
-    "import:sheet": "node scripts/import-sheet.js",
-    "optimize:images": "node scripts/optimize-images.js",
-    "seed:software": "node scripts/seed-software.js",
-    "normalize:roles": "node scripts/normalize-roles.js",
-    "seed:status": "node scripts/seed-status.js",
-    "setup:fresh": "npm run migrate && npm run import:showreel && npm run import:sheet && npm run seed:software && npm run seed:status && npm run normalize:roles && npm run optimize:images",
-    "make:og": "node scripts/make-og-card.js",
-    "export:content": "node scripts/export-content.js",
-    "apply:content": "node scripts/apply-content.js",
     "build": "node scripts/build-static.js",
-    "preview": "node scripts/preview.js"
+    "preview": "node scripts/preview.js",
+    "make:og": "node scripts/make-og-card.js",
+    "optimize:images": "node scripts/optimize-images.js"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.658.1",
-    "@aws-sdk/lib-storage": "^3.658.1",
-    "bcryptjs": "^2.4.3",
-    "better-sqlite3": "^11.3.0",
-    "connect-session-knex": "^4.0.2",
-    "dotenv": "^16.4.5",
-    "ejs": "^3.1.10",
-    "express": "^4.21.0",
-    "express-session": "^1.18.0",
-    "knex": "^3.1.0",
-    "multer": "^2.0.0",
-    "nanoid": "^3.3.7",
-    "pg": "^8.13.0"
+    "ejs": "^3.1.10"
   }
 }

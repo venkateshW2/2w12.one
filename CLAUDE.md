@@ -44,24 +44,6 @@ The measured content is **0.10 MB** and a full page visit is **~1 MB**. Any alwa
 
 Saving in the CMS is a git commit, so **an edit takes ~40s to appear live** rather than being instant. That's the price of having no server. It's fine for a portfolio; it would not be fine for anything conversational.
 
-## Cutover status — READ THIS FIRST
-
-**Built and verified locally; not yet hosted.** The Express/Knex app is still in
-this repo and still serving the live site until step 3 completes.
-
-| Step | State |
-|---|---|
-| 1. Static build (`npm run build` → `dist/`) | **done** — output verified identical to the Express render |
-| 2. Sveltia CMS at `/admin` | **done** — needs one value: the auth Worker URL in `admin/config.yml` |
-| 3. Cloudflare Pages + DNS | **yours to do** — see `DEPLOY.md` |
-| 4. Delete Render, strip the server code | after step 3 |
-
-`npm run build` then `npm run preview` serves the built site at
-<http://localhost:4000> for checking before anything is hosted.
-
-Nothing gets deleted until the replacement is serving the domain. When step 4
-completes, delete this section and `DEPLOY.md`'s step 4.
-
 ## Content model
 
 The `data/` folder is the single source of truth, and it is exactly what the CMS
@@ -77,8 +59,6 @@ data/gallery.json          loose images and video
 **One file per project on purpose.** A single JSON blob holding 46 projects
 would give the CMS one enormous form with a 46-item list widget; a folder gives
 a searchable list with per-project edit pages — the shape a CMS is for.
-`data/content.json` is the pre-split original, kept only as a record.
-
 Filenames are the slugified title. A project file:
 
 ```json
@@ -267,6 +247,23 @@ the steps.
 Two things the CMS can't do, which stay local commands: `npm run make:og` after
 re-ordering (the mosaic follows pin/feature/hidden order) and
 `npm run optimize:images` after adding artwork.
+
+## What's in the repo
+
+```
+data/            the content — profile, one file per project, status lines, gallery
+views/           EJS templates the build renders
+lib/             taxonomy, source-type detection, slug rules
+scripts/         build-static, preview, make-og-card, optimize-images
+admin/           the CMS page and its config
+public/          images and client JS, copied into the build
+docs/tools/      the three browser audio tools, untouched
+dist/            build output (gitignored)
+```
+
+`ejs` is the only dependency. The Express/Knex/Postgres server, its routes,
+migrations, session store, admin panel, invite flow and the database scripts
+were all removed at cutover — the site needs none of it.
 
 ## Conventions
 
