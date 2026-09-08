@@ -23,7 +23,8 @@
     "make:og": "node scripts/make-og-card.js",
     "export:content": "node scripts/export-content.js",
     "apply:content": "node scripts/apply-content.js",
-    "build": "node scripts/build-static.js"
+    "build": "node scripts/build-static.js",
+    "preview": "node scripts/preview.js"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.658.1",
