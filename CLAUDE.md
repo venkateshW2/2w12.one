@@ -188,11 +188,17 @@ Rejected on the way here: an oscilloscope (3 traces, then 1), a DAW-style bar wa
 
 ## Cards
 
+**Output in a template is escaped.** The category line joined names with the
+string `&middot;`, which rendered as the literal characters `&middot;` on every
+multi-category card. Use the actual `·` character, not an HTML entity, inside
+`<%= %>`.
+
+
 - Hover: card lifts 2px, an accent bar sweeps the top edge, poster scales and brightens.
 - **Clicking anywhere neutral toggles `.expanded`**, revealing Collaboration / Technical / Location / Context, the album track list and the actions. The `+` rotates 45° into an ×.
 - Clicks on a link, button or track row **don't** toggle the card.
 - **Grid needs `items-start`.** A grid row defaults to `align-items: stretch`, so expanding one card grew the row and stretched its neighbours — which looked like every card in the row had opened.
-- **Uniform size** comes from the card, not the row: a fixed `9.5rem` body min-height plus a two-line title clamp, with the fixed 16/9 poster.
+- **Uniform size** comes from the card, not the row. `.card-head` — the block holding the meta row, title, role and blurb — has a **fixed `8rem` height and clips**; the details panel sits outside it so expanding can still grow the card. A `min-height` was tried first and isn't enough: it's only a floor, so a two-line title or a longer blurb pushed a card past its neighbours.
 - **The details panel animates `grid-template-rows: 0fr → 1fr`**, which resolves to the content's exact height. `max-height: 0 → 640px` looked like it stalled, because content shorter than 640px finished early and the rest of the duration did nothing.
 - **The blurb stays clamped at two lines.** It used to unclamp on expand with `transition: -webkit-line-clamp` — not an animatable property, so it snapped and shunted everything below it mid-animation.
 - **No play overlay.** It used to appear on any card with a URL, but 10 of 34 point at IMDb or GitHub and can't play. Playback is an explicit button inside the expanded card, shown **only** for genuinely embeddable sources (YouTube, Vimeo, direct audio/video, SoundCloud); external links get "Open ↗"; a card with no source just expands.

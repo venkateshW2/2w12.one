@@ -273,11 +273,14 @@
     .card-img { filter: saturate(.9) brightness(.85); transition: filter .3s ease, transform .4s ease; }
     .project-card:hover .card-img { filter: saturate(1) brightness(.62); transform: scale(1.04); }
 
-    /* Every collapsed card is the same size — a fixed body height plus the
-       fixed 16/9 poster. The grid uses items-start (so expanding one card can't
-       stretch its neighbours), which means uniformity has to come from the card
-       itself rather than from the row. */
-    .card-body { min-height: 9.5rem; }
+    /* Every collapsed card is exactly the same size. The grid uses items-start
+       (so expanding one card can't stretch its neighbours), which means
+       uniformity has to come from the card itself.
+       min-height was not enough — it is only a floor, so a two-line title or a
+       longer blurb pushed a card taller than its neighbours. The text block
+       above the fold now has a FIXED height and clips; the details panel lives
+       outside it so expanding can still grow the card. */
+    .card-head { height: 8rem; overflow: hidden; }
 
     /* Two lines each, always. The blurb used to unclamp on expand with a
        transition on -webkit-line-clamp — which is not an animatable property,
