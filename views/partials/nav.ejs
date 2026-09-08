@@ -55,9 +55,10 @@
 
       <span class="w-px h-4 bg-line mx-2"></span>
 
-      <%# There is no session on a static site. The only account surface is the
-          CMS, which authenticates against GitHub itself. %>
-      <a href="/admin/" class="menu-btn <%= on('/admin') ? 'here' : '' %>">Edit</a>
+      <%# No account surface in the public nav at all. The CMS is at /admin and
+          is reached by typing that URL — it authenticates against GitHub, so
+          nothing is protected by hiding the link; a "Login" or "Edit" item just
+          tells a client there's a back office and invites them to poke at it. %>
     </div>
 
     <!-- Mobile -->
@@ -79,9 +80,7 @@
       <a href="/tools/visualizer/" class="block py-1.5 text-muted hover:text-accent transition-colors">Visualizer</a>
       <a href="/tools/keyfinder/" class="block py-1.5 text-muted hover:text-accent transition-colors">Key Finder</a>
       <a href="/tools/youtube/" class="block py-1.5 text-muted hover:text-accent transition-colors">YouTube</a>
-      <div class="pt-3 border-t border-line mt-3">
-        <a href="/admin/" class="block py-1.5 text-muted hover:text-accent transition-colors">Edit</a>
-      </div>
+
     </div>
   </div>
 </nav>

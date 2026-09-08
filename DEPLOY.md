@@ -6,12 +6,36 @@ GitHub repo access. Total cost: **$0**.
 **Done — the site is live on `2w12.one`.** This is kept as the record of how it
 was set up, and what to repeat for another domain or another person's page.
 
-One hard-won warning, at the top because it takes a domain and its email
-offline: **if DNSSEC is enabled, disable it at the registrar before moving
-nameservers.** A `DS` record signed by the old provider's keys makes every
-validating resolver reject the domain entirely — website and MX alike. Check
-for it with `dig DS <domain>` first; it is not visible in a normal record
-listing.
+## Read this before touching DNS on any domain
+
+**If DNSSEC is enabled, disable it at the registrar *before* moving
+nameservers.** This took `2w12.one` — website *and* email — completely offline
+during the migration.
+
+A `DS` record at the registry is a fingerprint saying *only trust DNS answers
+signed by these keys*. Move to new nameservers and the keys no longer match, so
+every validating resolver returns SERVFAIL for everything, MX included. The
+error reads `DNSKEY Missing: no SEP matching the DS found`.
+
+```bash
+dig DS <domain>            # do this FIRST — a DS record is invisible in a
+                           # normal record listing, which is how it was missed
+```
+
+If anything comes back: turn DNSSEC off at the registrar, wait for it to clear,
+*then* move nameservers. Re-enable afterwards from the new provider's side —
+enable DNSSEC in Cloudflare, it issues a DS record, add that at the registrar.
+Never the reverse.
+
+Two more from the same migration:
+
+- **Cloudflare's DNS import misses records.** It brought over 13 of 15 —
+  dropping `api.2w12.one` (a live service on another host) and the
+  `k2ibe27i4e5y` Google-verification CNAME. Compare against the old provider's
+  list by hand before switching.
+- **Mail and verification records must be `DNS only`, never proxied.** A
+  proxied verification CNAME makes Cloudflare answer with its own IPs and the
+  verification fails.
 
 ---
 
@@ -78,25 +102,45 @@ when you save.
 
 ---
 
-## 3. The domain
+## 3. The domain — done, and what it took
 
-`2w12.one` currently points at GitHub Pages. Once the preview URL looks right:
+`2w12.one` was on GitHub Pages with DNS at Google (via Squarespace). Now:
+Cloudflare DNS, nameservers `keanu` / `maeve.ns.cloudflare.com`, apex and `www`
+as proxied CNAMEs to `2w12-one.pages.dev`.
 
-- In the Pages project → **Custom domains** → **Set up a custom domain** → `2w12.one`
-- Cloudflare tells you the DNS records. If the domain's DNS is already on
-  Cloudflare it can do it itself; otherwise add the records at your registrar.
-- Add `www.2w12.one` too if you want it to redirect.
+The sequence that worked:
 
-TLS is issued automatically. Propagation is usually minutes.
+1. **`dig DS 2w12.one`** → a DS record existed → disable DNSSEC at Squarespace
+2. Cloudflare → **Add a site** → *Connect a domain* → let it import DNS, then
+   **check the import by hand** and add what it missed
+3. Squarespace → **Use custom nameservers** → Cloudflare's two. (Squarespace
+   won't let you delete its defaults individually; switching to custom replaces
+   the set.) **Decline the DNSSEC prompt it shows afterwards.**
+4. Wait for the zone to go **Active**, then Pages → **Custom domains** →
+   `2w12.one`
+5. **Delete the four old `185.199.x.x` A records** — a CNAME can't coexist with
+   A records on the same name, so the apex can't point at Pages until they're
+   gone. Then add the CNAME Cloudflare asks for (`@` → `2w12-one.pages.dev`).
+6. Repoint `www` from `venkateshw2.github.io` to `2w12-one.pages.dev`
+7. GitHub → repo → Settings → Pages → **Remove** the custom domain, then
+   **Unpublish site**
 
-**Then turn off GitHub Pages** for this repo (Settings → Pages → source: None),
-so the old static site can't serve anything.
+TLS is automatic. One thing to expect: **your own machine will keep showing the
+old site** for up to an hour — the old records had a 1-hour TTL and local
+resolvers hold them. Check on a phone with wi-fi off to see the truth.
 
 ---
 
 ## Editing, once it's up
 
-Go to **2w12.one/admin**, click **Login with GitHub**.
+Go to **2w12.one/admin** and click **Login with GitHub**.
+
+**There is no link to it on the site.** That's deliberate — Sveltia
+authenticates against GitHub so hiding the URL protects nothing, but a "Login"
+item in the nav tells a client there's a back office. Bookmark it.
+
+The shareable link for a person is simply **`2w12.one/@<handle>`** —
+`2w12.one/@venkatesh`. The handle is editable under Site → Profile.
 
 - **Projects** — a searchable list of all 46, one form each. Filters for
   Featured / Hidden / Solo credit.

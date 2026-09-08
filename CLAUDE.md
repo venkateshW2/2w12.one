@@ -44,6 +44,36 @@ The measured content is **0.10 MB** and a full page visit is **~1 MB**. Any alwa
 
 Saving in the CMS is a git commit, so **an edit takes ~40s to appear live** rather than being instant. That's the price of having no server. It's fine for a portfolio; it would not be fine for anything conversational.
 
+## Live setup — the real values
+
+| | |
+|---|---|
+| Site | <https://2w12.one> — Cloudflare Pages project **`2w12-one`**, also at `2w12-one.pages.dev` |
+| Build | `npm run build` → `dist`, `NODE_VERSION=24`, production branch `main` |
+| **Shareable link** | **`https://2w12.one/@venkatesh`** — it's just the handle; there is no dashboard to copy it from |
+| CMS | <https://2w12.one/admin> — **no link to it anywhere in the public UI**, reached by typing the URL |
+| CMS auth relay | `https://sveltia-cms-auth.w2-dc4.workers.dev` (Cloudflare Worker, free tier) |
+| Worker vars | `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET` (secret), `ALLOWED_DOMAINS` |
+| DNS | Cloudflare — nameservers `keanu` / `maeve.ns.cloudflare.com`; registrar is Squarespace |
+| Email | Google Workspace on this domain — 5 MX + SPF + DKIM, all in Cloudflare DNS |
+| Editors | GitHub collaborators on `venkateshW2/2w12.one` |
+| Cost | **$0/month** |
+
+**There is deliberately no "Login" or "Edit" item in the nav.** Sveltia authenticates against GitHub, so hiding the link protects nothing — but showing one tells a client there's a back office and invites them to try it. Bookmark `/admin` instead. Don't re-add it to the nav.
+
+### DNS: the mistake that took the domain down
+
+Moving nameservers to Cloudflare broke the whole domain — website **and email** — for a while, and it's the one failure worth never repeating.
+
+The domain already had **DNSSEC** enabled from its Google DNS setup, which publishes a `DS` record at the registry: a fingerprint saying *only trust answers signed by these keys*. Point the domain at new nameservers and those keys no longer match, so every validating resolver returns SERVFAIL for everything — MX included. The symptom is `DNSKEY Missing: no SEP matching the DS found`.
+
+**Before any nameserver move: `dig DS <domain>` and disable DNSSEC at the registrar if anything comes back.** A `DS` record does **not** appear in a normal record listing, which is exactly why the pre-flight check missed it. Re-enable afterwards from the *new* provider's side: enable DNSSEC in Cloudflare → it issues a DS record → add that at the registrar. Never the other way round.
+
+Two smaller things from the same migration:
+
+- **Cloudflare's DNS scan misses records.** It imported 13 of 15 — it dropped `api.2w12.one` (a live service on another host) and the `k2ibe27i4e5y` Google-verification CNAME. Compare against the old provider's list by hand.
+- **Verification and mail records must be `DNS only`**, never proxied. Proxying a verification CNAME makes Cloudflare answer with its own IPs and the verification fails.
+
 ## Content model
 
 The `data/` folder is the single source of truth, and it is exactly what the CMS
@@ -210,6 +240,28 @@ multi-category card. Use the actual `·` character, not an HTML entity, inside
 
 Cards with no stored cover fall back to the YouTube thumbnail, so a project only needs artwork if it isn't a YouTube link.
 
+## Where the assets live
+
+Everything is in this repo and served by Cloudflare Pages from the build. There
+is no object storage in the picture yet.
+
+| | Path | Size |
+|---|---|---|
+| Content | `data/` | ~200 KB |
+| Images the site serves | `public/images/**.webp` | **1.0 MB**, 26 files |
+| Originals, kept as masters, never served | `public/images/**.{png,jpg}` | **29.3 MB**, 28 files |
+| Git history | `.git` | ~34 MB |
+
+CMS uploads commit into `public/images/projects/`. The gallery is currently
+**empty** — `data/gallery.json` has zero items.
+
+GitHub's limits are 100 MB per file and roughly 1 GB per repo, so images have
+plenty of headroom. **Audio and video do not** — a few GB of stems would exceed
+what a git repo should hold, and every version stays in history permanently.
+That is what **R2** is for: Sveltia uploads to it directly, so the media lives
+there while only its URL lives in `data/`. Set that up *before* adding the
+CNTRL/Schirkoa material, not after.
+
 ## Share cards (Open Graph)
 
 This is what makes a pasted link render as a card in WhatsApp/Slack/iMessage instead of a bare URL — the whole point of handing someone `/@venkatesh`.
@@ -282,10 +334,11 @@ were all removed at cutover — the site needs none of it.
 
 ## Still to do
 
-1. **Build the static site** — the cutover above.
-2. **Headshot** exists (`/images/venkateshheadhsot.webp`); the group's other members don't have pages yet.
-3. **Sonify / Wall Harp screenshots** — both have artwork now; Drive Audio Analyzer doesn't and is hidden.
-4. **22 tracks have no year.**
-5. **The fingerprint is still synthetic** — see above for what makes it real.
-6. **`/work` is a coming-soon page.**
-7. **Audio hosting** — if the sidebar player is ever wanted here, it needs reachable audio files; R2 is the intended home. The CNTRL and Schirkoa material is in a private Backblaze bucket.
+1. **Only one person has a page.** The group's other members need `profile.json`-equivalents; the content model assumes one profile today, so adding a second means the build looping over profiles rather than reading one file.
+2. **22 tracks have no year** — mostly nested album pieces.
+3. **Drive Audio Analyzer has no artwork** and is `hidden` because of it.
+4. **The fingerprint is still synthetic** — see above for what would make it real.
+5. **`/work` is a coming-soon page.**
+6. **Audio hosting.** The sidebar player has nothing to stream: it only accepts direct audio files and there are none. The CNTRL and Schirkoa material sits in a private Backblaze bucket whose public-bucket payment gate failed with "error code 2". R2 is the intended home either way.
+7. **`ALLOWED_DOMAINS` on the Worker still includes `*.pages.dev`** from testing. Trim to just `2w12.one`.
+8. **A DMARC record** would complete the email setup — SPF and DKIM are in place, `_dmarc` was never set.
