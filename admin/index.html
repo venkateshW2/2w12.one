@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Edit — 2w12.one</title>
+  <link rel="icon" href="data:,">
+  <style>
+    /* Shown only until the CMS boots. */
+    body { margin: 0; background: #0c0c0c; color: #86837c;
+           font: 400 13px/1.6 ui-monospace, SFMono-Regular, Menlo, monospace; }
+    #boot { padding: 3rem 1.5rem; max-width: 34rem; }
+    #boot b { color: #c98a3f; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div id="boot">
+    <p><b>2w12.one</b> — loading the editor…</p>
+    <p>If this doesn't go away, the CMS script failed to load, or the GitHub
+       login relay isn't configured yet. Check <code>admin/config.yml</code>.</p>
+  </div>
+
+  <!-- Sveltia CMS is a single client-side script; there is no build step and
+       nothing server-side. It reads admin/config.yml, then talks to the GitHub
+       API as whoever logged in. -->
+  <script src="https://unpkg.com/@sveltia/cms/dist/sveltia-cms.js" type="module"></script>
+</body>
+</html>

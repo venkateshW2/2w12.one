@@ -1,0 +1,24 @@
+{
+  "title": "Mind Quantize",
+  "year": 2019,
+  "role": "Developed",
+  "tags": [
+    "GALLERY",
+    "SOFTWARE",
+    "LABS"
+  ],
+  "cover_image_url": "/images/projects/Mind.webp",
+  "source_url": "https://2w12.one/",
+  "external_url": "",
+  "description": "Interactive installation interpreting brainwaves into sonic structures. Audio-visual installation at Serendipity Art Festival based on interpreting brainwaves into sonic structures.",
+  "collaboration": "Serendipity Art Festival",
+  "location": "Goa",
+  "technical": "EEG sensors, Max/MSP, real-time audio processing",
+  "context": "",
+  "featured": true,
+  "hidden": false,
+  "solo_credit": false,
+  "credit_note": "",
+  "sort_order": 50,
+  "parent_title": ""
+}

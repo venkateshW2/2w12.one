@@ -46,20 +46,40 @@ Saving in the CMS is a git commit, so **an edit takes ~40s to appear live** rath
 
 ## Cutover status — READ THIS FIRST
 
-The static build **is not built yet**. This document describes the target, decided and agreed. Until it exists, the repo still contains an Express/Knex app that serves the same pages, deployed on Render.
+**Built and verified locally; not yet hosted.** The Express/Knex app is still in
+this repo and still serving the live site until step 3 completes.
 
-Order of work, deliberately with deletion last:
+| Step | State |
+|---|---|
+| 1. Static build (`npm run build` → `dist/`) | **done** — output verified identical to the Express render |
+| 2. Sveltia CMS at `/admin` | **done** — needs one value: the auth Worker URL in `admin/config.yml` |
+| 3. Cloudflare Pages + DNS | **yours to do** — see `DEPLOY.md` |
+| 4. Delete Render, strip the server code | after step 3 |
 
-1. Static build reading `data/content.json` — verify it renders identically on a Cloudflare Pages preview URL
-2. Sveltia config + `sveltia-cms-auth` Worker, so editing and GitHub login work
-3. Point `2w12.one` DNS at Cloudflare Pages
-4. **Then** delete the Render service and its database, and strip the server code, its routes/views/deps and the DB scripts from this repo
+`npm run build` then `npm run preview` serves the built site at
+<http://localhost:4000> for checking before anything is hosted.
 
-Nothing gets deleted until the replacement is proven. When step 4 completes, delete this section.
+Nothing gets deleted until the replacement is serving the domain. When step 4
+completes, delete this section and `DEPLOY.md`'s step 4.
 
 ## Content model
 
-`data/content.json` is the single source of truth. Shape:
+The `data/` folder is the single source of truth, and it is exactly what the CMS
+edits:
+
+```
+data/profile.json          the person — bio, links, handle, headshot
+data/projects/<slug>.json  one file per project (46 of them)
+data/status.json           the landing page's status lines
+data/gallery.json          loose images and video
+```
+
+**One file per project on purpose.** A single JSON blob holding 46 projects
+would give the CMS one enormous form with a 46-item list widget; a folder gives
+a searchable list with per-project edit pages — the shape a CMS is for.
+`data/content.json` is the pre-split original, kept only as a record.
+
+Filenames are the slugified title. Project shape:
 
 ```json
 {
@@ -109,7 +129,7 @@ Field notes:
 - **`parent_title`** nests album pieces under a parent by title, not id. Titles are the keys throughout, because ids are meaningless in a file.
 - **`source_url`** is the *playable* thing; **`external_url`** is the IMDb/official/GitHub page behind "View project". Keep them separate.
 - **`role` is the badge text, verbatim.** Free text, no lookup table — what's typed is what the card shows. Empty means no badge. The five in use: Sound Design + Mix, Score + Stem Mix, Stem Mix + Supervision, Music Production + Management, Developed — plus hand-typed ones like "MultiChannel Mix", "Sound Design + Atmos Mix".
-- **`tags`** is a comma-separated list from the category taxonomy; it drives the section tabs and their order.
+- **`tags`** is a **list** in the files (so the CMS offers checkboxes) and joined to a comma string for the templates. It drives the section tabs and their order.
 - **`hidden`** takes a project off the site without deleting it. **A hidden parent hides its nested pieces too**, or an album loses its card but keeps feeding the lightbox.
 - **`solo_credit` / `credit_note`** flag work where every sound department was one person — a materially different claim from one credit among many, so it gets a flag rather than being buried in `role`. Set on Folk 2.0 Documentary (also the Masters thesis project), A Passage Through Passages, and A Terrible Beauty.
 - **`sort_order`** pins a card; page order is pinned → featured → newest → title.
@@ -239,6 +259,28 @@ Five things that each broke this, none of which failed loudly:
 Each person's page is **`/@handle`** — `2w12.one/@venkatesh`. Handles default to the first name.
 
 The **`@` prefix is deliberate**: a bare `/venkatesh` would compete with every real and future top-level path, and would have to be the last route registered. With `@` it can shadow nothing. `lib/slug.js`'s reserved list therefore only keeps handles sensible (no `/@admin`), rather than protecting routing.
+
+## The CMS
+
+`admin/index.html` loads Sveltia CMS from a CDN — one client-side script, no
+build step — and `admin/config.yml` declares what it edits. Saving commits to
+`main`, which rebuilds the site. **An edit is live in ~40s, not instantly.**
+
+- **Projects** — searchable list of all 46, one form each, with filters for
+  Featured / Hidden / Solo credit and sorting by title, year or pin.
+- **Site → Profile / Landing status lines / Gallery** — the single files.
+- Uploads go to `public/images/projects` and are referenced root-relative,
+  which is what the templates expect.
+
+`backend.base_url` must point at a deployed `sveltia-cms-auth` Worker; a
+browser-only app can't do GitHub's OAuth secret exchange alone. `DEPLOY.md` has
+the steps.
+
+**Adding an editor is a GitHub collaborator invite.** Write access is the login.
+
+Two things the CMS can't do, which stay local commands: `npm run make:og` after
+re-ordering (the mosaic follows pin/feature/hidden order) and
+`npm run optimize:images` after adding artwork.
 
 ## Conventions
 

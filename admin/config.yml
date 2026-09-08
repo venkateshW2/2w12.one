@@ -1,0 +1,190 @@
+# Sveltia CMS configuration.
+#
+# Editing here commits straight to this repo, which triggers a Cloudflare Pages
+# rebuild. There is no database and no user table: whoever has write access to
+# the repo can edit, and nobody else can.
+#
+# base_url must point at a deployed sveltia-cms-auth Worker — a browser-only app
+# can't complete GitHub's OAuth secret exchange on its own. See DEPLOY.md.
+
+backend:
+  name: github
+  repo: venkateshW2/2w12.one
+  branch: main
+  base_url: https://REPLACE-ME.workers.dev
+
+# Uploads land next to the posters and are referenced by root-relative path,
+# which is what the templates expect.
+media_folder: public/images/projects
+public_folder: /images/projects
+
+publish_mode: simple
+site_url: https://2w12.one
+display_url: https://2w12.one
+logo_url: /images/og/venkatesh.jpg
+
+collections:
+  # ---------------------------------------------------------------- projects
+  - name: projects
+    label: Projects
+    label_singular: Project
+    folder: data/projects
+    extension: json
+    format: json
+    create: true
+    slug: '{{fields.title | slugify}}'
+    identifier_field: title
+    summary: '{{title}}  ·  {{year}}  ·  {{role}}'
+    sortable_fields: [title, year, sort_order]
+    view_filters:
+      - { label: Featured, field: featured, pattern: true }
+      - { label: Hidden, field: hidden, pattern: true }
+      - { label: Solo credit, field: solo_credit, pattern: true }
+    fields:
+      - { name: title, label: Title, widget: string }
+      - { name: year, label: Year, widget: number, value_type: int, required: false }
+
+      - name: role
+        label: Badge
+        hint: The orange tag on the card. Free text — whatever you type is what shows. Leave empty for no badge.
+        widget: string
+        required: false
+
+      - name: tags
+        label: Categories
+        hint: Drives which section tabs the project appears under.
+        widget: select
+        multiple: true
+        required: false
+        options:
+          - FILM
+          - SERIES
+          - TVC
+          - DIGITAL ADVT
+          - SHORT FILM
+          - DOCUMENTARY
+          - RECORDING
+          - GALLERY
+          - SOFTWARE
+          - RESEARCH
+          - LABS
+
+      - name: cover_image_url
+        label: Cover image
+        hint: Leave empty and a YouTube link uses its own thumbnail.
+        widget: image
+        required: false
+        allow_multiple: false
+
+      - name: source_url
+        label: Link (the playable thing)
+        hint: YouTube, Vimeo, SoundCloud or a direct audio/video file. Anything else gets an "Open" button instead of "Play".
+        widget: string
+        required: false
+
+      - name: external_url
+        label: Project page
+        hint: IMDb, official site, GitHub — sits behind "View project".
+        widget: string
+        required: false
+
+      - { name: description, label: Description, widget: text, required: false }
+      - { name: collaboration, label: Collaboration, widget: string, required: false }
+      - { name: location, label: Location, widget: string, required: false }
+      - { name: technical, label: Technical, widget: string, required: false }
+      - { name: context, label: Context, widget: string, required: false }
+
+      - name: featured
+        label: Featured
+        hint: Featured work sorts above everything unpinned.
+        widget: boolean
+        default: false
+
+      - name: hidden
+        label: Hidden
+        hint: Keeps the project here but takes it off the public site. Hiding a parent hides its nested pieces too.
+        widget: boolean
+        default: false
+
+      - name: solo_credit
+        label: Solo — every department
+        widget: boolean
+        default: false
+
+      - { name: credit_note, label: Solo credit note, widget: string, required: false }
+
+      - name: sort_order
+        label: Pin
+        hint: Higher sits further up. 0 means unpinned.
+        widget: number
+        value_type: int
+        default: 0
+
+      - name: parent_title
+        label: Part of (album)
+        hint: The exact title of the parent project, for songs or segments. Leave empty for a top-level project.
+        widget: string
+        required: false
+
+  # ----------------------------------------------------------------- profile
+  - name: site
+    label: Site
+    files:
+      - name: profile
+        label: Profile
+        file: data/profile.json
+        fields:
+          - { name: name, label: Name, widget: string }
+          - { name: slug, label: Handle, hint: 'Your page lives at 2w12.one/@handle', widget: string }
+          - { name: tagline, label: Tagline, widget: string, required: false }
+          - { name: bio_long, label: Bio, widget: text, required: false }
+          - { name: education, label: Education, hint: One per line., widget: text, required: false }
+          - { name: avatar_url, label: Headshot, widget: image, required: false }
+          - { name: email, label: Email, widget: string, required: false }
+          - { name: phone, label: Phone, widget: string, required: false }
+          - { name: location, label: Location, widget: string, required: false }
+          - { name: website_url, label: Website, widget: string, required: false }
+          - { name: instagram_url, label: Instagram, widget: string, required: false }
+          - { name: linkedin_url, label: LinkedIn, widget: string, required: false }
+          - { name: twitter_url, label: Twitter / X, widget: string, required: false }
+          - { name: substack_url, label: Substack, widget: string, required: false }
+          - { name: soundcloud_url, label: SoundCloud, widget: string, required: false }
+          - { name: spotify_url, label: Spotify, widget: string, required: false }
+          - { name: imdb_url, label: IMDb, widget: string, required: false }
+
+      - name: status
+        label: Landing status lines
+        file: data/status.json
+        fields:
+          - name: lines
+            label: Lines
+            label_singular: Line
+            widget: list
+            summary: '{{label}}: {{body}}'
+            fields:
+              - { name: label, label: Label, widget: string }
+              - { name: body, label: Text, widget: string }
+              - { name: note, label: Dimmed aside, widget: string, required: false }
+              - { name: sort_order, label: Order, hint: Higher sits further up., widget: number, value_type: int, default: 0 }
+
+      - name: gallery
+        label: Gallery
+        file: data/gallery.json
+        fields:
+          - name: items
+            label: Items
+            label_singular: Item
+            widget: list
+            summary: '{{caption}}  ·  {{kind}}'
+            fields:
+              - { name: url, label: Image or video, widget: image }
+              - { name: kind, label: Kind, widget: select, options: [image, video], default: image }
+              - { name: caption, label: Caption, widget: string, required: false }
+              - name: scope
+                label: Which gallery
+                widget: select
+                default: mine
+                options:
+                  - { label: My portfolio, value: mine }
+                  - { label: 2w12.one studio, value: company }
+              - { name: sort_order, label: Order, widget: number, value_type: int, default: 0 }

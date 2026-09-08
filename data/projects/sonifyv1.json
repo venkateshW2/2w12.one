@@ -1,0 +1,22 @@
+{
+  "title": "SonifyV1",
+  "year": 2025,
+  "role": "Developed",
+  "tags": [
+    "SOFTWARE"
+  ],
+  "cover_image_url": "/images/sonifyV1.webp",
+  "source_url": "https://github.com/venkateshW2/sonifyv.1",
+  "external_url": "https://github.com/venkateshW2/sonifyv.1",
+  "description": "Turns traffic into music. Computer-vision detection tracks vehicles across a live camera or video file; user-drawn trigger lines fire notes as vehicles cross them, with trajectory trails, velocity vectors and occlusion tracking feeding a tempo-synchronized microtonal scale engine. Outputs MIDI and OSC, so it drives any DAW or synth.",
+  "collaboration": "",
+  "location": "",
+  "technical": "C++, ML vehicle detection (confidence threshold + frame skip), multi-line crossing triggers, occlusion tracking, microtonal scale manager, MIDI + OSC output, USB/IP camera or file input",
+  "context": "",
+  "featured": false,
+  "hidden": false,
+  "solo_credit": false,
+  "credit_note": "",
+  "sort_order": 0,
+  "parent_title": ""
+}

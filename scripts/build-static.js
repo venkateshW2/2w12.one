@@ -5,7 +5,9 @@
 // is a list of permalinks. Adding Eleventy or Astro would mean porting the
 // templates and inheriting a plugin's version churn for no gain here.
 //
-// data/content.json is the only input. Nothing queries anything at build time.
+// Input is the data/ folder — profile.json, projects/*.json, status.json,
+// gallery.json — which is exactly what the CMS edits. Nothing is queried at
+// build time.
 //
 // Usage: npm run build            (SITE_URL=https://2w12.one by default)
 //        SITE_URL=... npm run build
@@ -50,6 +52,36 @@ function copyDir(from, to) {
     }
   }
   return n;
+}
+
+// ------------------------------------------------------------------- content
+// Read the same files the CMS writes. One project per file, so the CMS gets a
+// real list view instead of one form with a 46-item widget.
+function readContent() {
+  const dataDir = path.join(ROOT, 'data');
+  const readJson = (f, fallback) => {
+    const abs = path.join(dataDir, f);
+    return fs.existsSync(abs) ? JSON.parse(fs.readFileSync(abs, 'utf8')) : fallback;
+  };
+
+  const projectsDir = path.join(dataDir, 'projects');
+  const tracks = fs.existsSync(projectsDir)
+    ? fs
+        .readdirSync(projectsDir)
+        .filter((f) => f.endsWith('.json'))
+        .map((f) => {
+          const t = JSON.parse(fs.readFileSync(path.join(projectsDir, f), 'utf8'));
+          // tags is a list in the files and a comma string in the templates.
+          return { ...t, tags: Array.isArray(t.tags) ? t.tags.join(',') : t.tags || '' };
+        })
+    : [];
+
+  return {
+    profile: readJson('profile.json', {}),
+    tracks,
+    status_lines: (readJson('status.json', { lines: [] }).lines || []).slice().sort((a, b) => (b.sort_order || 0) - (a.sort_order || 0)),
+    gallery_items: readJson('gallery.json', { items: [] }).items || []
+  };
 }
 
 // ---------------------------------------------------------------- view model
@@ -187,7 +219,7 @@ function shareMeta(profile, items) {
 
 // -------------------------------------------------------------------- build
 async function main() {
-  const content = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'content.json'), 'utf8'));
+  const content = readContent();
   const view = profileView(content);
   const { profile } = view;
 
@@ -292,8 +324,9 @@ async function main() {
 
   // ---- assets ----
   const assets = copyDir(path.join(ROOT, 'public'), OUT);
+  const admin = copyDir(path.join(ROOT, 'admin'), path.join(OUT, 'admin'));
   const tools = copyDir(path.join(ROOT, 'docs', 'tools'), path.join(OUT, 'tools'));
-  console.log(`\n  ${assets} files from public/, ${tools} from docs/tools/`);
+  console.log(`\n  ${assets} files from public/, ${tools} from docs/tools/, ${admin} from admin/`);
   console.log(`  ${pages.length} pages -> dist/  (origin ${ORIGIN})`);
 }
 

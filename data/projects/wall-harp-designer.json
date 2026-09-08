@@ -1,0 +1,23 @@
+{
+  "title": "Wall Harp Designer",
+  "year": 2026,
+  "role": "Developed",
+  "tags": [
+    "SOFTWARE",
+    "RESEARCH"
+  ],
+  "cover_image_url": "/images/wallharpdesigner.webp",
+  "source_url": "https://venkateshw2.github.io/wall-harpDesigner/",
+  "external_url": "https://github.com/venkateshW2/wall-harpDesigner",
+  "description": "Browser-based physics simulator and tuning calculator for a wall harp with a dual-capo tuning system — calculates string type, length and tension for musical intervals across a configurable wall, with Karplus-Strong plucked synthesis for auditioning each string.",
+  "collaboration": "",
+  "location": "",
+  "technical": "JavaScript, wave equation f = v / (2L), dual-capo pitch modelling, Karplus-Strong synthesis, up to 783 strings",
+  "context": "Instrument design tool",
+  "featured": false,
+  "hidden": false,
+  "solo_credit": false,
+  "credit_note": "",
+  "sort_order": 0,
+  "parent_title": ""
+}

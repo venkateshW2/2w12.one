@@ -1,0 +1,22 @@
+{
+  "title": "Drive Audio Analyzer",
+  "year": 2025,
+  "role": "Developed",
+  "tags": [
+    "SOFTWARE"
+  ],
+  "cover_image_url": "",
+  "source_url": "https://github.com/venkateshW2/drive-audio-analyzer",
+  "external_url": "https://github.com/venkateshW2/drive-audio-analyzer",
+  "description": "Audio analysis tool for files held in Google Drive — batch analysis and sample triage without pulling everything down locally. Python analysis backend lives in 2w12-backend.",
+  "collaboration": "",
+  "location": "",
+  "technical": "JavaScript front end, Python analysis backend, Google Drive API",
+  "context": "",
+  "featured": false,
+  "hidden": true,
+  "solo_credit": false,
+  "credit_note": "",
+  "sort_order": 0,
+  "parent_title": ""
+}
