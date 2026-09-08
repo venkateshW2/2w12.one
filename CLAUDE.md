@@ -343,6 +343,40 @@ Five things that each broke this, none of which failed loudly:
 - `gradient:` only renders **top-to-bottom**. A left-to-right scrim must be built tall and `-rotate 270`'d, or it composites invisibly and the text sits unreadable over the artwork.
 - Chat apps **cache a preview against the exact URL and never re-check**. Force a refresh with [Facebook's Sharing Debugger](https://developers.facebook.com/tools/debug/) → *Scrape Again* (WhatsApp shares that crawler cache), or share `?v=2`. `og:image` also carries `?v=<mtime>` so a regenerated card is fetched fresh.
 
+## Email signature
+
+`npm run make:signature` builds an animated glitching wordmark and the
+paste-able signature HTML sits in `docs/email-signature.html` (two variants,
+dark card and light badge, with per-client paste instructions).
+
+**Motion in email means a GIF and nothing else.** Every client strips
+`@keyframes`, so the site's CSS glitch cannot travel. The GIF reproduces the
+same slice-displacement technique frame by frame, and the same rule holds:
+chromatic offsets on slip frames only, never at rest.
+
+- **Frame 0 is deliberately the clean wordmark.** Outlook on Windows renders
+  GIFs through Word and shows *only the first frame*, so the worst case degrades
+  to a correct static logo rather than a frozen slip.
+- **The wordmark's background cannot be transparent.** The glitch works by
+  painting displaced copies with the background so they occlude what is beneath
+  — that is the technique, not a shortcut. Hence the dark card, where there is
+  no seam.
+- **Intermediates are MIFF, not PNG.** A white word on a black ground is pure
+  grey, so PNG's encoder writes it as Grayscale — it re-detects type on write
+  and ignores `-type` — and compositing the magenta fringe onto a greyscale base
+  discards every trace of colour. The glitch rendered perfectly and came out
+  black and white. This failed silently twice.
+- **Write negative offsets as `-5+29`, not `+-5+29`.** ImageMagick geometry
+  built by string interpolation produces the latter.
+- The wordmark is real **Inter ExtraBold**, in `assets/fonts/`, instanced from
+  Google's variable Inter with `fontTools` so it matches the site's face. Kept
+  in the repo so the script needs no network.
+- **`optimize:images` must never touch `public/images/email/`.** Its `DIRS` is
+  an explicit allowlist and the email folder is not in it — leave it that way. A
+  WebP wordmark would silently stop rendering in most mail clients.
+- An email refetches that URL forever. **Moving the GIF's path breaks every
+  signature already sent.**
+
 ## Handles
 
 Each person's page is **`/@handle`** — `2w12.one/@venkatesh`. Handles default to the first name.

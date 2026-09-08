@@ -2,7 +2,7 @@
   "name": "2w12-one",
   "version": "1.0.0",
   "private": true,
-  "description": "2w12.one \u2014 static site built from data/, edited with Sveltia CMS, hosted on Cloudflare Pages",
+  "description": "2w12.one — static site built from data/, edited with Sveltia CMS, hosted on Cloudflare Pages",
   "engines": {
     "node": "24.x"
   },
@@ -10,7 +10,8 @@
     "build": "node scripts/build-static.js",
     "preview": "node scripts/preview.js",
     "make:og": "node scripts/make-og-card.js",
-    "optimize:images": "node scripts/optimize-images.js"
+    "optimize:images": "node scripts/optimize-images.js",
+    "make:signature": "node scripts/make-email-signature.js"
   },
   "dependencies": {
     "ejs": "^3.1.10"
