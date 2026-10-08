@@ -7,6 +7,7 @@
   ],
   "cover_image_url": "/images/projects/Passage.webp",
   "source_url": "https://studio.camp/projects/passages/",
+  "audio_url": "",
   "external_url": "https://studio.camp/projects/passages/",
   "description": "A 5-screen film that was at the centre of an exhibition that opened in January 2020 at SOAS, London. Exploring newly rebuilt roads across Pakistan, Sri Lanka, Maldives, and India.",
   "collaboration": "Studio Camp / SOAS",
@@ -17,6 +18,6 @@
   "hidden": false,
   "solo_credit": true,
   "credit_note": "Solo — every department: recording, sound design, multichannel mix.",
-  "sort_order": 80,
+  "sort_order": 95,
   "parent_title": ""
 }
